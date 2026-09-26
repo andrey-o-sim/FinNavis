@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Shared MSBuild settings for every project in the solution.
+    Put a setting here instead of repeating it in each .csproj.
+    A single .csproj can still override any value.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Product>FinNavis</Product>
+    <Company>FinNavis</Company>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>

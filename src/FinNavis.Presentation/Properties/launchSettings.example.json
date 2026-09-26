@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+
+  "//": [
+    "Template for the local launchSettings.json. The real file is git-ignored.",
+    "Copy it: cp launchSettings.example.json launchSettings.json, then fill in the values.",
+    "Never commit real values. Keep secrets out of this file."
+  ],
+
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "",
+        "ConnectionStrings__FinNavisDb": "",
+        "Logging__LogLevel__Default": ""
+      }
+    },
+
+    "https": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "",
+        "ConnectionStrings__FinNavisDb": "",
+        "Logging__LogLevel__Default": ""
+      }
+    }
+  },
+
+  "environmentVariableReference": {
+    "ASPNETCORE_ENVIRONMENT": "Which appsettings file is layered on top. Development | Staging | Production.",
+    "ASPNETCORE_URLS": "Optional. Overrides applicationUrl. Example shape: http://localhost:PORT;https://localhost:PORT.",
+    "ConnectionStrings__FinNavisDb": "PostgreSQL connection string. Shape: Host=HOST;Port=PORT;Database=NAME;Username=USER;Password=PASSWORD",
+    "Logging__LogLevel__Default": "Minimum log level. Trace | Debug | Information | Warning | Error | Critical."
+  }
+}

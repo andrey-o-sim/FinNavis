@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FinNavis.Application\FinNavis.Application.csproj" />
+    <!-- Composition root only: Presentation references Infrastructure to register its services in DI. -->
+    <ProjectReference Include="..\FinNavis.Infrastructure\FinNavis.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

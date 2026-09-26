@@ -1,0 +1,43 @@
+# Build output
+bin/
+obj/
+artifacts/
+TestResults/
+*.user
+*.suo
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.swp
+
+# Local run settings. Copy launchSettings.example.json instead.
+launchSettings.json
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Secrets and environment files. Never commit these.
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# OS
+.DS_Store
+Thumbs.db
