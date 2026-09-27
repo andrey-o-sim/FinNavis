@@ -7,24 +7,23 @@ change when we swap a database, a web framework, or a UI.
 ## The rings
 
 ```
-    ┌──────────────────────────────────────────────────────────┐
-    │  Presentation (ASP.NET Core Web API)                     │
-    │  HTTP, minimal API endpoints, DI wiring                  │
-    │   ┌──────────────────────────────────────────────────┐   │
-    │   │  Infrastructure (EF Core, PostgreSQL)            │   │
-    │   │  adapters: implements every port                 │   │
-    │   │   ┌──────────────────────────────────────────┐   │   │
-    │   │   │  Application                             │   │   │
-    │   │   │  use cases + outside-world ports         │   │   │
-    │   │   │   ┌──────────────────────────────────┐   │   │   │
-    │   │   │   │  Domain                          │   │   │   │
-    │   │   │   │  entities, rules                 │   │   │   │
-    │   │   │   │  + repository ports              │   │   │   │
-    │   │   │   └──────────────────────────────────┘   │   │   │
-    │   │   └──────────────────────────────────────────┘   │   │
-    │   └──────────────────────────────────────────────────┘   │
-    └──────────────────────────────────────────────────────────┘
+   ┌─────────────────────────┬─────────────────────────┐
+   │      Presentation       │     Infrastructure      │   outer ring
+   │  HTTP, minimal APIs,    │  EF Core, PostgreSQL,   │
+   │  composition root (DI)  │  adapters for all ports │
+   ├─────────────────────────┴─────────────────────────┤
+   │                   Application                     │   inner rings
+   │        use cases + outside-world ports            │
+   │   ┌───────────────────────────────────────────┐   │
+   │   │                 Domain                    │   │
+   │   │     entities, rules, repository ports     │   │
+   │   └───────────────────────────────────────────┘   │
+   └───────────────────────────────────────────────────┘
 ```
+
+**Presentation and Infrastructure are peers.** They both live in the outer ring, side by side.
+Neither one wraps the other, and neither one sits between Application and the outside. They are
+two different edges of the same application: one faces the user, the other faces the database.
 
 Ports sit in both inner rings. Adapters sit in the outer ring. See
 [Ports and adapters](#ports-and-adapters) for what counts as a port.
@@ -61,8 +60,10 @@ Application references Domain only. It contains no EF Core, no HTTP, no SQL.
 The adapters. This is where the ports get real implementations: EF Core `DbContext`, entity
 configurations, migrations, repositories, and anything else that talks to the outside world.
 
-Infrastructure references Application and Domain. Nothing references Infrastructure except the
-composition root.
+Infrastructure uses both inner rings: it implements ports from Domain and from Application. In
+the project file it references Application only, and Domain arrives transitively. That is on
+purpose — see [Why Infrastructure has no reference to Domain](#why-infrastructure-has-no-reference-to-domain).
+Nothing references Infrastructure except the composition root.
 
 ### Presentation — `src/FinNavis.Presentation`
 
@@ -113,12 +114,16 @@ Presentation registers each port against its adapter in DI at startup.
 **Source code dependencies point inward only. An inner ring never knows about an outer ring.**
 
 ```
-Presentation ──> Application ──> Domain
-       │                            ▲
-       └──> Infrastructure ─────────┘
+     ┌───────────────────────────────────┐
+     │                                   ▼
+Presentation ──> Infrastructure ──> Application ──> Domain
+                       │                                ▲
+                       └────────────────────────────────┘
 ```
 
-The compiler enforces most of this through project references:
+Read it left to right: outer ring first, innermost ring last. Every arrow points right, which is
+the same as saying every dependency points inward. There are five of them — the chain, plus
+`Presentation -> Application` over the top and `Infrastructure -> Domain` underneath.
 
 | Project        | May reference                |
 | -------------- | ---------------------------- |
@@ -126,6 +131,61 @@ The compiler enforces most of this through project references:
 | Application    | Domain                       |
 | Infrastructure | Application, Domain          |
 | Presentation   | Application, Infrastructure  |
+
+The table says what a project **may** reference. It is a permission list, not a description of
+what is in the `.csproj` files today.
+
+### Why Infrastructure has no reference to Domain
+
+Look at `FinNavis.Infrastructure.csproj` and you find one `ProjectReference`, to Application.
+The diagram above still draws an arrow from Infrastructure to Domain. Both are correct. This
+trips people up, so here is the full story.
+
+**`ProjectReference` is transitive.** Infrastructure references Application, Application
+references Domain, so Domain types are already visible inside Infrastructure. Writing
+`EfAccountRepository : IAccountRepository` compiles with no change to the project file.
+
+We checked this rather than assumed it. Adding `IAccountRepository` to Domain and its EF Core
+implementation to Infrastructure builds clean, and the compiled `FinNavis.Infrastructure.dll`
+then carries an assembly reference to `FinNavis.Domain`.
+
+**So the dependency is real, it is just not declared.** We keep it that way on purpose. A second
+`ProjectReference` would add a line that changes nothing about what compiles. Do not "fix" the
+csproj by adding one.
+
+There is a second surprise in the same place. The compiler writes an assembly reference only for
+assemblies whose types are actually used. While Infrastructure implements no Application port,
+`FinNavis.Infrastructure.dll` carries **no** reference to `FinNavis.Application`, even though the
+csproj declares one.
+
+Two graphs, and they disagree in both directions:
+
+| Edge | Declared in csproj | Present in the built assembly |
+| ---- | ------------------ | ----------------------------- |
+| Infrastructure -> Application | yes | only once an Application port is implemented |
+| Infrastructure -> Domain      | no  | as soon as a Domain port is implemented       |
+
+Neither graph tells the whole truth alone. That is why the next section has two test classes and
+not one.
+
+### What enforces this
+
+Two things, and it takes both.
+
+**The compiler** catches a wrong *project* reference, because most of them would create a
+reference cycle. `Application -> Infrastructure` does not build.
+
+**`tests/FinNavis.ArchitectureTests`** catches the rest. The compiler is happy to let you add
+`Microsoft.EntityFrameworkCore` to Domain or Application — no cycle, no error, and the rule is
+broken anyway. The tests close that hole, and they run as part of `dotnet test`:
+
+- `ProjectReferenceTests` reads the `.csproj` files and checks the declared references against
+  the table above. It fails the moment a wrong reference is added, before any code uses it.
+- `LayerDependencyTests` reads the compiled assemblies and checks what the code actually touches.
+  It catches a type reached through a transitive reference.
+
+The table above is duplicated in `ProjectReferenceTests.AllowedProjectReferences`. If you change
+one, change the other.
 
 ## How control flows the other way
 

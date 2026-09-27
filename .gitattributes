@@ -1,0 +1,24 @@
+# Keep line endings stable across machines, so a clean clone works everywhere.
+* text=auto
+
+# Shell scripts must stay LF. With CRLF the shebang becomes "#!/usr/bin/env bash\r"
+# and running ./build.sh fails with "bad interpreter".
+*.sh text eol=lf
+
+# PowerShell reads both, but pin it so Windows and Linux diffs stay identical.
+*.ps1 text eol=crlf
+
+# Source and config: normalised in the repo, native in the working tree.
+*.cs text
+*.csproj text
+*.slnx text
+*.props text
+*.json text
+*.md text
+*.yml text
+*.yaml text
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary

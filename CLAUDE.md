@@ -19,6 +19,7 @@ src/FinNavis.Presentation/           ASP.NET Core Web API, composition root
 src/web/                             React + TypeScript PWA (not started)
 tests/FinNavis.Domain.UnitTests/     Domain unit tests
 tests/FinNavis.Application.UnitTests/  Application unit tests
+tests/FinNavis.ArchitectureTests/    Guards the dependency rule. Fails the build if a layer is broken
 tests/FinNavis.Infrastructure.IntegrationTests/  Testcontainers + PostgreSQL
 tests/e2e/                           Playwright tests (not started)
 docs/adr/                            Architecture decision records
@@ -29,18 +30,28 @@ docs/adr/                            Architecture decision records
 Dependencies point inward only. Never the other way.
 
 ```
-Presentation ──> Application ──> Domain
-       │                            ▲
-       └──> Infrastructure ─────────┘
+     ┌───────────────────────────────────┐
+     │                                   ▼
+Presentation ──> Infrastructure ──> Application ──> Domain
+                       │                                ▲
+                       └────────────────────────────────┘
 ```
+
+Left to right is outer ring to inner ring, so every arrow pointing right means every dependency points inward.
 
 - **Domain** references nothing. No NuGet packages, no other projects. Keep it that way. It owns the repository ports.
 - **Application** references Domain only. It owns the outside-world ports. It does not know about EF Core, HTTP, or PostgreSQL.
-- **Infrastructure** references Application and Domain. It is the adapter layer: it implements every port, wherever it was declared.
+- **Infrastructure** uses Application and Domain. It is the adapter layer: it implements every port, wherever it was declared. Its csproj lists Application only — Domain comes transitively, and that is deliberate. Do not add a second `ProjectReference`. See "Why Infrastructure has no reference to Domain" in `ARCHITECTURE.md`.
 - **Presentation** references Application and Infrastructure. It is the only composition root. It wires DI and maps HTTP.
 - Application must never reference Infrastructure. If something from the outside is needed, add an interface in the right inner layer (see below) and implement it in Infrastructure.
 
 Before adding a `ProjectReference` or `PackageReference`, check the arrows above.
+
+`tests/FinNavis.ArchitectureTests` enforces this. The compiler only catches wrong *project*
+references, because they create a cycle. Adding an EF Core `PackageReference` to Domain or
+Application compiles fine and still breaks the rule — that is what the tests are for. If you
+change the allowed references, update `ProjectReferenceTests.AllowedProjectReferences` and the
+table in `ARCHITECTURE.md` together.
 
 ## Conventions
 
@@ -127,27 +138,38 @@ Rules:
 
 ## Commands
 
+Use the task runner. It is the same set of tasks on both platforms:
+
 ```bash
-dotnet build FinNavis.slnx      # build everything
-dotnet test FinNavis.slnx       # run all .NET tests
-./build.sh build                # same as dotnet build
-./build.sh test                 # same as dotnet test
+./build.sh build            # build the whole solution
+./build.sh test             # run all .NET tests, architecture tests included
+./build.sh run              # start the API
+./build.sh migrate <Name>   # add an EF Core migration
+./build.sh db-update        # apply pending migrations
+./build.sh clean            # delete build output
+./build.sh help             # list the tasks
 ```
 
-On Windows PowerShell use `./build.ps1 build` and `./build.ps1 test`.
+On Windows PowerShell use `./build.ps1` with the same task names, for example
+`./build.ps1 migrate AddAccounts`.
 
-Run the API:
+Before the first `run`, `migrate`, or `db-update`, create the local settings file:
 
 ```bash
 cp src/FinNavis.Presentation/Properties/launchSettings.example.json \
    src/FinNavis.Presentation/Properties/launchSettings.json
-# fill in the values, then:
-dotnet run --project src/FinNavis.Presentation
+# then fill in the values
 ```
 
-EF Core migrations:
+The runner stops with a clear message if that file is missing.
+
+The plain commands still work if you prefer them:
 
 ```bash
+dotnet build FinNavis.slnx
+dotnet test FinNavis.slnx
+dotnet run --project src/FinNavis.Presentation
+
 dotnet ef migrations add <Name> \
   --project src/FinNavis.Infrastructure \
   --startup-project src/FinNavis.Presentation \

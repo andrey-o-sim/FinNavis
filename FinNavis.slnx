@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FinNavis.Application.UnitTests/FinNavis.Application.UnitTests.csproj" />
+    <Project Path="tests/FinNavis.ArchitectureTests/FinNavis.ArchitectureTests.csproj" />
     <Project Path="tests/FinNavis.Domain.UnitTests/FinNavis.Domain.UnitTests.csproj" />
     <Project Path="tests/FinNavis.Infrastructure.IntegrationTests/FinNavis.Infrastructure.IntegrationTests.csproj" />
   </Folder>
