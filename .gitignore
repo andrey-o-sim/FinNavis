@@ -41,3 +41,7 @@ blob-report/
 # OS
 .DS_Store
 Thumbs.db
+
+# Crash dumps from Git Bash. The MSYS2 runtime writes <exe>.stackdump into the
+# working directory when a shell process dies, so they land in the repo root.
+*.stackdump

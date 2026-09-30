@@ -1,0 +1,236 @@
+root = true
+
+# Code style for FinNavis.
+#
+# Two things read this file:
+#   1. The build. Directory.Build.props sets EnforceCodeStyleInBuild=true and
+#      TreatWarningsAsErrors=true, so every rule marked "warning" below breaks the build.
+#   2. `dotnet format style --verify-no-changes`, run by the pre-commit hook
+#      (.claude/hooks/pre-commit.sh). It fixes the same rules with `dotnet format style`.
+#
+# Only turn a rule to "warning" when the whole codebase already follows it.
+# Otherwise the build stops on unrelated files.
+
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.{js,jsx,ts,tsx,css,scss,html}]
+indent_size = 2
+
+[*.{csproj,props,targets,slnx}]
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a hard line break in Markdown. Do not strip them.
+trim_trailing_whitespace = false
+
+# Line endings are set only where .gitattributes pins them too. For everything else,
+# and for *.cs in particular, no end_of_line is set on purpose: core.autocrlf=true gives
+# Windows a CRLF working tree while the repo stores LF, so a fixed value here would make
+# `dotnet format --verify-no-changes` fail on files that are correct in git.
+# .gitattributes owns line endings. This file does not repeat it.
+[*.sh]
+end_of_line = lf
+
+[*.ps1]
+end_of_line = crlf
+
+[*.cs]
+indent_size = 4
+
+#### Namespaces and file layout ####
+
+# We use file-scoped namespaces everywhere: `namespace FinNavis.Domain;`
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_diagnostic.IDE0161.severity = warning
+
+# The namespace must match the folder path.
+dotnet_style_namespace_match_folder = true:warning
+dotnet_diagnostic.IDE0130.severity = warning
+
+# `using` goes outside the namespace, System first.
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Unused usings. Kept at suggestion, not warning, on purpose.
+# Roslyn only reports IDE0005 on build when GenerateDocumentationFile is true
+# (https://github.com/dotnet/roslyn/issues/41640). At warning it does not find unused
+# usings — it fails the build with "Set MSBuild property 'GenerateDocumentationFile'".
+# To enforce it: set GenerateDocumentationFile=true in Directory.Build.props, add CS1591
+# to NoWarn (we write no XML docs on public members), then raise this to warning.
+dotnet_diagnostic.IDE0005.severity = suggestion
+
+#### Braces and blocks ####
+
+# Always use braces, even for a single statement. Allman style.
+csharp_prefer_braces = true:warning
+dotnet_diagnostic.IDE0011.severity = warning
+
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+#### var vs explicit type ####
+
+# `var` when the type is obvious from the right side, explicit type otherwise.
+csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:silent
+
+#### Expression bodies ####
+
+# Block bodies for methods. An arrow body hides the return and reads worse in diffs.
+csharp_style_expression_bodied_methods = false:silent
+csharp_style_expression_bodied_constructors = false:silent
+csharp_style_expression_bodied_operators = false:silent
+csharp_style_expression_bodied_local_functions = false:silent
+# One-line members are fine as arrows.
+csharp_style_expression_bodied_properties = when_on_single_line:silent
+csharp_style_expression_bodied_indexers = when_on_single_line:silent
+csharp_style_expression_bodied_accessors = when_on_single_line:silent
+csharp_style_expression_bodied_lambdas = when_on_single_line:silent
+
+#### Modern C# ####
+
+csharp_style_prefer_not_pattern = true:suggestion
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_throw_expression = true:suggestion
+csharp_style_conditional_delegate_call = true:suggestion
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
+csharp_style_prefer_index_operator = true:suggestion
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:silent
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+
+#### Modifiers ####
+
+# Write the accessibility modifier even when it is the default.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_diagnostic.IDE0040.severity = warning
+
+csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
+dotnet_style_readonly_field = true:suggestion
+
+#### Qualification ####
+
+# No `this.` prefix.
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+dotnet_diagnostic.IDE0003.severity = warning
+
+# Use the language keyword: `int`, not `Int32`.
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+dotnet_diagnostic.IDE0049.severity = warning
+
+#### Noisy rules we keep quiet on purpose ####
+
+# "Expression value is never used". Fires on ordinary builder calls.
+dotnet_diagnostic.IDE0058.severity = none
+# "Use 'System.Threading.Lock'". Suggestion only, not a rule we want to force.
+dotnet_diagnostic.IDE0330.severity = suggestion
+
+#### Whitespace: IDE0055 ####
+
+# This is the rule `dotnet format whitespace` fixes. Kept at warning so the build
+# and the pre-commit hook agree on indentation and spacing.
+dotnet_diagnostic.IDE0055.severity = warning
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_labels = one_less_than_current
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+#### Naming ####
+
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_start_with_i.symbols = interface_symbols
+dotnet_naming_rule.interfaces_start_with_i.style = i_prefix_pascal_case
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbols.applicable_accessibilities = *
+dotnet_naming_style.i_prefix_pascal_case.required_prefix = I
+dotnet_naming_style.i_prefix_pascal_case.capitalization = pascal_case
+
+dotnet_naming_rule.types_are_pascal_case.severity = warning
+dotnet_naming_rule.types_are_pascal_case.symbols = type_symbols
+dotnet_naming_rule.types_are_pascal_case.style = pascal_case
+dotnet_naming_symbols.type_symbols.applicable_kinds = class,struct,enum,delegate
+dotnet_naming_symbols.type_symbols.applicable_accessibilities = *
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_rule.members_are_pascal_case.severity = warning
+dotnet_naming_rule.members_are_pascal_case.symbols = member_symbols
+dotnet_naming_rule.members_are_pascal_case.style = pascal_case
+dotnet_naming_symbols.member_symbols.applicable_kinds = property,method,event,namespace
+dotnet_naming_symbols.member_symbols.applicable_accessibilities = *
+
+# Field rules are ordered from most specific to least specific. The first rule whose
+# symbol group matches a field is the one applied, so const and static readonly must come
+# before the plain private field rule. Otherwise every constant would be asked for a '_'.
+
+dotnet_naming_rule.constants_are_pascal_case.severity = warning
+dotnet_naming_rule.constants_are_pascal_case.symbols = constant_symbols
+dotnet_naming_rule.constants_are_pascal_case.style = pascal_case
+dotnet_naming_symbols.constant_symbols.applicable_kinds = field
+dotnet_naming_symbols.constant_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.constant_symbols.required_modifiers = const
+
+# A `private static readonly` field cannot change after startup, so we name it like a
+# constant. This matches the existing code, for example LayerDependencyTests.DomainAssembly.
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.severity = warning
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.symbols = static_readonly_field_symbols
+dotnet_naming_rule.static_readonly_fields_are_pascal_case.style = pascal_case
+dotnet_naming_symbols.static_readonly_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_field_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.static_readonly_field_symbols.required_modifiers = static,readonly
+
+# Everything else that is a private field: _camelCase.
+dotnet_naming_rule.private_fields_are_underscore_camel_case.severity = warning
+dotnet_naming_rule.private_fields_are_underscore_camel_case.symbols = private_field_symbols
+dotnet_naming_rule.private_fields_are_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+dotnet_naming_rule.locals_are_camel_case.severity = warning
+dotnet_naming_rule.locals_are_camel_case.symbols = local_symbols
+dotnet_naming_rule.locals_are_camel_case.style = camel_case
+dotnet_naming_symbols.local_symbols.applicable_kinds = local,parameter
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+#### Test projects ####
+
+[tests/**/*.cs]
+# Test method names are Method_Scenario_ExpectedResult, so underscores are expected.
+dotnet_naming_rule.members_are_pascal_case.severity = none
