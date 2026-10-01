@@ -8,7 +8,6 @@
             "type": "command",
             "if": "Bash(git commit:*)",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit.sh\"",
-            "timeout": 900,
             "statusMessage": "Pre-commit: build, format, tests"
           }
         ]
