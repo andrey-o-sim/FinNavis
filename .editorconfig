@@ -234,3 +234,21 @@ dotnet_naming_style.camel_case.capitalization = camel_case
 [tests/**/*.cs]
 # Test method names are Method_Scenario_ExpectedResult, so underscores are expected.
 dotnet_naming_rule.members_are_pascal_case.severity = none
+
+#### Generated EF Core migrations ####
+
+[src/FinNavis.Infrastructure/Persistence/Migrations/*.cs]
+# These files are written by `dotnet ef migrations add`, not by us. EF Core emits block-scoped
+# namespaces, a `partial class` with no accessibility modifier, and a UTF-8 BOM. With
+# TreatWarningsAsErrors and EnforceCodeStyleInBuild that fails the build.
+#
+# Hand-fixing is not an option: the model snapshot is rewritten on every `migrate`, so any
+# edit is lost on the next one. Turn the rules off for this folder instead.
+#
+# charset is not a Roslyn rule, so it needs its own line rather than a dotnet_diagnostic entry.
+# Without it `dotnet format whitespace --verify-no-changes` fails with "Fix file encoding".
+charset = utf-8-bom
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.IDE0130.severity = none
+dotnet_diagnostic.IDE0055.severity = none

@@ -25,10 +25,15 @@ Tasks:
 
 Default task is "build".
 
-run, migrate and db-update read the connection string from launchSettings.json.
-That file is git-ignored. Copy the template first:
+run reads the connection string from launchSettings.json. That file is git-ignored.
+Copy the template first:
   cp src/FinNavis.Presentation/Properties/launchSettings.example.json \
      src/FinNavis.Presentation/Properties/launchSettings.json
+
+db-update reads the connection string from the environment:
+  export ConnectionStrings__FinNavisDb='<connection string>'
+
+migrate needs neither. It builds the model without opening a connection.
 USAGE
 }
 
@@ -37,6 +42,18 @@ require_launch_settings() {
     echo "Missing $LAUNCH_SETTINGS" >&2
     echo "Copy the template and fill in the values:" >&2
     echo "  cp $LAUNCH_SETTINGS_EXAMPLE $LAUNCH_SETTINGS" >&2
+    exit 1
+  fi
+}
+
+# dotnet ef does not read launchSettings.json. It runs Program up to builder.Build() and
+# takes configuration from there, so the connection string has to come from the environment.
+require_connection_string() {
+  if [ -z "${ConnectionStrings__FinNavisDb:-}" ]; then
+    echo "Missing the ConnectionStrings__FinNavisDb environment variable." >&2
+    echo "db-update needs a live database. Set it for this session, for example:" >&2
+    echo "  export ConnectionStrings__FinNavisDb='<connection string>'" >&2
+    echo "Start a local PostgreSQL first with: docker compose up -d" >&2
     exit 1
   fi
 }
@@ -61,14 +78,15 @@ case "$TASK" in
       echo "migrate needs a name. Example: ./build.sh migrate AddAccounts" >&2
       exit 1
     fi
-    require_launch_settings
+    # No connection string and no launchSettings.json needed: `migrations add` builds the
+    # model from the code and never opens a connection.
     dotnet ef migrations add "$NAME" \
       --project "$EF_PROJECT" \
       --startup-project "$API_PROJECT" \
       --output-dir "$MIGRATIONS_DIR"
     ;;
   db-update)
-    require_launch_settings
+    require_connection_string
     dotnet ef database update \
       --project "$EF_PROJECT" \
       --startup-project "$API_PROJECT"

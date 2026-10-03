@@ -1,7 +1,15 @@
+using FinNavis.Application.DependencyInjection;
+using FinNavis.Infrastructure.DependencyInjection;
+using FinNavis.Presentation.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// TODO: register Application services (builder.Services.AddApplication()).
-// TODO: register Infrastructure services (builder.Services.AddInfrastructure(builder.Configuration)).
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// Gives every error response an application/problem+json body. UseExceptionHandler() and
+// UseStatusCodePages() below both depend on this being registered.
+builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -11,9 +19,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// No argument: it only works because AddProblemDetails() is registered. Keep them together.
+app.UseExceptionHandler();
+
+// Turns a bare TypedResults.NotFound() into a problem+json body instead of an empty 404.
+app.UseStatusCodePages();
+
 app.UseHttpsRedirection();
 
-// TODO: map feature endpoints (accounts, categories, transactions, transfers).
+app.MapAccountEndpoints();
 
 app.Run();
 

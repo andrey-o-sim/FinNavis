@@ -1,0 +1,33 @@
+# PostgreSQL for local development. Not for production.
+#
+# Start it:  docker compose up -d
+# Stop it:   docker compose down
+# Wipe it:   docker compose down -v
+#
+# The credentials below are local-only and deliberately boring. Nothing real is stored here.
+# The integration tests do not use this service. They start their own container through
+# Testcontainers, so `dotnet test` works whether or not this is running.
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: finnavis-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finnavis
+      POSTGRES_USER: finnavis
+      POSTGRES_PASSWORD: finnavis
+    ports:
+      # Host port only. Override it when something else already holds 5432:
+      #   FINNAVIS_DB_PORT=5433 docker compose up -d
+      - "${FINNAVIS_DB_PORT:-5432}:5432"
+    volumes:
+      - finnavis-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finnavis -d finnavis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  finnavis-db-data:

@@ -154,9 +154,10 @@ then carries an assembly reference to `FinNavis.Domain`.
 csproj by adding one.
 
 There is a second surprise in the same place. The compiler writes an assembly reference only for
-assemblies whose types are actually used. While Infrastructure implements no Application port,
-`FinNavis.Infrastructure.dll` carries **no** reference to `FinNavis.Application`, even though the
-csproj declares one.
+assemblies whose types are actually used. So while Infrastructure implemented no Application
+port, `FinNavis.Infrastructure.dll` carried **no** reference to `FinNavis.Application`, even
+though the csproj declared one. `EfUnitOfWork : IUnitOfWork` arrived with the accounts feature,
+and the reference is now real in the built assembly too.
 
 Two graphs, and they disagree in both directions:
 

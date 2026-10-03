@@ -33,10 +33,15 @@ Tasks:
 
 Default task is "build".
 
-run, migrate and db-update read the connection string from launchSettings.json.
-That file is git-ignored. Copy the template first:
+run reads the connection string from launchSettings.json. That file is git-ignored.
+Copy the template first:
   Copy-Item src/FinNavis.Presentation/Properties/launchSettings.example.json `
             src/FinNavis.Presentation/Properties/launchSettings.json
+
+db-update reads the connection string from the environment:
+  $env:ConnectionStrings__FinNavisDb = '<connection string>'
+
+migrate needs neither. It builds the model without opening a connection.
 '@ | Write-Host
 }
 
@@ -58,6 +63,19 @@ function Assert-LaunchSettings {
     }
 }
 
+# dotnet ef does not read launchSettings.json. It runs Program up to builder.Build() and
+# takes configuration from there, so the connection string has to come from the environment.
+function Assert-ConnectionString {
+    if ([string]::IsNullOrWhiteSpace($env:ConnectionStrings__FinNavisDb)) {
+        Stop-WithMessage @(
+            'Missing the ConnectionStrings__FinNavisDb environment variable.',
+            'db-update needs a live database. Set it for this session, for example:',
+            "  `$env:ConnectionStrings__FinNavisDb = '<connection string>'",
+            'Start a local PostgreSQL first with: docker compose up -d'
+        )
+    }
+}
+
 switch ($Task) {
     'build' {
         dotnet build $solution
@@ -74,14 +92,15 @@ switch ($Task) {
         if ([string]::IsNullOrWhiteSpace($name)) {
             Stop-WithMessage 'migrate needs a name. Example: ./build.ps1 migrate AddAccounts'
         }
-        Assert-LaunchSettings
+        # No connection string and no launchSettings.json needed: `migrations add` builds the
+        # model from the code and never opens a connection.
         dotnet ef migrations add $name `
             --project $efProject `
             --startup-project $apiProject `
             --output-dir $migrationsDir
     }
     'db-update' {
-        Assert-LaunchSettings
+        Assert-ConnectionString
         dotnet ef database update `
             --project $efProject `
             --startup-project $apiProject

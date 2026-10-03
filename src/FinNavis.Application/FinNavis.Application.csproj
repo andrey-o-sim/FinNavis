@@ -1,6 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <!--
+      Application's only package. It is allowed because it is a framework abstraction:
+      IServiceCollection and nothing else, no EF Core, no HTTP, no SQL. It lets Application
+      register its own use cases instead of making Presentation list them one by one.
+      Adding a package that reaches the outside world here breaks the dependency rule.
+      See CLAUDE.md, "Dependency rules".
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FinNavis.Domain\FinNavis.Domain.csproj" />
   </ItemGroup>
 

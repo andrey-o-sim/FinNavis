@@ -11,6 +11,7 @@ Read `SPEC.md` for scope. Read `docs/adr/` for past decisions.
 ```
 FinNavis.slnx                        Solution file (.slnx format)
 Directory.Build.props                Shared MSBuild settings for all projects
+docker-compose.yml                   Local PostgreSQL for development
 build.sh / build.ps1                 Task runner: build, test
 src/FinNavis.Domain/                 Entities, value objects, domain rules, repository ports
 src/FinNavis.Application/            Use cases, outside-world ports, DTOs
@@ -41,6 +42,8 @@ Left to right is outer ring to inner ring, so every arrow pointing right means e
 
 - **Domain** references nothing. No NuGet packages, no other projects. Keep it that way. It owns the repository ports.
 - **Application** references Domain only. It owns the outside-world ports. It does not know about EF Core, HTTP, or PostgreSQL.
+  - "Domain only" is about *project* references. Application may take a **framework abstraction** package — a `Microsoft.Extensions.*.Abstractions` that declares contracts and reaches nothing outside the app. It has one today: `Microsoft.Extensions.DependencyInjection.Abstractions`, so `AddApplication()` can live next to the use cases.
+  - It may not take a package that touches the outside world: EF Core, ASP.NET Core, Npgsql, Dapper, an HTTP client, a file or queue library. `ProjectReferenceTests.PackagesBannedFromApplication` blocks the common ones.
 - **Infrastructure** uses Application and Domain. It is the adapter layer: it implements every port, wherever it was declared. Its csproj lists Application only — Domain comes transitively, and that is deliberate. Do not add a second `ProjectReference`. See "Why Infrastructure has no reference to Domain" in `ARCHITECTURE.md`.
 - **Presentation** references Application and Infrastructure. It is the only composition root. It wires DI and maps HTTP.
 - Application must never reference Infrastructure. If something from the outside is needed, add an interface in the right inner layer (see below) and implement it in Infrastructure.
@@ -153,7 +156,7 @@ Use the task runner. It is the same set of tasks on both platforms:
 On Windows PowerShell use `./build.ps1` with the same task names, for example
 `./build.ps1 migrate AddAccounts`.
 
-Before the first `run`, `migrate`, or `db-update`, create the local settings file:
+Only `run` needs the local settings file. Create it before the first `run`:
 
 ```bash
 cp src/FinNavis.Presentation/Properties/launchSettings.example.json \
@@ -162,6 +165,29 @@ cp src/FinNavis.Presentation/Properties/launchSettings.example.json \
 ```
 
 The runner stops with a clear message if that file is missing.
+
+**`dotnet ef` does not read `launchSettings.json`.** It runs `Program` up to `builder.Build()`
+and takes configuration from there. So:
+
+- `migrate` needs no connection string and no `launchSettings.json`. `migrations add` builds the
+  model from the code and never opens a connection. It works on a clean clone with no database.
+- `db-update` needs a live database, so it reads the connection string from the environment:
+
+  ```bash
+  docker compose up -d
+  export ConnectionStrings__FinNavisDb='<connection string>'   # PowerShell: $env:ConnectionStrings__FinNavisDb = '...'
+  ./build.sh db-update
+  ```
+
+Two things follow for `AddInfrastructure`, and both are load-bearing:
+
+- It must not validate the connection string. Failing fast there breaks `migrate` on a clean clone.
+- Read the connection string **inside** the `AddDbContext` options lambda, never in a local above
+  it. `WebApplicationFactory` applies its override during `builder.Build()`, after registration,
+  so a hoisted read captures the empty string and every integration test points at nothing.
+
+Start a local PostgreSQL with `docker compose up -d`. The integration tests do not use it — they
+start their own container through Testcontainers.
 
 The plain commands still work if you prefer them:
 
@@ -190,7 +216,6 @@ dotnet ef database update \
 
 These are planned but do not exist. Do not assume they work.
 
-- `docker-compose.yml` for PostgreSQL and the app
 - React PWA in `src/web`
 - Playwright suite in `tests/e2e`
 - CI pipeline
