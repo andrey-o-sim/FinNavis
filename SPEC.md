@@ -32,11 +32,13 @@ A REST API plus a React PWA for recording money movement.
 
 Decided, but no code exists. Do not assume any of this works.
 
-- **Docker Compose** to run PostgreSQL and the app locally.
 - **Playwright** for end-to-end tests, in `tests/e2e`.
 - **React + TypeScript PWA** in `src/web`.
 - **CI pipeline** running build and test on every push.
 
 ## Current status
 
-Skeleton only. Projects, references, architecture tests, and docs exist. No entities, endpoints, or database schema yet.
+The accounts slice exists: the `Account` entity and its rules, the `IAccountRepository` port and
+its EF Core adapter, the first migration (`AddAccounts`), and the three endpoints
+`POST /accounts`, `GET /accounts`, `GET /accounts/{id}`. `docker-compose.yml` runs PostgreSQL
+locally. Categories, income, expenses, and transfers are not built yet.

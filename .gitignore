@@ -45,3 +45,6 @@ Thumbs.db
 # Crash dumps from Git Bash. The MSYS2 runtime writes <exe>.stackdump into the
 # working directory when a shell process dies, so they land in the repo root.
 *.stackdump
+
+# Working files for the task-develop workflow. The task file in docs/tasks/ is committed; these are not.
+.claude/task-develop/

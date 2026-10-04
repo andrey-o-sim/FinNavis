@@ -1,0 +1,27 @@
+services:
+  # Local-only PostgreSQL for development. The user and password below are a throwaway
+  # exception to the "no password in a committed file" rule — see the Safety section
+  # of CLAUDE.md for the exact wording.
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: finnavis
+      POSTGRES_USER: finnavis
+      POSTGRES_PASSWORD: finnavis
+    ports:
+      # Host 5433, not 5432. PostgreSQL's default port is often already taken by another
+      # project's container, and the local launchSettings.json expects 5433. The container
+      # still listens on 5432 inside the network.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - finnavis-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finnavis -d finnavis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  finnavis-pgdata:

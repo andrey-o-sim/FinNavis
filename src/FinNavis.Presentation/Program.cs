@@ -1,10 +1,19 @@
+using FinNavis.Application.DependencyInjection;
+using FinNavis.Infrastructure.DependencyInjection;
+using FinNavis.Presentation.Endpoints;
+using FinNavis.Presentation.Middleware;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// TODO: register Application services (builder.Services.AddApplication()).
-// TODO: register Infrastructure services (builder.Services.AddInfrastructure(builder.Configuration)).
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -13,7 +22,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// TODO: map feature endpoints (accounts, categories, transactions, transfers).
+app.MapAccountEndpoints();
 
 app.Run();
 

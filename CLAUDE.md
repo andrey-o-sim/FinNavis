@@ -12,6 +12,7 @@ Read `SPEC.md` for scope. Read `docs/adr/` for past decisions.
 FinNavis.slnx                        Solution file (.slnx format)
 Directory.Build.props                Shared MSBuild settings for all projects
 build.sh / build.ps1                 Task runner: build, test
+docker-compose.yml                   Local PostgreSQL for development
 src/FinNavis.Domain/                 Entities, value objects, domain rules, repository ports
 src/FinNavis.Application/            Use cases, outside-world ports, DTOs
 src/FinNavis.Infrastructure/         EF Core, PostgreSQL, adapters
@@ -100,10 +101,20 @@ Rules:
 
 - .NET 10, C# 14, nullable enabled, implicit usings enabled.
 - Warnings are errors (`TreatWarningsAsErrors`). Fix the warning, do not suppress it.
+  The one exception is **generated code**: style diagnostics may be turned off for generated files
+  only, scoped by path in `.editorconfig` (see the EF migrations block there). Never suppress a
+  warning in hand-written code.
 - One public type per file. File name matches the type name.
 - `sealed` by default on classes that are not designed for inheritance.
 - Use `async`/`await` end to end. Pass `CancellationToken` through every async call.
 - Money is `decimal`, never `double` or `float`.
+- **Money is kept to 2 decimal places, rounded in the entity** with
+  `MidpointRounding.AwayFromZero` — that is how PostgreSQL rounds, while the .NET default is
+  banker's rounding. Round where the entity is built, not at the edge. If the entity keeps an
+  un-rounded value, the create response reports one number and every later read reports another.
+- **Money columns are `numeric(18, 2)`, and the entity rejects anything outside that range.**
+  Past it PostgreSQL raises "numeric field overflow" at save time. That is not a constraint
+  violation we translate, so it would reach the caller as a 500 for plainly bad input.
 - Use `DateTimeOffset` for timestamps. Store UTC.
 
 ### Database
@@ -120,6 +131,10 @@ Rules:
 - Every new service must be registered. Infrastructure registers its own services in `Infrastructure/DependencyInjection`. Application does the same for its own.
 - Presentation calls those registration methods. It does not register Infrastructure types one by one.
 - After adding a class with dependencies, check it is in the container.
+- **Required configuration is checked at startup, not on first use.** A missing connection string
+  must stop the app with a message naming the fix, never leave it running and failing every
+  request. Design-time EF commands are the only exception: `migrations add` never connects, so it
+  has to work on a clean clone (see `IsDesignTime` in `InfrastructureServiceCollectionExtensions`).
 
 ### API
 
@@ -133,6 +148,10 @@ Rules:
 - Assert with `.Should()`, not `Assert.*`.
 - Test names: `Method_Scenario_ExpectedResult`.
 - Unit tests do not touch the database or the network.
+- **Pass `decimal` theory data as strings** and parse with `CultureInfo.InvariantCulture`. A C#
+  attribute cannot hold a `decimal` literal, so `[InlineData(9999999999999999.99)]` goes through
+  `double` and silently arrives as `1E+16` — which breaks exactly the boundary tests that exist to
+  pin it.
 - Integration tests use Testcontainers for PostgreSQL. They need Docker running.
 - `SmokeTests.cs` in each test project is a placeholder. Delete it once the project has real tests.
 
@@ -152,6 +171,24 @@ Use the task runner. It is the same set of tasks on both platforms:
 
 On Windows PowerShell use `./build.ps1` with the same task names, for example
 `./build.ps1 migrate AddAccounts`.
+
+### Local database
+
+```bash
+docker compose up -d        # start PostgreSQL (first run, and after a reboot)
+./build.sh db-update        # apply the schema
+docker compose down         # stop it. The data stays in the named volume
+```
+
+`ConnectionStrings__FinNavisDb` in `launchSettings.json` must match the values in
+`docker-compose.yml`. If `dotnet ef` does not pick up the connection string from
+`launchSettings.json` (it runs the built assembly, not `dotnet run`, so the launch profile's
+environment variables may not apply), export `ConnectionStrings__FinNavisDb` in that one shell
+before running the command.
+
+This is allowed for the local Compose values only — the ones written in `docker-compose.yml`,
+covered by the Safety exception below. Never export or pass a connection string that points at
+anything other than that local container.
 
 Before the first `run`, `migrate`, or `db-update`, create the local settings file:
 
@@ -185,12 +222,18 @@ dotnet ef database update \
 - `launchSettings.json`, `.env`, `*.pem`, `*.key` are git-ignored. Never commit them.
 - Never put a real connection string, password, or key into a committed file or a shell command.
 - `launchSettings.example.json` holds variable names and value shapes only. Keep it empty of real values.
+- One exception: `docker-compose.yml` carries the local PostgreSQL user and password. That
+  container is a throwaway, bound to `127.0.0.1`, and holds no real data. It is the only
+  committed file allowed to hold a password. If Compose ever serves more than a local sandbox,
+  move the values out first.
+- The same exception covers the shell: those local Compose values are the only connection string
+  you may export or pass in a command, and only to reach that local container.
 
 ## Not set up yet
 
 These are planned but do not exist. Do not assume they work.
 
-- `docker-compose.yml` for PostgreSQL and the app
+- Dockerfile for the API. The API runs on the host; only PostgreSQL runs in a container.
 - React PWA in `src/web`
 - Playwright suite in `tests/e2e`
 - CI pipeline
