@@ -15,6 +15,35 @@ A REST API plus a React PWA for recording money movement.
 - No bank or card integrations. Entries are added by hand or imported from a file.
 - No budgets, forecasts, investments, or multi-currency. Single currency for now.
 
+## Draft Business Requirements
+
+The initial version must support:
+
+- Managing financial accounts.
+- Managing transaction categories.
+- Recording income, expenses, and transfers.
+- Recording plans to buy/sell.
+- Viewing and filtering transaction history.
+- Viewing monthly income and expense summaries.
+- Importing transactions from CSV file.
+- Exporting all user data in a documented, portable format.
+- Using the application comfortably on desktop and mobile devices.
+- Installing the web client as a Progressive Web App.
+- Reading and creating transactions through a secured public API.
+- Preventing duplicate transactions created by repeated API or LLM requests.
+- Integration with google drive
+- Capturing expenses from Telegram or email by monitoring incoming messages that match configured formats, extracting the spent amount, and creating the corresponding expense transaction.
+- Authrorization through Google OAuth
+
+The initial version does not include:
+
+- Direct bank integrations.
+- Investment portfolio tracking.
+- Automated financial advice.
+- Shared or multi-user accounts.
+- Native mobile applications.
+- Features not explicitly required by the current task.
+
 ## Technical decisions
 
 - **Clean Architecture** with four projects: Domain, Application, Infrastructure, Presentation. Dependencies point inward. See `ARCHITECTURE.md` and `docs/adr/0001-initial-setup.md`.
