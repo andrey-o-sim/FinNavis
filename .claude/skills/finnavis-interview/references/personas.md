@@ -116,3 +116,32 @@ Rules:
   three lenses, §13 must cite that cell — it is the strongest single argument available.
 - **A `−` needs a reason that a reader can check**, not a mood. "Combinatorial correctness,
   unbounded results" is checkable. "Feels heavy" is not.
+
+---
+
+## Open item: the missing UI lens
+
+Raised 2026-10-11, after the `csv-import` run. Act on this when the first feature touching
+`src/web` is interviewed. Until then, leave the three lenses alone.
+
+`User-me` **is** the usability lens — it asks how many steps, whether the answer is ready to
+use, what needs remembering, what breaks trust. What was dropped with the UX-researcher role
+was the *researcher*, not the *user*: a researcher brings evidence about people who are not in
+the room, and on this project there are none, so the sub-agent invents them.
+
+Two things still have to change before that lens can review a screen:
+
+1. **Its prompt forbids exactly the subject.** `User-me` carries the rule "Judge the shape of
+   the answer, not the styling". That was written for a project whose only interface is the
+   shape of a response. For a screen the rule has to be lifted, and the prompt extended with
+   what a screen raises: the device and what a thumb can reach, the offline state, the empty
+   state, and what the owner sees when an action is slow or fails.
+2. **A user is not a designer.** `User-me` reports "this is awkward". It does not bring craft
+   knowledge — conventions, touch targets, accessibility, error and empty states. That is
+   knowledge, not a stakeholder, which is why the answer is **not** to restore the UX-researcher
+   role. That role failed because it asked a sub-agent to speak for somebody who is not in the
+   room. Design conventions are in the room; they are just not in this prompt.
+
+**Proposed shape.** Add a fourth lens, **Craft**, spawned only when the feature touches
+`src/web`. The §8 matrix then becomes three approaches by four lenses. For an interface-only
+feature the fourth agent is noise, so it stays conditional — not a permanent fourth seat.
