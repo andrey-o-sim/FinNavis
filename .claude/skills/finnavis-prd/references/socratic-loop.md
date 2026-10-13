@@ -1,67 +1,103 @@
-# write-prd — delta over the shared Socratic loop
+# Socratic walk — depth dial, 5-state machine, edits-log, floors
 
-Read [`../../_shared/socratic-loop.md`](../../_shared/socratic-loop.md) for the canonical 4-state machine, edits-log, and disk-write discipline. write-prd supplies only the deltas below.
+Used in Phase 0.5 (the dial) and Phase 6 (the walk). Self-contained: this skill depends on no shared
+file outside its own folder.
 
-## Sections walked (in order)
+## Depth dial
 
-§4 User stories → §5 Acceptance criteria → §6 NFR → §7 KPIs. §1–§3 are drafted and shown but not per-item walked (they have no decision set — the user edits them inline if needed).
+One question at the top of every run, recorded in the PRD frontmatter as `depth:`. It tunes **how much
+I decide alone**, never **what gets covered**.
 
-## Decision-types
+| | **easy** | **medium** (default) | **hard** |
+|---|---|---|---|
+| Phase 2 deep dive | carried §15 questions + `SPEC.md` contradictions only | 3-5 questions, batches of 2-3 | the whole rule bank, every trade-off foregrounded |
+| §4-§7 walk | I resolve the reversible items with stated defaults; ask only the irreversible ones | one question per real decision | every decision, each with its trade-off spelled out |
+| §9-§11 | one bundled confirm for all three | one confirm each | one confirm each, plus per-row questions where a choice exists |
+| Assumptions ledger | yes — batch veto before the write | no | no |
 
-- **User story** (§4) — Approve / Edit / Drop / Save-as-OQ. Dropping a US that owned the only AC of a coverage type triggers the §5 coverage gate (a). Dropping the **entire** US is a legitimate de-scope and does not fire the use-case floor (b) — only a retained US losing its last AC does.
-- **Acceptance criterion** (§5) — the 4-state machine **plus a 5th option «Add another AC»** (user dictates a new AC; skill drafts it in business form and runs a one-question mini-batch on it). Dropping / OQ-migrating the **last AC of a retained §4 user story** fires the use-case floor below (regenerate an AC for that US).
-- **NFR row** (§6) — Approve / Edit (change the number or measurement) / Save-as-OQ (number is TBD, owner+due mandatory). A bare adjective («fast») is never Approvable — force a number or an OQ.
-- **KPI** (§7) — Approve / Edit / Drop. baseline=TBD forces an inline measurement plan or an OQ.
+**The floors do not move with the dial.** The §5 coverage model, the use-case floor, the §8 owner+due
+rule, the §9 read-path and history answers, the §10 and §11 coverage rules hold at `easy` exactly as
+at `hard`.
+`easy` reaches them by deciding and stating; `hard` reaches them by asking. Dropping a coverage type
+because the run is `easy` is a correctness bug, not a depth choice.
 
-## Per-skill gate — §5 coverage floors (two, both re-checked after every resolution)
+### The assumptions ledger (easy only)
 
-After every §5 resolution, re-check **both** floors below (OQ-migrated AC do NOT count toward either — they live in §8 now). Both hold at every interview depth.
-
-1. **Coverage-type floor.** At least one AC of each of the 5 coverage types (happy / error / authorization / domain invariant / cross-context) still stands after drops + OQ-migrations. If a type is empty, regenerate a replacement AC of that type and run a one-question mini-batch.
-
-2. **Use-case floor (§4 US → at least one §5 AC).** **Every *retained* §4 user story still has at least one acceptance criterion.** If a Drop / OQ-migration leaves a retained US with no AC, regenerate (or use the «Add another AC» option) an AC for that US and run a one-question mini-batch — a user story with no AC is incomplete and silently breaks the downstream `complete-sequence-diagrams` use-case coverage and `review-feature` end-to-end trace. (Dropping the **whole** US is a legitimate de-scope and does not fire this floor — only a retained US losing its last AC does.) This also applies at **draft time**: if the initial §5 draft gave some §4 US no AC, add one before the walk begins.
-
-## Open-Questions table
-
-`save_as_oq` rows land in **§8 Open questions** as a checkbox line:
-```
-- [ ] <headline>? Default now: <default-if-known>. — owner: <name/role>, due: <YYYY-MM-DD or stage trigger like "before /sdlc-break-tasks">
-```
-Owner + due are **mandatory** — skill issues a follow-up `AskUserQuestion` immediately after the user picks `Save-as-OQ` to capture both. Missing either downgrades to `Drop` with an explicit warning.
-
-## Edits-log schema (write-prd specifics)
+Every decision I took instead of asking is one line:
 
 ```
-{item_id:    "US-06" | "AC-04" | "NFR-row-2" | "KPI-01",
- action:     "edit" | "drop" | "add" | "save_as_oq",
- before:     "<verbatim text of the item before user action, or null for add>",
- after:      "<verbatim text after — for save_as_oq this is the §8 entry incl. owner+due; null for drop>",
- user_reason:"<the rationale the user provided, verbatim>"}
+- Assumed: <decision> = <value> — because <reason>. [veto?]
 ```
 
-`Approve` items do **not** go into the log — they are the baseline. The log is the **sole** signal the clean-context critic uses to detect upstream-coherence drift.
+All of them are surfaced together in one `AskUserQuestion` before `ExitPlanMode`: accept all, or name
+the ones to turn into real questions. Autonomy without silent commitment.
 
-## Contract
+## The walk
 
-Per-section batch, not per-item-across-sections. For each section in order:
+Per section, in order: **§4 user stories → §5 acceptance criteria → §6 NFR rows → §7 KPIs**.
 
-1. **7a. Render the full proposed section** in one message — body text + numbered list of decisions. The user sees the whole shape before any per-decision commitment.
-2. **7b. Walk per-item resolutions** — one `AskUserQuestion` per item (4-state machine; 5-state for §5 AC).
-3. **7c. Apply transitions** to the in-memory draft as each resolution arrives.
-4. **7d. Run the coverage gate** (§5 only) — after all resolutions, verify both floors. If either is broken, regenerate a replacement AC and run a mini-batch. Loop until both floors hold or user `Save-as-OQ`-s the regenerated AC (critic handles it downstream).
-5. **7e. Repeat for the next section.** The skill never returns to a previous section — cross-section drift is the critic's job.
+1. **Render the whole section first** — the full text plus a numbered list of the decisions inside it.
+   The user sees the shape before committing to any single item, so they catch duplicates and gaps early.
+2. **Walk item by item** — one `AskUserQuestion` per item, phrased per
+   [ask-style.md](ask-style.md).
+3. **Apply each transition in memory** as the answer arrives. Nothing is written to disk until Phase 10.
+4. **Run the §5 floors** after the §5 section is resolved (and again after any later change to it).
+5. **Move on.** I never return to a finished section — cross-section drift is the critic's job in Phase 7,
+   not a second walk.
 
-On-disk artifacts are not touched until a section is resolved. Then write to disk + commit one bundled commit per section.
+§1-§3 are rendered but not walked item by item: they carry no decision set, and the user edits them
+inline if the wording is off. §9, §10 and §11 are rendered whole and confirmed with one question each —
+they are derived from §5. If a confirm comes back `Edit`, walk the changed rows item by item.
+
+## The state machine
+
+Four states for every item, five for an acceptance criterion:
+
+- **Approve** — keep it verbatim. No edits-log entry; Approved is the baseline. Move on.
+- **Edit** — the user gives the new wording or value; I regenerate under that constraint and ask once
+  more. One round only — the second answer is final. Log `action: "edit"`.
+- **Save as open question** — the item leaves its section and becomes a §8 row. Owner and due are
+  **mandatory**: ask for both immediately. Missing either downgrades it to Drop, with a warning. Log
+  `action: "save_as_oq"`.
+- **Drop** — the item is removed. If it was mandatory (a coverage type, or the last AC of a retained user
+  story), re-ask once with a reframed option set; a second drop escalates to an open question with a
+  suggested owner and due. Log `action: "drop"`, `after: null`.
+- **Add another AC** (§5 only) — the user dictates one more criterion; I write it in business form, tag
+  its coverage type, and run a one-question mini-batch on it. Log `action: "add"`.
+
+### Per-section notes
+
+- **§4 user story** — dropping a story is a legitimate de-scope. It does not fire the use-case floor; it
+  takes its ACs with it.
+- **§6 NFR row** — a bare adjective ("fast", "quick", "reliable") is never approvable. Force a number or
+  an open question with owner + due. A number with no way to measure it today is approvable only if §9 or
+  §11 names standing up the measurement as a prerequisite.
+- **§7 KPI** — a baseline of 0 is fine for a new feature. A baseline of TBD needs an inline measurement
+  plan or an open question.
+
+## Edits-log
+
+After every Edit / Drop / Save-as-OQ / Add — never after Approve — append:
+
+```
+{item_id:     "US-06" | "AC-04" | "NFR-row-2" | "KPI-01",
+ action:      "edit" | "drop" | "add" | "save_as_oq",
+ before:      "<verbatim text before the action, or null for add>",
+ after:       "<verbatim text after — for save_as_oq the §8 row incl. owner+due; null for drop>",
+ user_reason: "<the reason the user gave, verbatim>"}
+```
+
+This log is the **only** signal the clean-context critic has for detecting drift caused by edits. If the
+user gives no reason on a Drop or a Save-as-OQ, ask once more — the verbatim wording matters.
+
+## Cadence
+
+- A one-line recap of the decisions so far every ~5 questions, so the dependency chain is visible without
+  scrolling.
+- Never more than 4 options in a question, and never more than 4 questions in one `AskUserQuestion` call.
+- Batch the trivial items; spend the questions on the ones that are expensive to reverse.
 
 ## Exit condition
 
-Step 7 completes when:
-
-- All 4 sections (§4 US, §5 AC, §6 NFR, §7 KPI) have been batch-rendered (7a) and walked (7b) with one resolution per item.
-- The in-memory draft reflects every `Edit`/`Drop`/`Add`/`Save as OQ` resolution; `Save as OQ` items appear in §8 with owner+due.
-- Both §5 coverage floors (7d) are closed.
-- The edits-log has no pending entries.
-
-Then proceed to step 8 (see [`critic.md`](./critic.md)).
-
-For concrete question wording and option descriptions, see [`ask-examples.md`](./ask-examples.md) (junior-friendly Ukrainian shape).
+The walk is done when every item in §4-§7 has exactly one resolution applied, §9-§11 are confirmed, both
+§5 floors hold, and the edits-log has no pending entry. Then Phase 7 (the critic).

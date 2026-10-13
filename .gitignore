@@ -48,6 +48,5 @@ Thumbs.db
 
 settings.local.json
 
-# SDLC plugin: per-developer local settings and agent worktrees
-.claude/*.local.md
+# Worktrees an agent may create while working on a task.
 .worktrees/

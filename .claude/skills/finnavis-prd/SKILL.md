@@ -1,94 +1,420 @@
 ---
 name: finnavis-prd
-model: opus
-effort: high
-agents: [critic]
 description: >
-  Use to turn a raw feature idea into a reviewed PRD.md — a lightweight Socratic interview
-  front (capture the idea, deep-dive the problem) merged with a full product spec (context,
-  goals, user stories, acceptance criteria, NFRs, KPIs). Triggers on "/finnavis-prd {slug}",
-  "write PRD for {slug}", "draft PRD for {slug}", "PRD для {slug}", "write spec for {slug}",
-  "product requirements for {slug}", "напиши PRD {slug}", "опиши вимоги", "зафіксуй ідею".
-  Opens by setting the interview-depth dial (easy/medium/hard), drafts from templates/PRD-template.md,
-  validates each acceptance criterion Socratically, runs a clean-context critic (sdlc:critic),
-  then writes docs/features/{slug}/PRD.md. Hard refuse if idea-brief.md or CONTEXT.md missing.
-triggers:
-  - /finnavis-prd
-  - "write PRD for"
-  - "draft PRD for"
-  - "PRD для"
-  - "write spec for"
-  - "product requirements for"
-stage: "03"
+  Turns a confirmed idea-brief into docs/features/<slug>/PRD.md for a solo, self-hosted
+  pet project (FinNavis and projects shaped like it). Socratic walk over user stories,
+  acceptance criteria, NFRs and KPIs, a clean-context critic, then one write. The
+  acceptance-criteria coverage model is solo-shaped: 4 always-mandatory types plus
+  history-integrity / duplicate-safety / authorization, each resolved explicitly instead
+  of invented. Writes an 11-section PRD: §1-§10 stay technology-free — data impact and
+  refusal messages included, failure codes excluded — and §11 is the verification plan.
+  Triggers on "/finnavis-prd {slug}", "write PRD for {slug}", "draft PRD for {slug}",
+  "PRD для {slug}", "напиши PRD {slug}", "опиши требования", "product requirements for {slug}".
+  Hard-refuses if docs/features/<slug>/idea-brief.md or the repo-root CONTEXT.md is missing.
+argument-hint: "[slug] [--depth=easy|medium|hard] [--reference <path>]"
 ---
 
-# Skill: write-prd (SDLC stage 03 — PRD drafter)
+# PRD — solo project
 
-Turns a one-line idea into a reviewed `PRD.md`: a lightweight interview captures and stress-tests the idea, then the skill drafts a product spec (context → goals → user stories → acceptance criteria → NFRs → KPIs), validates it Socratically, and runs a clean-context critic before writing. Less typing, more reviewing. This file is the spine; detail lives in `references/`.
+Stage 02 of the pet-project pipeline. `finnavis-interview` settles **what and why** in
+`idea-brief.md`; this skill settles **what exactly counts as done** in `PRD.md`.
 
-The Socratic machine, the critic, and the ask-style are **shared** — this skill keeps only its deltas:
-→ [`../_shared/socratic-loop.md`](../_shared/socratic-loop.md) · [`../_shared/critic.md`](../_shared/critic.md) · [`../_shared/ask-style.md`](../_shared/ask-style.md)
+It is tuned for the same situation as `finnavis-interview`, and that tuning is the whole point:
 
-Depth governs question volume + autonomy → [`../_shared/interview-depth.md`](../_shared/interview-depth.md).
+- **One owner, who is also the only user.** No reviewers, no tickets, no sign-off chain.
+- **No permission boundary yet.** Nobody to deny, nothing to hide — until the sign-in feature lands.
+- **No CI, no metrics stack, no on-call.** A target nobody can measure today is a prerequisite task,
+  not a number to write down and forget.
+- **Evenings, not sprints.** Size is counted in evenings, because that is what gets spent.
 
-## Owner
+A generic PRD protocol misfires on all four: it invents a Security Lead to review the document,
+demands an authorization criterion where no second actor exists, and asks for an availability SLO
+nobody will ever be shown. This one does not.
 
-PM + Tech Lead (co-authors). PM drives goals / non-goals / KPIs; Tech Lead drives context patterns and the acceptance-criteria coverage.
+## When to use
+
+- "write PRD for <slug>", "PRD для <slug>", "опиши требования к <slug>".
+- `/finnavis-prd <slug>` as an explicit call.
+- The idea-brief is `Confirmed` and you want the acceptance criteria before you touch code.
+
+## When not to use
+
+- **No idea-brief yet** — run `finnavis-interview <slug>` first. This skill hard-refuses.
+- **The PRD already exists with `status: Approved`** and nothing upstream changed. Edit the
+  section you need; do not re-run the whole walk.
+- **The change is a one-evening fix** with no new entity and no new rule. A PRD for a typo is
+  ceremony. Write the task and do it.
+
+## Hard gates (stop, do not improvise)
+
+| Missing | Message |
+|---|---|
+| `<slug>` | Ask for it, or propose two or three from the idea. |
+| `docs/features/<slug>/idea-brief.md` | «Run `finnavis-interview <slug>` first — a PRD without a confirmed brief is me guessing your idea back at you.» |
+| `CONTEXT.md` at the repo root | «The glossary is missing. Run `finnavis-interview` or add the terms first — without it §4 roles and §5 domain terms are invented.» |
+
+The glossary lives at the **repo root** (`CONTEXT.md`), not in the feature folder. It is shared by
+every feature. Never create a second copy under `docs/features/<slug>/`.
+
+## Language
+
+- **Ask in the language the user wrote in.** Mirror what is already on screen; do not switch and do
+  not ask which language they prefer.
+- **Write the artifact in English**, to match the rest of the repo. Quotes from the user stay
+  **verbatim** in the language they said it.
+- **Explain the trade-off, not the vocabulary.** The reader is a senior engineer. Glossing "index",
+  "migration" or "invariant" wastes their time; explaining *what it costs in evenings* does not.
+  Full rules → [references/ask-style.md](references/ask-style.md).
+
+## Mode
+
+**Planning-mode native,** same discipline as `finnavis-interview`. Phases 0-8 are read-only: Read,
+Glob, Grep, WebSearch, Agent, AskUserQuestion. The draft lives in session memory. The first write
+happens in Phase 10, after `ExitPlanMode`.
+
+The `AskUserQuestion` checkpoints in Phases 0.5, 1, 2, 4 and 6 are not clarifying questions — they
+are the data input. An `Auto Mode` system-reminder does **not** cancel them. If `ExitPlanMode` is
+unavailable (the session did not start in plan mode), skip Phase 9 and run Phase 10 directly.
 
 ## Inputs
 
-**Hard required** (skill stops without them):
+**Required:**
 
-- `<slug>` — kebab-case feature slug.
-- `docs/features/<slug>/idea-brief.md` — problem, RICE, Recommendation (§13), Out of scope (§6). Missing → «run `/sdlc-interview <slug>` first».
-- `docs/features/<slug>/CONTEXT.md` — canonical glossary (role names, domain terms). Missing → «run `/sdlc-fix-term <slug>` first». No silent fallback.
+- `<slug>` — kebab-case, matches the folder `finnavis-interview` created.
+- `docs/features/<slug>/idea-brief.md` — §2 Problem, §5/§6 Out of scope, §11 RICE, §13 Recommendation,
+  §15 Open questions.
+- `CONTEXT.md` (repo root) — the canonical glossary.
 
-**Optional**:
-- `docs/features/<slug>/.size` — depth hint (MVP vs Full per the size matrix). Read if present; **established here if absent** (step 1 classifies + writes it), so downstream stages never silently default to M.
-- `--reference <path-to-module>` — passed at invocation; pre-selects the «Reference module code» channel in step 3.
+**Optional:**
+
+- `docs/features/<slug>/.size` — read if present, established here if absent (Phase 1).
+- `SPEC.md` — repo scope. Read it always: it is the most common source of a scope contradiction with
+  the brief, and catching that is this stage's job.
+- A neighbouring feature's `idea-brief.md` / `PRD.md`, or a path under `src/` — offered as channels in
+  Phase 4. `ARCHITECTURE.md` and `docs/adr/` are not: they describe HOW.
+- `--depth=easy|medium|hard` — skips the Phase 0.5 question.
+- `--reference <path>` — pre-selects the "existing code" channel in Phase 4.
 
 ## Protocol
 
-1. **Prereq check + read context + set interview depth.** `test -f` both required inputs and stop with the appropriate error if either is missing. Then: if `CONTEXT.md` exists, load its `## Glossary` as session state (canonical roles + terms). If `.size` exists, read it to size the PRD's depth; **if absent, establish it now** — classify the feature via the 4 signals in [`../_shared/size-matrix.md`](../_shared/size-matrix.md) (PR count / time-to-merge / new module·API·migration / breaking changes), confirm in one bundled `AskUserQuestion` (at `easy` depth, take the matrix default and record it in the assumptions ledger), and write `docs/features/<slug>/.size` — so every later stage reads a real size instead of silently defaulting to M. `classify-size` stays the utility to re-classify when scope changes. If `docs/architecture-map.md` exists (from `map-architecture`), read it so the PRD is **architecture-aware** — it informs §1 Context, §2 Constraints, and §3 Non-goals (what the existing system already does / can't do). Absent → suggest running `/sdlc-map-architecture` first, but proceed (the PRD is product-level and can be captured without it). **Do not leak the map's tech into §5 AC** — AC stay business-observable; the map shapes constraints, not acceptance criteria. **Then set the interview depth (the opening question):** **if `.claude/sdlc.local.md` is absent, auto-create it** with the documented default frontmatter (every key + its allowed values explained inline) and patch `.gitignore`; then read `interview_depth` from it (else default medium), and — unless a `--depth=easy|medium|hard` arg was passed (which skips the question) — ask ONE depth-selection `AskUserQuestion` phrased per [`../_shared/ask-style.md`](../_shared/ask-style.md), with the saved/medium value as the «(Recommended)» first option, overridable per run. The chosen level governs the step-2 deep-dive volume and the step-7 Socratic volume → [`../_shared/interview-depth.md`](../_shared/interview-depth.md). (Completeness — §5's 5-type AC floor **and** §4→§5 use-case floor — is unaffected by depth.)
+### 0. Setup (read-only)
 
-2. **Capture the idea (interview front).** One `AskUserQuestion` for the raw idea in 1–3 sentences (persist verbatim as the baseline). Then a Socratic deep-dive across problem clarity / success criteria / constraints / strategic fit, delivered in batches of 2–3 — its volume scales with the depth dial (easy: only the few un-inferable ones, then a stated-assumptions ledger; medium: 3–5; hard: walk every angle, foreground each trade-off). Phrase every question per [`../_shared/ask-style.md`](../_shared/ask-style.md).
+- **Read** `./templates/PRD-template.md` into session memory. Do not copy it yet.
+- **Read** `CONTEXT.md` (repo root) — load `## Glossary` as session state. These role names and
+  domain terms are canonical for §4 and §5.
+- **Read** `docs/features/<slug>/idea-brief.md` in full.
+- **Read** `SPEC.md` if present.
+- **Check** `docs/features/<slug>/PRD.md` does not already exist as `Approved`.
+- **No Write, Edit or mkdir.**
 
-3. **Reconcile the glossary in-flow (a hard rule, at every depth).** On every new or unknown domain term that surfaces in the interview or the draft, invoke `/sdlc-fix-term <slug>` for it **immediately** — compare it against `CONTEXT.md` and add/update the definition before continuing. By the time the PRD is written, every §4 role and §5 domain term is already glossary-canonical; the glossary is never a deferred batch.
+### 0.5. Depth checkpoint (AskUserQuestion — mandatory)
 
-4. **Ask which extra channels to read** (multi-select `AskUserQuestion`): reference module code / project docs / MCP-Atlassian (Confluence) / MCP-Atlassian (Jira) / knowledge-base / none. For each picked channel ask the **specific** path/query — no silent broad scans. If `--reference` was passed, pre-select `Reference module code`.
+One question: `easy` / `medium` (recommended) / `hard`. The dial tunes **how much I decide alone**,
+never **what gets covered** → [references/socratic-loop.md](references/socratic-loop.md#depth-dial).
 
-5. **Read selected channels.** Reference module → extract entity types, error sentinels, status constants, authz checks. MCP-Atlassian → `mcp__atlassian__search` for specified pages/tickets. Docs / RAG → only the paths/topics the user named.
+- **easy** — I take the reversible calls myself with stated defaults, ask only the irreversible ones,
+  and surface an assumptions ledger before the write for a batch veto.
+- **medium** — one question per real decision in §4-§7.
+- **hard** — every decision walked, each question foregrounds the trade-off, edge cases probed harder.
 
-6. **Read the template + draft §1–§8.** Read [`./templates/PRD-template.md`](./templates/PRD-template.md) (its `<!-- Skill instruction: ... -->` comments are the per-section contract). Draft per [`./references/draft-generation.md`](./references/draft-generation.md): per-section sources, the **5 AC coverage types** (happy / error / authorization / domain invariant / cross-context), and the **stack-agnostic forbidden-token** rule for acceptance criteria. Ensure **every §4 user story has ≥1 AC in §5 at draft time** (the use-case floor applies before the Socratic walk begins).
+The §5 coverage floors and the §9-§11 completeness rules hold at **every** depth. `easy` reaches them
+by deciding, `hard` by asking. Dropping a coverage type because the depth is `easy` is a bug.
 
-7. **Socratic validation.** Walk §4 US → §5 AC → §6 NFR → §7 KPI with the shared 4-state machine (per-decision question volume scales with the depth dial — at easy, the un-asked decisions land in the assumptions ledger for a batch veto). write-prd delta → [`./references/socratic-loop.md`](./references/socratic-loop.md): AC has a 5th option «Add another AC»; the §5 coverage gate enforces **two floors** after drops/OQ-migrations — (a) ≥1 AC of each of the 5 coverage types, and (b) **≥1 AC per retained §4 user story** (regenerate/add a replacement if a type *or* a user story is left empty). **Both are floors, not dials — enforced at every depth;** only the question volume scales. The (b) floor closes the §4→§5 link so the downstream `complete-sequence-diagrams` use-case coverage + `review-feature` trace can't be undermined by a user story that lost its only AC. Maintain the edits-log.
+### 1. Size (read `.size`, or establish it)
 
-8. **Critic + write + commit.** Dispatch the [`critic`](../../agents/critic.md) agent — `subagent_type: "sdlc:critic"` (carries `model: opus` + `effort: high`, clean-isolated context per [`../_shared/agent-roster.md`](../_shared/agent-roster.md)) — with the write-prd delta in [`./references/critic.md`](./references/critic.md) (over [`../_shared/critic.md`](../_shared/critic.md)) — inline the draft + edits-log, it Reads `CONTEXT.md` + `idea-brief.md`. Resolve findings via `AskUserQuestion` (Accept revert / Accept amendment / Override-with-rationale → §1 ¶4 bullet). Run the forbidden-token regex scan as the F6 backstop. On pass, write `docs/features/<slug>/PRD.md` (glossary already reconciled in-flow per step 3) and propose commit `03: PRD for <slug>`. **Register on the roadmap:** add/promote this feature to **Now** in `docs/roadmap.md` (via `/sdlc-roadmap`) — an outcome one-liner + a link to this feature folder + status; if it existed as a Next candidate, move it up. (If there's no roadmap yet, skip — it's optional.) Then **emit the stage-handoff block** per [`../_shared/handoff.md`](../_shared/handoff.md) — *What I did* + *Review* (`PRD.md`, `.size`) + *Run next* (`/clear`, then `/sdlc-clarify-prd <slug>`). (If `sdlc:critic` is unavailable, fall back to a `general-purpose` Agent with the same delta.)
+If `docs/features/<slug>/.size` exists, read it. If not, classify now and write it in Phase 10 —
+later stages must never silently default to M.
+
+**One signal: evenings of work.** Not PR count, not sprints, not team-weeks — the only unit this
+project actually spends.
+
+| | XS | S | M | L |
+|---|---|---|---|---|
+| **Evenings** | 1-2 | 3-10 | 10-30 | 30+ |
+
+One `AskUserQuestion` with my estimate and its reasoning ("S — about 6 evenings: one read path, no
+reshaping of recorded data"), options to confirm or move it a class. At `easy` take the estimate and
+put it in the assumptions ledger.
+
+Two rules around it:
+
+- **Do not invent extra signals.** Whether the feature needs a schema change, or touches data already
+  recorded, is a question of risk, not of size — it has its own home in §9 and the critic reads it
+  there. Size answers one thing: how many evenings.
+- **Creep is said out loud.** If §5 grows the feature past the class, say so in Phase 11. Never
+  silently re-write `.size` to make the estimate look right afterwards.
+
+### 2. Deep dive on what the brief left open (AskUserQuestion — mandatory)
+
+The brief settled the direction. The PRD needs the rules. Ask only what the brief does **not** already
+answer — re-asking a settled question is how an interview loses trust.
+
+Work three sources, in this order:
+
+1. **`idea-brief.md` §15 Open questions** — each one is either answered now, or carried into PRD §8
+   with owner + due. None may silently disappear.
+2. **Contradictions between the brief and `SPEC.md`.** Name the contradiction, propose the resolution,
+   get a decision, and record it in §1 ¶4 as a decision taken here. This is the single highest-value
+   question this stage asks — the `core-ledger` run found two.
+3. **The rules the brief never covers.** Derive each question from the feature's own nouns and verbs,
+   then ask it with those names substituted. **Ask the derived question, never the rule itself** —
+   "what happens to recorded transactions if a category is deleted?", not "what happens to records
+   that reference a domain object".
+
+   - **For every domain object the feature creates or changes** — what happens to data already
+     recorded against it when it is renamed or deleted?
+   - **For every action the feature adds** — can it be repeated, undone or corrected, and what has to
+     stay unchanged when it is?
+   - **For every figure the feature computes or shows** — what must it be made of for the owner to
+     trust it?
+   - **For every date or period the feature touches** — whose date counts, the one the owner sees or
+     the one that was stored, and what happens at the boundary?
+
+   A rule that yields no question for this feature is skipped silently — never asked as "not
+   applicable". Each answer usually becomes a §5 criterion, so keep the owner's own wording.
+
+Deliver in batches of 2-3. Volume scales with depth: `easy` asks only 1 and 2 plus any rule whose
+answer cannot be inferred; `hard` works every rule that applies.
+
+### 3. Glossary capture (deferred)
+
+Every new domain word goes into a session-state list, `pending_glossary_terms`. Skip generic technical
+words. Do **not** write `CONTEXT.md` now — Phases 0-8 are read-only. Terms are appended in Phase 10,
+in the house format: one line, canonical definition, then the boundary — what it is **NOT**. A term
+without a NOT-boundary is a label, not a definition.
+
+By the time §4 and §5 are drafted, every role and domain term used in them is either already in
+`CONTEXT.md` or pending in that list. The PRD never invents a role.
+
+### 4. Extra channels (AskUserQuestion, multi-select)
+
+Which sources may I read beyond the brief and the glossary? The real ones for this repo — no Jira,
+no Confluence, no ticket system:
+
+- **`SPEC.md`** — product scope and the draft requirement list (usually already read in Phase 0).
+- **Existing code** under `src/` — name the path. Read it for what the product already does, not for
+  how it does it. Pre-selected if `--reference` was passed.
+- **A neighbouring feature's `idea-brief.md` or `PRD.md`** — the closest thing this repo has to a
+  reference module.
+- **Web search** — only for a specific question ("how do other ledgers treat a split transaction").
+- **None.**
+
+For each picked channel ask the **specific** path or question. No silent broad scans.
+
+`ARCHITECTURE.md` and `docs/adr/` are deliberately **not** on the list. They record HOW the repo is
+built, and a PRD that reads them starts writing HOW. A decision that closes a *product* option — "one
+currency", "no sign-in" — belongs in `SPEC.md` or in the brief, and that is where this skill reads it.
+
+### 5. Draft §1-§11 in memory (no user input)
+
+Read the per-section contract in the template's `<!-- Skill instruction: ... -->` comments, then draft
+every section. Sources and rules:
+
+| Section | Comes from |
+|---|---|
+| §1 Context | brief §2 Problem, "why now", §13 Recommendation; ¶4 holds decisions taken in Phase 2 and critic overrides |
+| §2 Goals | brief §13 — strategic outcomes, no numbers (numbers live in §7) |
+| §3 Non-goals | brief §5/§6 Out of scope — each with its reason |
+| §4 User stories | §2 goals × glossary roles; `As a <role> / I want / So that` |
+| §5 Acceptance criteria | Phase 2 answers + the coverage model → [references/ac-coverage.md](references/ac-coverage.md) |
+| §6 NFR | the default row bank → [references/nfr-kpi-bank.md](references/nfr-kpi-bank.md) |
+| §6.1 Security / privacy | solo-shaped: one dataset, no auth yet, what an exposed installation means |
+| §7 KPIs | the solo KPI bank → [references/nfr-kpi-bank.md](references/nfr-kpi-bank.md) |
+| §8 Open questions | carried brief §15 items + `save_as_oq` resolutions; owner + due mandatory |
+| §9 Data impact | §5 AC + §6 NFR → what the feature does to the data, and what it leaves open |
+| §10 Refusal messages | every §5 AC of type error / domain invariant / cross-context → [references/refusal-messages.md](references/refusal-messages.md) |
+| §11 Verification plan | every §5 AC → a test level that exists in this repo today |
+
+**The technology line runs between §10 and §11.** §1-§10 are WHAT and WHY: no datastore, no framework,
+no entity-class names, no protocol detail, and **no failure codes** — `finnavis.transfers.same_account`
+is a name for a machine, and naming failures belongs to the stage that writes the code. §11 is the only
+technology zone, because a check has to name a test level. The forbidden-token scan covers §1-§10
+(→ [references/ac-coverage.md](references/ac-coverage.md#forbidden-tokens)).
+
+**§9 is impact, not design.** It does not pick the storage shape, the lookups, or how the change
+reaches an existing database — at PRD time there is nothing to decide that against, and a guess
+written down now gets read later as a decision. It states what the feature does to the data, what
+has to exist first, and which questions it hands to the stage that builds the thing. The expensive
+answer it must never skip is whether already-recorded history has to be reshaped.
+
+Before the walk begins, check the draft-time floors: every §4 user story already has at least one §5
+AC, and the four mandatory coverage types are present.
+
+### 6. Socratic walk (AskUserQuestion — mandatory)
+
+Machine, edits-log and cadence → [references/socratic-loop.md](references/socratic-loop.md).
+
+Walked **per item**: §4 user stories → §5 acceptance criteria → §6 NFR rows → §7 KPIs.
+Rendered whole and confirmed with **one question each**: §9, §10, §11 — they are derived from §5, not
+independent decisions. If a confirm comes back `Edit`, walk the changed rows per item.
+
+After every §5 resolution re-check both floors (coverage types, and every retained user story keeps at
+least one AC). Both hold at every depth.
+
+### 7. A second reader (one Agent call, clean context)
+
+Dispatch `plugin:critic` (fallback `general-purpose`) with the self-contained prompt in
+[references/critic-prompt.md](references/critic-prompt.md). Inline the draft and the list of changes;
+the reader opens `CONTEXT.md`, `idea-brief.md` and `SPEC.md` itself — never paste their bodies.
+
+It runs seven checks: does the document still follow the approach it claims; has the work grown past
+the estimate; was anything the brief called important dropped; was the document changed outside the
+review; is anything required missing; is there technical detail where there should be none; and does
+it describe a world this project does not have — invented reviewers, customers, uptime promises or
+measures that need a second user. That last one is the check a generic reader has no reason to run.
+
+Resolve each finding: `Accept as suggested` / `Accept, my wording` / `Leave it, here is why`. The last
+one puts a line into §1 ¶4 so the deliberate choice is readable later. A timeout, `CANNOT READ`, or an
+unreadable answer → stop and report. Never fall back to a silent write.
+
+### 8. Self-check (read-only)
+
+Run against the in-memory draft, before `ExitPlanMode`:
+
+- 11 sections present (plus §6.1). Empty is not allowed; `<!-- N/A: reason -->` is.
+- Forbidden-token regex over §1-§10 — zero hits that were not explicitly overridden. §9's Prerequisites
+  bullet is exempt: naming the real harness is its job.
+- §5: four mandatory types present; at least one conditional type present; every conditional type
+  either present or carrying an explicit N/A reason; every retained §4 user story has ≥1 AC.
+- §6: every row has a numeric target and a measurement that exists today — or is marked as a
+  prerequisite task.
+- §7: no adoption-rate, retention-cohort, DAU/MAU, NPS or churn metric. One user.
+- §8: every row has owner + due. No lone "TBD".
+- §9: every new read path implied by §5/§6 is named; the already-recorded-history answer is stated
+  explicitly even when it is "no"; the open points are handed over, not decided.
+- §10: every error-type, invariant-type and cross-context AC has a row, each a sentence for the owner.
+  No code, no status number, no field name anywhere in the table.
+- §11: every AC has at least one row naming a test level that exists in this repo.
+
+A failed check means fixing that section and checking again, not noting it and moving on.
+
+### 9. ExitPlanMode
+
+Plan contents: create the folder if needed, write `PRD.md`, write `.size` if it was established here,
+append pending glossary terms to the repo-root `CONTEXT.md`, re-run the Phase 8 self-check against the
+file on disk, propose the commit, print the handoff.
+
+### 10. Write
+
+- `docs/features/<slug>/PRD.md` from the template, every section filled from session memory.
+- `docs/features/<slug>/.size` if Phase 1 established it.
+- Append `pending_glossary_terms` to the repo-root `CONTEXT.md`, each with its NOT-boundary, and bump
+  its `updated_at`.
+- Frontmatter: `status: Draft` — **always Draft**. Flipping to `Approved` is the human gate; the skill
+  never does it, not even when the critic returns clean. Also `slug`, `stage: "02"`, `feature_size`,
+  `depth`, `updated_at`, `source_brief`.
+
+### 11. Commit and handoff
+
+Propose, do not run:
+
+```
+02: PRD for <slug>
+```
+
+That matches the existing history (`dd09606 02: PRD for … via write-prd`). Then print the handoff
+block — the last output of the run, every time:
+
+```md
+## ✅ finnavis-prd — <slug>
+
+**What I did**
+- <artifact(s) written> + <the commit proposed> + size <X> (from `.size` / established here)
+
+**Review before continuing**
+- `docs/features/<slug>/PRD.md` — §5 acceptance criteria and §8 open questions first
+- `CONTEXT.md` — <N> new terms appended
+- flip `status: Draft` → `Approved` yourself once you agree with it
+
+**Run next**
+1. `/clear` — the next stage re-reads everything from disk
+2. then: the implementation stage, with this PRD as its input
+```
 
 ## Definition of Done
 
-- `docs/features/<slug>/PRD.md` written; all sections filled (or `<!-- N/A: reason -->`).
-- `docs/features/<slug>/.size` exists after this stage (read if it was present, else classified + written here).
-- §5 holds ≥1 AC of each of the 5 coverage types after drops/OQ-migrations, **every §4 user story has ≥1 AC** (the use-case floor — no retained US left with zero ACs), and **0 forbidden tokens** (HTTP verbs / URL paths / status-code numerics / `module.error_name` strings / JSON fragments / SQL constructs).
-- §4 roles match the `CONTEXT.md` glossary exactly (no invented `user`/`admin`).
-- §8 Open Questions each carry owner + due (no lone «TBD»).
-- Edits-log maintained; critic (`sdlc:critic`) ran on the post-Socratic draft; every finding resolved or overridden.
+- `docs/features/<slug>/PRD.md` exists, 11 sections + §6.1 filled or explicitly `N/A: reason`.
+- `status: Draft` in frontmatter — the skill never writes `Approved`.
+- §4 roles come from `CONTEXT.md` verbatim. No invented `user`, `admin` or `reviewer`.
+- §5 holds the four mandatory coverage types, at least one conditional type, an explicit resolution for
+  every conditional type, and ≥1 AC per retained §4 user story.
+- Zero forbidden tokens in §1-§7 (regex-verified, word boundaries on).
+- §6 rows carry numeric targets and a measurement that exists today or is named a prerequisite.
+- §7 KPIs are solo-shaped — nothing that needs a second user to compute.
+- §8 rows all carry owner + due; every `idea-brief.md` §15 question is answered or carried here.
+- §9 names every new read path and answers the already-recorded-history question; §10 covers every
+  failure AC; §11 covers every AC.
+- New domain terms are in the repo-root `CONTEXT.md`, each with its NOT-boundary.
+- The second reader ran on the reviewed draft; every finding is resolved or left with a §1 ¶4 line.
 
 ## Anti-patterns
 
-- **Skipping the interview front** and reconstructing the idea from the model's guess. Capture + deep-dive must actually fire `AskUserQuestion`.
-- **Naming concrete technologies in §1–§3** (a specific datastore, broker, framework, or library). The PRD is WHAT + WHY; technology choices belong to `architecture-design`.
-- **Implementation leak in AC** — HTTP/status/error-code/SQL detail. That mapping lives in `api-forge` and `decide-adr`.
-- **Dispatching `general-purpose` instead of `sdlc:critic`** without first checking availability. The namespaced critic carries the correct model/effort and clean context; fall back only on confirmed unavailability.
-- **Treating brainstorm or initiatives artifacts as PRD inputs.** PRD draws only from CONTEXT + idea-brief (required) plus user-selected additional channels.
-- **Inventing role names or domain terms** not in CONTEXT glossary. The glossary is canonical; the PRD never introduces new role names.
+- **Inventing a review board.** `reviewers: ["Tech Lead", "Security Lead"]` on a one-person project is
+  cosplay. There is one reviewer and they are reading this.
+- **Authorization theatre.** Writing an authorization criterion where there is no second actor, or
+  skipping the type silently. Resolve it explicitly: N/A with a reason plus an §8 row until sign-in exists.
+- **Business-SaaS KPIs.** Adoption rate, retention cohorts, DAU/MAU, NPS, churn — all need users you do
+  not have. Use the solo bank.
+- **An availability SLO.** Nobody is owed one. If downtime costs only your own evening, say that.
+- **A target nobody can measure.** "p95 ≤ 300 ms" with no harness is a wish. Name the measurement, or
+  name standing it up as a prerequisite task in §9/§11.
+- **Technology in §1-§10.** The datastore, the ORM, the framework and the entity-class names belong to
+  `ARCHITECTURE.md` and to the stage that writes code. The forbidden-token scan is the backstop, not
+  the rule.
+- **A failure code anywhere in the PRD.** `finnavis.transfers.same_account` is a name for a machine.
+  The PRD states the refusal in the owner's words — in §5 and again, collected, in §10 — and hands the
+  naming to the stage that writes the code.
+- **Designing the schema in §9.** "Add an index on `date`", "a new migration adds table `movements`" —
+  at PRD time both are guesses, and a guess in a document is read later as a decision. §9 names the
+  read path and hands the lookup decision over.
+- **Skipping the history answer in §9.** Whether already-recorded data has to be reshaped is the most
+  expensive thing this feature can hide. It is answered even when the answer is "no".
+- **Re-asking what the brief already settled.** Read §13 before Phase 2 and ask only about the gaps.
+- **Dropping an idea-brief §15 question.** It is answered here or carried into §8 with owner + due.
+- **Flipping `status` to `Approved`.** Human gate. The skill writes `Draft` and says so in the handoff.
+- **Writing during Phases 0-8.** In plan mode that is a permission denial. Hold it in session memory.
+- **Switching language on the user.** Questions follow the language they wrote in; the artifact is
+  English; their own words stay verbatim.
 
-## References & template
+## References
 
-- [`../_shared/interview-depth.md`](../_shared/interview-depth.md) — the easy/medium/hard dial set in step 1 (question volume, autonomy).
-- [`./references/draft-generation.md`](./references/draft-generation.md) — per-section sources, 5 AC coverage types, stack-agnostic forbidden tokens.
-- [`./references/socratic-loop.md`](./references/socratic-loop.md) — write-prd's delta over the shared Socratic loop (sections walked, use-case floor, decision-types).
-- [`./references/critic.md`](./references/critic.md) — write-prd's delta over the shared critic (F5 structural floor + F6 forbidden-token specialization).
-- [`./references/ask-examples.md`](./references/ask-examples.md) — explanatory `AskUserQuestion` shape for US / AC / NFR / KPI + critic-finding examples (junior-friendly Ukrainian).
-- [`./references/checklist.md`](./references/checklist.md) — Definition of Done + full anti-patterns.
-- [`./templates/PRD-template.md`](./templates/PRD-template.md) — output scaffold; inline `<!-- Skill instruction: ... -->` comments are the per-section generation contract.
+| File | Used in | Holds |
+|---|---|---|
+| [references/ask-style.md](references/ask-style.md) | every AskUserQuestion | Question shape for a senior solo reader, worked rewrites |
+| [references/socratic-loop.md](references/socratic-loop.md) | Phases 0.5, 6 | Depth dial, 5-state machine, edits-log, coverage floors |
+| [references/ac-coverage.md](references/ac-coverage.md) | Phases 5, 6, 8 | 4 + 3 coverage model, forbidden tokens, worked ACs |
+| [references/nfr-kpi-bank.md](references/nfr-kpi-bank.md) | Phase 5 | Default NFR rows for this stack, solo KPI bank, banned metrics |
+| [references/refusal-messages.md](references/refusal-messages.md) | Phases 5, 8 | The §10 table, its coverage rule, and why no code goes in it |
+| [references/critic-prompt.md](references/critic-prompt.md) | Phase 7 | The second reader: full prompt, its seven checks, what to do with the answer |
+| [templates/PRD-template.md](templates/PRD-template.md) | Phases 0, 10 | The artifact |
+
+## Example
+
+> **User:** "напиши PRD для csv-import"
+>
+> **— Plan mode, read-only —**
+>
+> 1. **Phase 0** — reads the template, root `CONTEXT.md` (Statement, Duplicate already there),
+>    `idea-brief.md` (approach C, "Mapped Import With Duplicate Guard"), `SPEC.md`.
+> 2. **Phase 0.5** — depth: medium.
+> 3. **Phase 1** — no `.size`. Classifies S: ~8 evenings, no new project, one additive migration.
+> 4. **Phase 2** — carries three §15 questions; finds one contradiction with `SPEC.md`; asks what
+>    happens to an import when the file is loaded a second time, and what an imported row may be
+>    edited into afterwards.
+> 5. **Phase 3** — "mapping profile" goes to `pending_glossary_terms`.
+> 6. **Phase 4** — channels: `core-ledger/PRD.md` as the reference, plus `ARCHITECTURE.md`.
+> 7. **Phase 5** — drafts §1-§11. §5 gets the four mandatory types; **duplicate safety** is mandatory
+>    here (data comes from outside), **history integrity** too (an import touches past periods),
+>    **authorization** resolves to N/A — the glossary still has one actor.
+> 8. **Phase 6** — walks 6 user stories, 19 ACs, 5 NFR rows, 4 KPIs; confirms §9-§11 one question each.
+>    §9 names the duplicate lookup as a new read path, answers "no reshaping of recorded history", and
+>    hands the lookup behaviour to the implementation stage.
+> 9. **Phase 7** — critic finds two: an AC that leaked a column name, and a §7 metric that needed a
+>    second user. Both accepted.
+> 10. **Phase 8** — self-check: regex clean, floors closed, §11 covers all 19 ACs.
+>
+> **— ExitPlanMode —**
+>
+> 11. **Phase 10** — writes `PRD.md` (`status: Draft`), `.size` = S, appends one glossary term.
+> 12. **Phase 11** — proposes `02: PRD for csv-import`, prints the handoff, reminds the user that the
+>     `Approved` flip is theirs.

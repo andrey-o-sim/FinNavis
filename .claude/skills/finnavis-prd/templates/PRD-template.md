@@ -1,169 +1,180 @@
 ---
 status: Draft
-owner: "<feature owner>"
-reviewers: ["Tech Lead", "Security Lead"]
+slug: "<slug>"
+stage: "02"
+feature_size: "<XS/S/M/L from .size>"
+depth: "<easy/medium/hard from Phase 0.5>"
 updated_at: "<today YYYY-MM-DD>"
-feature_size: "<from .size: XS/S/M/L/XL>"
-stage: "03"
-ticket: "<TBD>"
+source_brief: "./idea-brief.md"
 ---
+
+<!-- Skill instruction: frontmatter rules.
+`status` is ALWAYS written as `Draft`. The owner flips it to `Approved` by hand after reading — that
+is the human gate, and the skill never does it for them, not even on a clean critic run.
+No `owner` field: there is one owner and the repo knows who they are. No `reviewers`: there is no
+review board. No `ticket`: there is no tracker. Inventing these is the first anti-pattern. -->
 
 # PRD — <slug>
 
-<!-- Skill instruction: one-line links to inputs used.
-> **Inputs (required):** [idea-brief](./idea-brief.md) · [CONTEXT](./CONTEXT.md)
-> **Reference module:** `internal/modules/<name>` — code patterns used (error codes, authz, status transitions). If --reference not passed or user declined — write «N/A — green-field mode».
-> **External context channels used:** list selected channels from step-4 AskUserQuestion: «MCP-Atlassian: Confluence page "X", Jira ticket Y-123», «Project docs: docs/architecture/auth.md», «architecture-map: docs/architecture-map.md», or «None — only CONTEXT + idea-brief».
-Do not mention brainstorm or initiatives artifacts — they are not PRD inputs. -->
+> **Inputs:** [idea-brief](./idea-brief.md) · [CONTEXT](../../../CONTEXT.md) (repo root) · [SPEC](../../../SPEC.md)
+> **Other channels read:** <the ones picked in Phase 4, named concretely — "ARCHITECTURE.md §Layout",
+> "docs/features/core-ledger/PRD.md as reference", "src/FinNavis.Domain" — or "None">
 
 ## 1. Context
 
-<!-- Skill instruction: 3-4 paragraphs.
-¶1 What we're solving — the concrete problem from the interview (idea-brief §2 Problem), for whom (cite user segment from §3 Users).
-¶2 Why now — the trigger from idea-brief (incident, contract, deadline, strategic shift).
-¶3 The committed approach — 1-2 sentences, from idea-brief §13 Recommendation. For M+/L this is the recommendation from the ideation pass; for XS/S it is the obvious direction from the deep-dive.
-¶4 (optional) Traceability context — reference-module patterns or quoted sources (architecture-map §, MCP/doc quotes), AND the slot where critic `Override` resolutions emit «Decision override: <headline> — rationale: <reason>» bullets.
-This section is WHAT + WHY, not HOW. Do NOT name a concrete datastore / broker / framework / library here — that belongs to architecture-design. -->
+<!-- Skill instruction: 4 paragraphs, each headed in bold.
+¶1 **What we're solving** — the concrete problem, from idea-brief §2, for the owner.
+¶2 **Why now** — the trigger: what is blocked until this exists.
+¶3 **The committed approach** — 1-2 sentences, from idea-brief §13 Recommendation. Name the approach.
+¶4 **Decisions taken here** — everything settled during this interview that the brief does not carry:
+   scope contradictions with SPEC.md and how they were resolved, rules the brief never covered, and the
+   bullets emitted by critic `Override` resolutions in the form
+   «Decision override: <headline> — rationale: <reason>».
+WHAT and WHY only. No datastore, no framework, no entity-class name — §10 is where technology starts. -->
 
 ## 2. Goals
 
-<!-- Skill instruction: 2-3 measurable strategic outcomes as a bullet list.
-Each is a manifestation of the committed approach (§1 ¶3). Cite idea-brief §13 directly.
-No raw numbers here — numbers live in §7 KPIs. Here — strategic outcome.
-
-Example:
-- Editor publishes an article in one click, without manual checking whether sections are non-empty (validation on the backend).
-- Editor sees all drafts for their team in a single list. -->
+<!-- Skill instruction: 2-3 strategic outcomes as bullets, each a manifestation of §1 ¶3.
+Written as what the owner can do that they could not do before. No numbers — numbers are §7. -->
 
 ## 3. Non-goals
 
-<!-- Skill instruction: 3-4 explicit non-goals, each one sentence + a reason.
-Source: idea-brief §6 Out of scope. No references to parked initiatives — source only idea-brief §6.
-
-Example:
-- Deleting a published article — deferred to v2 via archiving, because it cannot be safely deleted with active downstream links.
-- Cross-team portability — out of scope, each team has isolated articles. -->
+<!-- Skill instruction: 3-5 bullets, each one sentence plus its reason. Source: idea-brief out-of-scope.
+«No X — it is a separate feature that depends on this one» is a reason. «No X» alone is not. -->
 
 ## 4. User stories
 
-<!-- Skill instruction: at least 5 user stories, no upper cap. Skill proposes as many as needed to cover all roles from CONTEXT glossary + all goals from §2. Format:
+<!-- Skill instruction: as many as it takes to cover every §2 goal. Format:
 
 ### US-NN: <3-6 word action title>
-**As a** <role from CONTEXT glossary>
+**As an** <role, verbatim from the CONTEXT.md glossary — today that is `owner`>
 **I want** <action>
-**So that** <observable benefit>
+**So that** <the benefit the owner observes>
 
-Roles ONLY from the glossary (no invented `user`/`admin`). Title is 3-6 words describing the action, not the entity («Publish a course version», not «Course publishing»).
-Each US is covered by at least one AC in §5. -->
-
-### US-01: <title>
-
-**As a** <role>
-**I want** <action>
-**So that** <benefit>
-
-### US-02: <title>
-
-**As a** <role>
-**I want** <action>
-**So that** <benefit>
+Never invent `user`, `admin`, `member` or `reviewer`. The glossary is canonical.
+The title names the action, not the entity: «Record an expense», not «Expense recording».
+Every story has at least one criterion in §5 — checked at draft time and after every change. -->
 
 ## 5. Acceptance criteria
 
-<!-- Skill instruction: at least one AC of EACH of the 5 coverage types (happy / error / authorization / domain invariant / cross-context), no upper cap. Skill proposes as many as needed so all US are covered by at least one AC. Format:
+<!-- Skill instruction: the coverage model lives in references/ac-coverage.md.
+Four types always: happy · error · domain invariant · cross-context.
+At least one of: history integrity · duplicate safety · authorization — and EVERY one of those three
+is resolved explicitly. A type that does not apply gets an HTML comment at the top of this section
+saying so in one line, plus a §8 row when its absence is a real gap the project will close later.
+The wording to copy, as an example — written as a comment in the PRD, not as visible text:
 
-### AC-NN (US-XX) — <coverage type>
-**Given** <business preconditions: actor role, state of their domain objects, prior events>
-**When** <business action from the actor's perspective>
-**Then** <observable business outcome: actor sees X / system blocks Y and explains Z / system records W>
+    Coverage type `authorization` — N/A: one owner, no sign-in, no second person (see `Owner` in
+    CONTEXT.md), so no actor can lack permission. Tracked in §8; the sign-in feature owns this type.
 
-AC = business-observable outcome from the actor's perspective. NOT how the system does it.
+Format:
 
-FORBIDDEN in AC text (zero tolerance — critic F6 + pre-write regex):
-- HTTP verbs (GET/POST/PUT/PATCH/DELETE)
-- URL paths (/courses, /lessons/{id}, /api/v1/...)
-- status-code numerics in the body (200/201/400/401/403/404/409/5xx)
-- error-code strings matching `[a-z_]+\.[a-z_]+` (e.g. order.not_owner)
-- JSON fragments / payload bodies ({field: "value"})
-- SQL / DB constructs (UNIQUE, FK, raw INSERT/SELECT/UPDATE, constraint names, driver/ORM error types)
-The technical mapping for these lives in `api-forge` + `decide-adr`. Here: only what the actor observes.
+### AC-NN (US-XX) — <type>
+**Given** <what exists, what was recorded before>
+**When** <what the owner does, in their words>
+**Then** <what the owner observes>
 
-Allowed: glossary roles, domain-invariant NAMES as natural-language phrases («no published lessons», «unique sequence per course»), glossary domain objects.
-
-The 5 mandatory coverage types (at least 1 each):
-1. happy — actor does the main flow → system records the outcome and confirms.
-2. error — actor submits invalid input → system blocks it and explains the reason in plain language.
-3. authorization — actor lacks permission → system denies access OR hides existence (rationale in business terms).
-4. domain invariant — actor violates a named invariant → system blocks and names the invariant plainly.
-5. cross-context — actor's action depends on state in another bounded context → system enforces the cross-context rule.
-
-Tag each AC with its US-NN. Concurrent edge → add as AC-NNb, still in business language. -->
-
-### AC-01 (US-01) — happy path
-
-**Given** an authorized <role> owns a draft <domain-object>
-**When** the <role> attempts to publish the <domain-object>
-**Then** the system records the <domain-object> as published and confirms to the <role>
-
-### AC-02 (US-01) — domain invariant violation
-
-**Given** an authorized <role> owns a draft <domain-object> with no child <sub-objects>
-**When** the <role> attempts to publish the <domain-object>
-**Then** the system blocks the publication and tells the <role> that at least one <sub-object> must be published first
+Business language only. The forbidden-token list (HTTP verbs, paths, status numbers, dotted error
+codes, JSON, SQL, stack names, code vocabulary) is in references/ac-coverage.md and is scanned before
+the write. The machine name of a failure goes in §10, not here. -->
 
 ## 6. Non-functional requirements
 
-<!-- Skill instruction: table, recommended floor (not a cap). Targets are NUMERIC (≤250ms, ≥30 req/s, 99.9%) — no adjectives («fast», «high»). Measurement = a concrete production metric. Unknown number → TBD with owner+due in §8, never «fast». -->
+<!-- Skill instruction: start from the default rows in references/nfr-kpi-bank.md. Numeric targets only
+— «fast» is never approvable. Every measurement names something that exists in this repo today
+(`./build.sh test`, the integration suite on Testcontainers, a manual run) or the row carries a
+prerequisite note. Throughput and availability are dropped by default with a one-line reason: one
+user, self-hosted. -->
 
 | Aspect | Target | Measurement |
 |---|---|---|
-| Latency p95 <write operation> | ≤ <N ms> | <metric source> |
-| Latency p95 <read/list operation> | ≤ <N ms> | <metric source> |
-| Throughput | ≥ <N req/s> per instance | smoke test in CI |
-| Availability | 99.X% | monthly SLO window |
-| <Concurrency / Accuracy> | <safety guarantee> | <how enforced> |
+|  |  |  |
 
 ## 6.1 Security / privacy
 
-<!-- Skill instruction:
-- Data classification: public / internal / confidential / regulated (one word + 1-sentence rationale).
-- Personal data touched: none, OR list new fields with type + sensitivity.
-- AuthZ/AuthN impact: which capabilities / permission checks are added. Stay surface-neutral — no endpoint/route language; `architecture-design` derives the surfaces.
-- Abuse cases (3-5): cross-tenant access, draft/data leak, injection through URL/text fields, spam-create with a rate limit, optional token misuse — each with the business response (deny vs hide-existence; rationale, not status codes).
-- Security review verdict: Required (M+ / new authz boundary / new PII) or N/A with a concrete reason. -->
+<!-- Skill instruction: four honest lines plus abuse cases — see references/nfr-kpi-bank.md §6.1.
+There is no security team. «Security review: Required» means the owner reads it again with a specific
+question in mind — say which question. -->
 
 - **Data classification:** <...>
 - **Personal data touched:** <...>
 - **AuthZ/AuthN impact:** <...>
 - **Abuse cases:**
-  - <cross-tenant>: <business response>
-  - <data-leak>: <how hidden>
-  - <spam>: rate limit <N per minute per user>
-- **Security review:** <Required / N/A with reason>
+  - <...>: <the business response>
+- **Security review:** <what to look at again / N/A with a reason>
 
 ## 7. Metrics / KPIs
 
-<!-- Skill instruction: at least 3 KPIs, no upper cap, each baseline → target with a timeframe.
-Skill proposes as many as RICE drivers from idea-brief §11 + Recommendation §13.
-baseline=0 OK for a new feature. baseline=TBD requires a measurement plan inline.
+<!-- Skill instruction: at least 3, from the solo bank in references/nfr-kpi-bank.md. Each is
+baseline → target → timeframe. Baseline 0 is fine. Nothing that needs a second user to compute:
+no adoption rate, no retention cohort, no DAU/MAU, no NPS, no churn. -->
 
-What to include:
-- Adoption rate — share of active users who completed the target action within 30 days.
-- Engagement uplift / retention — return-to-feature rate in a cohort with at least N uses.
-- Quality / accuracy — error rate, drift, retry count (feature-specific).
-- Latency p95 — as in NFR (repeated here as a KPI for post-release tracking). -->
-
-- **<metric 1>** — baseline: <...>, target: <... within ... days>.
-- **<metric 2>** — baseline: <...>, target: <...>.
-- **<metric 3>** — baseline: <...>, target: <...>.
+- **<metric>** — baseline: <...>, target: <...> within <...>.
 
 ## 8. Open questions
 
-<!-- Skill instruction: 2-4 open questions from `save_as_oq` resolutions in step 7 + any un-resolved questions from the interview. Format:
+<!-- Skill instruction: every unresolved idea-brief §15 question that was not answered in the body,
+plus every `save as open question` from the walk, plus every gap a coverage-type N/A leaves behind.
+Owner and due are mandatory. A due is a date or a stage trigger. A lone «TBD» is not an entry. -->
 
-`- [ ] <question>? Default now: <X>. — owner: <name/role>, due: <YYYY-MM-DD or stage trigger like "before /sdlc-break-tasks">`
+- [ ] <question>? Default now: <...>. — owner: <name>, due: <date or stage>
 
-Every question has owner + due — a lone «TBD» without both is an anti-pattern (downgraded to Drop if either is missing). The skill MUST ask for owner + due immediately after the user picks Save-as-OQ. -->
+## 9. Data impact
 
-- [ ] <question>? Default now: <...>. — owner: <name/role>, due: <date or stage>
-- [ ] <question>? — owner: <name/role>, due: <date or stage>
+<!-- Skill instruction: IMPACT, not design. Derived from §5 and §6, confirmed as a whole with one
+question. This section does NOT decide the schema, the lookups or how the change reaches an existing
+database. At PRD time there is nothing to decide that against, and a guess written here would be read
+later as a decision. It names what the feature does to the data and hands the open points to the
+stage that builds it.
+
+Domain language, same as §5. The words «index», «migration», «column», «table», «schema», «enum» and
+any stack name do not belong here — except in the Prerequisites bullet, where naming the real harness
+is the point.
+
+- **New data** — what the feature starts recording, in glossary words. «A loaded file keeps the name
+  it came from and the day it was loaded», not a field list with types.
+- **Changed data** — what already exists and gains or loses something.
+- **Already-recorded history** — does anything recorded before this feature have to be reshaped or
+  filled in afterwards? This is the expensive, hard-to-reverse answer, so state it plainly even when
+  it is «no». If yes, say what the owner would see while it happens.
+- **New read paths** — which new questions the data now has to answer, and roughly how much of it
+  each one walks: «history for one account over a date range», «every movement of a period, grouped».
+  The implementation stage needs this to decide lookup behaviour. It is not that decision.
+- **Prerequisites** — what must exist before this can be built or measured: a local database setup, a
+  seeded dataset, the integration harness. Name them; they become tasks, not assumptions.
+- **Left to the implementation stage** — a short list of what this section deliberately does not
+  settle: storage shape, lookup behaviour for the read paths above, how the change reaches a database
+  that already holds data, and the machine names for the refusals listed in §10. -->
+
+- **New data:** <...>
+- **Changed data:** <...>
+- **Already-recorded history:** <no / what has to be reshaped and what the owner sees>
+- **New read paths:** <...>
+- **Prerequisites:** <...>
+- **Left to the implementation stage:** <...>
+
+## 10. Refusal messages
+
+<!-- Skill instruction: one row per §5 criterion of type error, domain invariant or cross-context —
+the sentence the owner reads when the system blocks them, all of them together so they sound like one
+product. Rules in references/refusal-messages.md.
+
+NO CODES. `finnavis.transfers.same_account` is a name for a machine; naming failures belongs to the
+stage that writes the code, and §9 hands it over explicitly. No status numbers, no field names, no
+payload shapes. Two columns, and do not restate the Given/When from §5. -->
+
+| AC | What the owner is told |
+|---|---|
+|  |  |
+
+## 11. Verification plan
+
+<!-- Skill instruction: every §5 criterion gets at least one row, and every §6 row that is measured by
+a test gets one too. Levels that exist in this repo: domain unit · application unit · integration
+(Testcontainers + PostgreSQL, needs Docker) · architecture test · manual run. There is no CI and no
+e2e suite — if a check needs one, that is a prerequisite in §9, not a level you may name here.
+Finish with the command: `./build.sh test`. -->
+
+| AC / NFR row | Level | What the test asserts |
+|---|---|---|
+|  |  |  |
