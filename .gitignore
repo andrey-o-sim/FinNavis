@@ -47,3 +47,7 @@ Thumbs.db
 *.stackdump
 
 settings.local.json
+
+# SDLC plugin: per-developer local settings and agent worktrees
+.claude/*.local.md
+.worktrees/

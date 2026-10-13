@@ -1,6 +1,6 @@
 ---
 status: Living
-updated_at: "2026-10-10"
+updated_at: "2026-10-12"
 ---
 
 # Domain Context — FinNavis
@@ -19,9 +19,13 @@ batched «I'll consolidate later».
 
 <!-- One line per term: name · one-sentence canonical definition · one-sentence boundary
      (what it is NOT / the concept it gets confused with). Alphabetical once there are a few. -->
+- Account — a place where the owner's money sits, such as cash, a card or a savings account; a transaction is recorded on exactly one account and a transfer touches two. NOT Category (a category says what the money was for, an account says where the money is).
+- Balance — how much money sits on one account right now, equal to the sum of every transaction and transfer recorded on that account. NOT a period total (a period total covers only the movements inside a date range, while a balance is the running state of the account at a point in time).
 - Category — a label the owner files a transaction under; each category belongs to either expenses or income, and every transaction names exactly one. NOT Category Group (a group holds categories and is never named by a transaction).
 - Category Group — an optional container holding related categories for reporting, for example utilities over electricity, water and gas; a category belongs to at most one group. NOT Category (a transaction always names a category, never a group).
+- Default group — the bucket a period breakdown reports every category that belongs to no Category Group under, so the group figures always add up to the period total. NOT a Category Group (it is produced by the breakdown rather than created by the owner, so it cannot be renamed, deleted, or picked when filing a transaction).
 - Duplicate — a row in a loaded file that names a money movement already recorded in the ledger, so loading that file again must not create a second transaction. NOT two separate transactions that happen to share the same date, amount and text (both are real spending, and both belong in the ledger).
+- Owner — the single person whose money this installation tracks and the only actor in the product; every account, category and recorded movement belongs to them. NOT a user account (there is no sign-in and no second person, so records carry no owner field — the owner is a fact about the product, not stored data).
 - Statement — a file produced by a bank, listing the money movements on one account over a period, in a shape the bank controls and the owner cannot change. NOT an export from a tracker the owner uses (that covers all of the owner's data rather than one account, and already carries categories).
-- Transaction — a single income or expense recorded on exactly one account, with an amount, a date, and a category. NOT Transfer (a transfer moves money between two of the owner's own accounts, so it touches two accounts, carries no category, and leaves the owner's total unchanged).
+- Transaction — a single income or expense recorded on exactly one account, with an amount, a date, a category, and an optional free-text note. NOT Transfer (a transfer moves money between two of the owner's own accounts, so it touches two accounts, carries no category, and leaves the owner's total unchanged).
 - Transfer — moves money between two different accounts of the owner: it decreases one and increases the other by the same amount, carries no category, and leaves the owner's total unchanged. NOT Transaction (a transaction touches one account, has a category, and changes the owner's total).
