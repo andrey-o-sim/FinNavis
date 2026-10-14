@@ -12,11 +12,11 @@ I decide alone**, never **what gets covered**.
 |---|---|---|---|
 | Phase 2 deep dive | carried §15 questions + `SPEC.md` contradictions only | 3-5 questions, batches of 2-3 | the whole rule bank, every trade-off foregrounded |
 | §4-§7 walk | I resolve the reversible items with stated defaults; ask only the irreversible ones | one question per real decision | every decision, each with its trade-off spelled out |
-| §9-§11 | one bundled confirm for all three | one confirm each | one confirm each, plus per-row questions where a choice exists |
+| §9-§10 | one bundled confirm for both | one confirm each | one confirm each, plus per-row questions where a choice exists |
 | Assumptions ledger | yes — batch veto before the write | no | no |
 
 **The floors do not move with the dial.** The §5 coverage model, the use-case floor, the §8 owner+due
-rule, the §9 read-path and history answers, the §10 and §11 coverage rules hold at `easy` exactly as
+rule, the §9 read-path and history answers and the §10 coverage rule hold at `easy` exactly as
 at `hard`.
 `easy` reaches them by deciding and stating; `hard` reaches them by asking. Dropping a coverage type
 because the run is `easy` is a correctness bug, not a depth choice.
@@ -46,7 +46,7 @@ Per section, in order: **§4 user stories → §5 acceptance criteria → §6 NF
    not a second walk.
 
 §1-§3 are rendered but not walked item by item: they carry no decision set, and the user edits them
-inline if the wording is off. §9, §10 and §11 are rendered whole and confirmed with one question each —
+inline if the wording is off. §9 and §10 are rendered whole and confirmed with one question each —
 they are derived from §5. If a confirm comes back `Edit`, walk the changed rows item by item.
 
 ## The state machine
@@ -70,8 +70,8 @@ Four states for every item, five for an acceptance criterion:
 - **§4 user story** — dropping a story is a legitimate de-scope. It does not fire the use-case floor; it
   takes its ACs with it.
 - **§6 NFR row** — a bare adjective ("fast", "quick", "reliable") is never approvable. Force a number or
-  an open question with owner + due. A number with no way to measure it today is approvable only if §9 or
-  §11 names standing up the measurement as a prerequisite.
+  an open question with owner + due. A number with no way to measure it today is approvable only if §9
+  names standing up the measurement as a prerequisite.
 - **§7 KPI** — a baseline of 0 is fine for a new feature. A baseline of TBD needs an inline measurement
   plan or an open question.
 
@@ -99,5 +99,5 @@ user gives no reason on a Drop or a Save-as-OQ, ask once more — the verbatim w
 
 ## Exit condition
 
-The walk is done when every item in §4-§7 has exactly one resolution applied, §9-§11 are confirmed, both
+The walk is done when every item in §4-§7 has exactly one resolution applied, §9-§10 are confirmed, both
 §5 floors hold, and the edits-log has no pending entry. Then Phase 7 (the critic).

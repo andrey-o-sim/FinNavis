@@ -96,10 +96,9 @@ later section turned into.
    - §9 names every new way the data will be read, says whether anything already recorded has to be
      rewritten (even when the answer is no), and hands the rest over instead of deciding it;
    - §10 has a row for every criterion about bad input, a broken rule, or a cross-part rule — each one
-     a sentence written for the owner — and no row that no criterion asked for;
-   - §11 covers every criterion with a level of testing that exists in this repository.
+     a sentence written for the owner — and no row that no criterion asked for.
 
-6. **Is there technical detail where there should be none?** Sections §1 to §10 must contain no method
+6. **Is there technical detail where there should be none?** No section may contain method
    names from the web protocol, no paths, no numeric response codes, no dotted machine names for
    failures, no fragments of stored data, no pieces of queries, and no product names from the
    implementation stack. Nor should they use the vocabulary of the code — words such as repository,
@@ -107,10 +106,11 @@ later section turned into.
    the text. Two of these are worth naming on their own:
    - §9 that designs the storage, the lookups, or the schema change instead of describing the effect
      on the data — at this stage those are guesses dressed as decisions;
-   - a machine name for a failure anywhere in §1 to §10; the document states refusals in words.
+   - a machine name for a failure anywhere in the document; refusals are stated in words;
+   - a test plan: which test proves a criterion belongs to the stage that writes the code.
 
-   §11 is the exception, because it has to name a level of testing, and so is the "what must exist
-   first" line in §9, because naming the real test setup is its purpose.
+   The one exception is the "what must exist first" line in §9, because naming the real test setup is
+   its purpose.
 
 7. **Does the document describe a world this project does not have?** A reviewer or approver who is
    not the owner; a role that is not in the glossary; a user segment, a tenant, or a customer; a

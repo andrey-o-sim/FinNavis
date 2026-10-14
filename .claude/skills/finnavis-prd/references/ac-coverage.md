@@ -72,9 +72,14 @@ Allowed inside an AC: glossary role names, glossary domain objects, invariant na
 
 ## Forbidden tokens
 
-Zero tolerance in **§1-§10**. Only §11 is the technology zone, because a check has to name a test
-level. §9's Prerequisites bullet is the one exception inside the scanned range: naming the real
-harness is its job.
+Zero tolerance in **every section**. Two exceptions, both for the same reason — naming the real test
+setup is their job:
+
+- §9's Prerequisites bullet;
+- §6's Measurement column and its prerequisite note. A target with no named way to check it is a wish.
+
+Neither exception covers a test plan. Which test proves a criterion belongs to the stage that writes
+the code, not to this document.
 
 ### Hard ban (rewrite, always)
 

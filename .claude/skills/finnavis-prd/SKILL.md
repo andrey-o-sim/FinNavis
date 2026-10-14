@@ -6,8 +6,8 @@ description: >
   acceptance criteria, NFRs and KPIs, a clean-context critic, then one write. The
   acceptance-criteria coverage model is solo-shaped: 4 always-mandatory types plus
   history-integrity / duplicate-safety / authorization, each resolved explicitly instead
-  of invented. Writes an 11-section PRD: §1-§10 stay technology-free — data impact and
-  refusal messages included, failure codes excluded — and §11 is the verification plan.
+  of invented. Writes a 10-section PRD that stays technology-free end to end — data impact
+  and refusal messages included, failure codes and test plans excluded.
   Triggers on "/finnavis-prd {slug}", "write PRD for {slug}", "draft PRD for {slug}",
   "PRD для {slug}", "напиши PRD {slug}", "опиши требования", "product requirements for {slug}".
   Hard-refuses if docs/features/<slug>/idea-brief.md or the repo-root CONTEXT.md is missing.
@@ -117,7 +117,7 @@ never **what gets covered** → [references/socratic-loop.md](references/socrati
 - **medium** — one question per real decision in §4-§7.
 - **hard** — every decision walked, each question foregrounds the trade-off, edge cases probed harder.
 
-The §5 coverage floors and the §9-§11 completeness rules hold at **every** depth. `easy` reaches them
+The §5 coverage floors and the §9-§10 completeness rules hold at **every** depth. `easy` reaches them
 by deciding, `hard` by asking. Dropping a coverage type because the depth is `easy` is a bug.
 
 ### 1. Size (read `.size`, or establish it)
@@ -205,7 +205,7 @@ For each picked channel ask the **specific** path or question. No silent broad s
 built, and a PRD that reads them starts writing HOW. A decision that closes a *product* option — "one
 currency", "no sign-in" — belongs in `SPEC.md` or in the brief, and that is where this skill reads it.
 
-### 5. Draft §1-§11 in memory (no user input)
+### 5. Draft §1-§10 in memory (no user input)
 
 Read the per-section contract in the template's `<!-- Skill instruction: ... -->` comments, then draft
 every section. Sources and rules:
@@ -223,12 +223,11 @@ every section. Sources and rules:
 | §8 Open questions | carried brief §15 items + `save_as_oq` resolutions; owner + due mandatory |
 | §9 Data impact | §5 AC + §6 NFR → what the feature does to the data, and what it leaves open |
 | §10 Refusal messages | every §5 AC of type error / domain invariant / cross-context → [references/refusal-messages.md](references/refusal-messages.md) |
-| §11 Verification plan | every §5 AC → a test level that exists in this repo today |
 
-**The technology line runs between §10 and §11.** §1-§10 are WHAT and WHY: no datastore, no framework,
-no entity-class names, no protocol detail, and **no failure codes** — `finnavis.transfers.same_account`
-is a name for a machine, and naming failures belongs to the stage that writes the code. §11 is the only
-technology zone, because a check has to name a test level. The forbidden-token scan covers §1-§10
+**The whole document is WHAT and WHY.** No datastore, no framework, no entity-class names, no
+protocol detail, **no failure codes** — `finnavis.transfers.same_account` is a name for a machine —
+and **no test plan**. Which test proves a criterion is a decision of the stage that writes the code,
+not of a document that describes the product. The forbidden-token scan covers every section
 (→ [references/ac-coverage.md](references/ac-coverage.md#forbidden-tokens)).
 
 **§9 is impact, not design.** It does not pick the storage shape, the lookups, or how the change
@@ -245,7 +244,7 @@ AC, and the four mandatory coverage types are present.
 Machine, edits-log and cadence → [references/socratic-loop.md](references/socratic-loop.md).
 
 Walked **per item**: §4 user stories → §5 acceptance criteria → §6 NFR rows → §7 KPIs.
-Rendered whole and confirmed with **one question each**: §9, §10, §11 — they are derived from §5, not
+Rendered whole and confirmed with **one question each**: §9 and §10 — they are derived from §5, not
 independent decisions. If a confirm comes back `Edit`, walk the changed rows per item.
 
 After every §5 resolution re-check both floors (coverage types, and every retained user story keeps at
@@ -271,7 +270,7 @@ unreadable answer → stop and report. Never fall back to a silent write.
 
 Run against the in-memory draft, before `ExitPlanMode`:
 
-- 11 sections present (plus §6.1). Empty is not allowed; `<!-- N/A: reason -->` is.
+- 10 sections present (plus §6.1). Empty is not allowed; `<!-- N/A: reason -->` is.
 - Forbidden-token regex over §1-§10 — zero hits that were not explicitly overridden. §9's Prerequisites
   bullet is exempt: naming the real harness is its job.
 - §5: four mandatory types present; at least one conditional type present; every conditional type
@@ -284,7 +283,6 @@ Run against the in-memory draft, before `ExitPlanMode`:
   explicitly even when it is "no"; the open points are handed over, not decided.
 - §10: every error-type, invariant-type and cross-context AC has a row, each a sentence for the owner.
   No code, no status number, no field name anywhere in the table.
-- §11: every AC has at least one row naming a test level that exists in this repo.
 
 A failed check means fixing that section and checking again, not noting it and moving on.
 
@@ -333,7 +331,7 @@ block — the last output of the run, every time:
 
 ## Definition of Done
 
-- `docs/features/<slug>/PRD.md` exists, 11 sections + §6.1 filled or explicitly `N/A: reason`.
+- `docs/features/<slug>/PRD.md` exists, 10 sections + §6.1 filled or explicitly `N/A: reason`.
 - `status: Draft` in frontmatter — the skill never writes `Approved`.
 - §4 roles come from `CONTEXT.md` verbatim. No invented `user`, `admin` or `reviewer`.
 - §5 holds the four mandatory coverage types, at least one conditional type, an explicit resolution for
@@ -343,7 +341,7 @@ block — the last output of the run, every time:
 - §7 KPIs are solo-shaped — nothing that needs a second user to compute.
 - §8 rows all carry owner + due; every `idea-brief.md` §15 question is answered or carried here.
 - §9 names every new read path and answers the already-recorded-history question; §10 covers every
-  failure AC; §11 covers every AC.
+  failure AC.
 - New domain terms are in the repo-root `CONTEXT.md`, each with its NOT-boundary.
 - The second reader ran on the reviewed draft; every finding is resolved or left with a §1 ¶4 line.
 
@@ -357,7 +355,7 @@ block — the last output of the run, every time:
   not have. Use the solo bank.
 - **An availability SLO.** Nobody is owed one. If downtime costs only your own evening, say that.
 - **A target nobody can measure.** "p95 ≤ 300 ms" with no harness is a wish. Name the measurement, or
-  name standing it up as a prerequisite task in §9/§11.
+  name standing it up as a prerequisite task in §9.
 - **Technology in §1-§10.** The datastore, the ORM, the framework and the entity-class names belong to
   `ARCHITECTURE.md` and to the stage that writes code. The forbidden-token scan is the backstop, not
   the rule.
@@ -403,15 +401,15 @@ block — the last output of the run, every time:
 >    edited into afterwards.
 > 5. **Phase 3** — "mapping profile" goes to `pending_glossary_terms`.
 > 6. **Phase 4** — channels: `core-ledger/PRD.md` as the reference, plus `ARCHITECTURE.md`.
-> 7. **Phase 5** — drafts §1-§11. §5 gets the four mandatory types; **duplicate safety** is mandatory
+> 7. **Phase 5** — drafts §1-§10. §5 gets the four mandatory types; **duplicate safety** is mandatory
 >    here (data comes from outside), **history integrity** too (an import touches past periods),
 >    **authorization** resolves to N/A — the glossary still has one actor.
-> 8. **Phase 6** — walks 6 user stories, 19 ACs, 5 NFR rows, 4 KPIs; confirms §9-§11 one question each.
+> 8. **Phase 6** — walks 6 user stories, 19 ACs, 2 NFR rows, 2 KPIs; confirms §9-§10 one question each.
 >    §9 names the duplicate lookup as a new read path, answers "no reshaping of recorded history", and
 >    hands the lookup behaviour to the implementation stage.
 > 9. **Phase 7** — critic finds two: an AC that leaked a column name, and a §7 metric that needed a
 >    second user. Both accepted.
-> 10. **Phase 8** — self-check: regex clean, floors closed, §11 covers all 19 ACs.
+> 10. **Phase 8** — self-check: regex clean, floors closed, §10 covers every refusal.
 >
 > **— ExitPlanMode —**
 >

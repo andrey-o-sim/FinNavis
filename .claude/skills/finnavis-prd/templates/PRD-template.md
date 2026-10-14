@@ -105,7 +105,7 @@ question in mind — say which question. -->
 
 ## 7. Metrics / KPIs
 
-<!-- Skill instruction: at least 3, from the solo bank in references/nfr-kpi-bank.md. Each is
+<!-- Skill instruction: 1-3, from the solo bank in references/nfr-kpi-bank.md. Each is
 baseline → target → timeframe. Baseline 0 is fine. Nothing that needs a second user to compute:
 no adoption rate, no retention cohort, no DAU/MAU, no NPS, no churn. -->
 
@@ -166,15 +166,3 @@ payload shapes. Two columns, and do not restate the Given/When from §5. -->
 | AC | What the owner is told |
 |---|---|
 |  |  |
-
-## 11. Verification plan
-
-<!-- Skill instruction: every §5 criterion gets at least one row, and every §6 row that is measured by
-a test gets one too. Levels that exist in this repo: domain unit · application unit · integration
-(Testcontainers + PostgreSQL, needs Docker) · architecture test · manual run. There is no CI and no
-e2e suite — if a check needs one, that is a prerequisite in §9, not a level you may name here.
-Finish with the command: `./build.sh test`. -->
-
-| AC / NFR row | Level | What the test asserts |
-|---|---|---|
-|  |  |  |

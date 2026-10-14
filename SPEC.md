@@ -51,6 +51,17 @@ The initial version does not include:
 - **Testing**: xUnit + AwesomeAssertions for unit tests, Testcontainers for real PostgreSQL integration tests.
 - **Architecture tests** guard the dependency rule, so it cannot rot quietly. See `tests/FinNavis.ArchitectureTests`.
 
+## Non-functional decisions (project-wide)
+
+These hold for the whole product. A feature PRD does not repeat them — it writes down only what is
+specific to that feature, and only when the number changes a decision.
+
+- **Throughput** — no target. One user, one action at a time, so there is no concurrent load.
+- **Availability** — no target. Self-hosted, one user; downtime costs only the owner's own evening.
+- **Scalability and multi-tenancy** — no target. There are no tenants.
+- **Safe schema change** — any change that reaches a database already holding rows must lose or alter
+  no row. This applies to every feature that stores anything.
+
 ## Acceptance criteria
 
 - `dotnet build FinNavis.slnx` and `dotnet test FinNavis.slnx` both succeed from a clean clone, with zero warnings.
