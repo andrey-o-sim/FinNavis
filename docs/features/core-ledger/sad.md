@@ -9,7 +9,7 @@ ticket: "none"
 target_surfaces: []  # filled in §4 — subset of: backend-service | web-frontend | mobile-app | desktop-app | cli | worker | library-sdk. Read (never re-derived) by api-forge/complete-sequence-diagrams/break-tasks/plan-tests/review-feature → _shared/surfaces.md
 ---
 
-# Software Architecture Document — <system / feature>
+# Software Architecture Document — core-ledger
 
 <!-- Stages 04-05 → see sdlc/plugin/skills/architecture-design/SKILL.md -->
 <!-- 12 Arc42 sections. Empty sections — <!-- N/A: <one-line reason> -->. -->
@@ -25,21 +25,30 @@ target_surfaces: []  # filled in §4 — subset of: backend-service | web-fronte
 <!-- 📋 Що писати: 1 абзац intent + 3 рядки топ-3 якості + таблиця stakeholders.        -->
 <!-- 📌 Приклад: «QG-1: швидкість редагування блоку p95 ≤500 мс»                         -->
 
-**Intent.** <One paragraph from PRD §Goals — what we're building and for whom.>
+**Intent.** Build the ledger the rest of FinNavis stands on. It holds accounts, categories with
+optional groups over them, transactions and transfers, and it answers two reads: a filtered history
+and one period breakdown that reports group totals and category totals in a single request. One
+owner, self-hosted, programmatic access only — the web client is a later feature that consumes what
+is built here (PRD §2, §3).
 
 **Top-3 quality goals (1-liners; full scenarios in §10):**
 
-1. <e.g. "Availability under partial failure of downstream module">
-2. <e.g. "Performance for EM dashboard under team-scale growth">
-3. <e.g. "Recoverability of checkpoints with <30 min RTO">
+1. **Ledger correctness** — an account balance always equals the sum of the movements recorded on
+   it, under any order of recording, editing and deleting.
+2. **Interactive latency** — recording a movement and reading history or the breakdown stay fast on
+   three years of history (~20 000 movements).
+3. **Report stability under re-grouping** — moving a category between groups never changes that
+   category's figure for a closed period; only group figures follow the new placement.
 
 **Stakeholders.**
 
 | Role | Interest | Sign-off owner? |
 |---|---|---|
-| <e.g. IC> | <feature usage> | No |
-| <e.g. EM> | <dashboard reads> | No |
-| <e.g. Tech Lead> | <SAD approval> | Yes |
+| Owner | Records movements; reads balances, history and the period breakdown | No |
+| Architect / Tech Lead (Andrey Simonenko) | SAD and ADR approval | Yes |
+
+> Solo project: the same person fills both rows. They are kept apart because the interests differ —
+> the Owner cares that the figures are right, the Architect carries the decisions recorded here.
 
 <!-- Decision overrides (¶4) — populated by the Step-7 critic resolution loop, empty otherwise.       -->
 <!-- Each: «Decision override: <headline> — rationale: <reason>» so downstream skills see the choice.  -->
