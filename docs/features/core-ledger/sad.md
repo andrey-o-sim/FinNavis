@@ -104,28 +104,42 @@ feature started.
 <!-- 📌 Приклад: «зовнішні — нема (свідома відмова від third-party у v1)» — це теж рішення.   -->
 <!-- Кордон довіри (trust boundary) — лінія, за якою ти не довіряєш даним без перевірки.       -->
 
-<Business context in 2-3 sentences. What the system does for whom.>
+The Owner records every money movement — income, expense and transfer between their own accounts —
+through a REST API, and reads back three things: the balance of each account, a filtered history,
+and one period breakdown that totals by group and by category at once. The system is self-hosted and
+serves exactly one person. It talks to nothing outside itself except its own database.
+
+<!-- brownfield: the repository is a skeleton. Four projects, references and architecture tests
+     exist; no entity, endpoint or schema does. There is no existing module to extend, so §5
+     decomposes into the four projects that are already there. -->
 
 **External systems (in / out):**
 
 | Actor or system | Type | Interaction |
 |---|---|---|
-| <e.g. IC> | Person | Creates goals, adds checkpoints |
-| <e.g. notification-service> | System (internal) | Receives cron registration |
-| <e.g. Identity Provider> | System (external) | Provides JWT tokens |
+| Owner | Person | Records transactions and transfers; manages accounts and categories; reads balances, history and the period breakdown |
+| PostgreSQL 18 | System (separate process, self-hosted alongside the API) | Stores the whole ledger |
+
+**No third-party system is involved, and that is a decision, not an omission.** There is no bank
+integration, no identity provider and no message broker in this feature (PRD §3 Non-goals). The
+planned consumers — the React PWA, CSV import, export, assistant access — are separate later
+features. None of them exists yet, so none appears below; each will consume the API drawn here
+rather than change its boundary.
 
 **C4 Context (L1):**
 
 ```mermaid
 C4Context
-    title <system> — System Context
+    title core-ledger — System Context
 
-    Person(user, "<User>", "<role + intent>")
-    System(system, "<Our System>", "<one-sentence description>")
-    System_Ext(ext, "<External system>", "<one-sentence description>")
+    Person(owner, "Owner", "The single person whose money this installation tracks")
 
-    Rel(user, system, "<interaction>", "<protocol>")
-    Rel(system, ext, "<interaction>", "<protocol>")
+    System(finnavis, "FinNavis API", "Records accounts, categories, transactions and transfers; answers balance, history and period-breakdown reads")
+
+    SystemDb(pg, "PostgreSQL 18", "Stores the ledger — accounts, categories, category groups, movements")
+
+    Rel(owner, finnavis, "Records movements; reads balances, history and the breakdown", "HTTPS / JSON")
+    Rel(finnavis, pg, "Reads and writes the ledger", "EF Core + Npgsql")
 ```
 
 ## 4. Solution strategy
