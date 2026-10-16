@@ -487,13 +487,20 @@ dump is still lost — is carried in §11.
 
 | Concept | Convention | Where defined |
 |---|---|---|
-| Logging | <e.g. structured slog, fields `module=<name>`> | <CLAUDE.md §X or here> |
-| Authentication | <e.g. JWT via session middleware> | <CLAUDE.md §X> |
-| Error handling | <e.g. domain sentinel → ports/errors.go → apperr JSON> | <CLAUDE.md §X> |
-| ID strategy | <e.g. UUID v7 in app layer> | <CLAUDE.md §X> |
-| Internationalisation | <e.g. N/A, English only> | — |
-| Observability | <e.g. OpenTelemetry on HTTP boundaries> | — |
-| Outbox / events | <module-specific patterns, if any> | <here> |
+| Logging | Structured logs to stdout through `Microsoft.Extensions.Logging`. No PII scrubbing — every value is the owner's own data | §7 |
+| Authentication | None. One owner, no sign-in. Network isolation is the only control | PRD §3, §6.1 → §11 |
+| Authorization | None. There is no second actor to deny and no existence to hide (PRD §5 N/A note) | PRD §5 → §11 |
+| Error handling | A broken domain rule produces a sentinel domain error; Presentation maps it to an RFC 9457 Problem Details response. Refusal wording is taken from the PRD acceptance criteria, not invented | here |
+| ID strategy | UUID v7, generated in the Application layer with `Guid.CreateVersion7()`, stored as PostgreSQL `uuid` | ADR-0005 |
+| External reference | Every transaction carries a nullable `external_ref` with a unique index. Unused and always null in this feature; csv-import and message capture fill it later | ADR-0006 |
+| Money | `decimal`, single currency, no currency code stored | CLAUDE.md, PRD §3 |
+| Time | `DateTimeOffset`, stored UTC. An `IClock` port in `Domain/Abstractions` keeps date rules testable without the machine clock | CLAUDE.md, ARCHITECTURE.md |
+| Validation | Shape only in Presentation; use-case checks in Application; invariants inside Domain entities | here |
+| Concurrency | None. One owner and one client, so no optimistic concurrency token in v1 | → §11 |
+| Filter dimensions | Period, account and category only. Payee, merchant and free tags are deliberately excluded — the optional note covers the need to find an entry by eye (PRD §8, closed at this stage) | here → §11 |
+| Internationalisation | N/A — English only | — |
+| Observability | N/A — no metrics, alerts or tracing. See §7 for why | §7 |
+| Outbox / events | N/A — one process, no module-to-module messaging in this feature | — |
 
 ## 9. Architecture decisions
 
