@@ -511,10 +511,28 @@ dump is still lost — is carried in §11.
 
 | # | Title | Status | Section |
 |---|---|---|---|
-| <NNNN> | <imperative — e.g. "Use sliding window for rate limiting"> | Accepted | §<N> |
-| <NNNN> | <imperative — e.g. "Co-locate outbox worker in API process"> | Accepted | §<N> |
+| 0001 | Keep transactions and transfers in separate tables | Accepted | §4 |
+| 0002 | Compute every read on demand, with no rollup table and no cache | Accepted | §4 |
+| 0003 | Edit and delete ledger rows in place instead of keeping an append-only ledger | Accepted | §4 |
+| 0004 | Separate the read path behind a query port instead of reading through repositories | Accepted | §5 |
+| 0005 | Use UUID v7 primary keys generated in the Application layer | Accepted | §8 |
+| 0006 | Add a nullable external reference to transactions now, before any feature uses it | Accepted | §8 |
 
-ADR files live under `docs/features/<slug>/adr/NNNN-<title>.md`.
+ADR files live under `docs/features/core-ledger/adr/NNNN-<title>.md`.
+
+Six ADRs for an M-sized feature, inside the expected 5–12 range. They are not independent: 0001 and
+0002 together decide the data shape and the read strategy, 0004 follows from 0002 (on-demand reads
+need a path that aggregates in the database), and 0003 is what makes 0002 safe to hold — with
+nothing stored, an in-place edit has nothing to invalidate. 0005 and 0006 are both about identity,
+and both exist because of features that have not been written yet.
+
+Decisions that did **not** become ADRs, and why: the PostgreSQL version pin (§2) and the aggregate
+and repository split (§5) follow existing repo convention; the deployment topology and backup
+approach (§7) are reversible in an afternoon; the crosscutting table (§8) inherits CLAUDE.md
+throughout. None of them would surprise a reader six months from now, which is the test.
+
+The repo also carries `docs/adr/0001-initial-setup.md`, which is project-wide rather than feature-
+scoped. Numbering here restarts at 0001 inside this feature's folder, per the SDLC convention.
 
 ## 10. Quality requirements
 
