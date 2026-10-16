@@ -437,16 +437,42 @@ sequenceDiagram
 <!-- 📌 Приклад: «500 IC → партиціонування за кварталом» (не «при зростанні подумаємо»).    -->
 <!-- 🎯 Можна N/A для XS/S функцій, що переюзають існуюче розгортання без змін.            -->
 
-<Topology in 2-3 sentences. Where it runs (k8s / VM / serverless), replicas, scaling thresholds.>
+One Docker Compose stack on the owner's own machine or home server: one API container, one
+PostgreSQL 18 container, one named volume for the data. One replica of each — no load balancer, no
+orchestrator, no second environment. The two containers share a private Docker network and only the
+API port is published, and only on the local network. That is what PRD §6.1 means by "the owner
+keeps the installation off public networks" — with no authentication in this feature, the network
+boundary is the only access control there is.
 
-**Monitoring:**
-- <Metrics — e.g. Prometheus `<metric_name>`>
-- <Alerts — e.g. "outbox lag > 10 min → page on-call">
-- <Tracing — e.g. OpenTelemetry HTTP spans>
+**This feature creates the deployment unit.** `docker-compose.yml`, the Testcontainers integration
+harness and a minimal CI job do not exist today (`SPEC.md`, "Planned, not built yet").
+`/sdlc-break-tasks` schedules all three as the **first** tasks of core-ledger, before any ledger
+code. Without them not one NFR row can be measured and the correctness target — 0 balance
+discrepancies across at least 1 000 randomised sequences — cannot be run at all.
 
-**Scaling thresholds:**
-- <e.g. 500 IC × 5 goals × 26 checkpoints/Q = 65k rows/year — comfortable in one table>
-- <e.g. partitioning by quarter at >500k rows/year>
+**Backups.** A scheduled nightly `pg_dump` writes a dated dump into a host folder that the owner's
+own machine backup already covers, keeping the last N dumps. This is not optional housekeeping: the
+ledger is hard-delete with no audit trail (ADR-0003), so a restore from dump is the **only** way
+back from a mistaken delete. The residual gap — anything recorded or deleted after the last nightly
+dump is still lost — is carried in §11.
+
+**Monitoring.** Deliberately thin, and that is a decision rather than an omission.
+
+- **Logs** — structured logs to stdout, read with `docker compose logs`. No aggregation, no retention
+  policy.
+- **Metrics** — none. PRD §6 sets no availability target, and every latency figure is measured in the
+  integration suite rather than in production. A metrics stack here would instrument a system that
+  has nobody to page.
+- **Alerts** — none. Downtime costs only the owner's own evening (PRD §6, `SPEC.md`).
+- **Tracing** — none. One process, four rings, no network hop to correlate.
+
+**Scaling thresholds.**
+
+- About 20 000 movements over three years of history (PRD §6) — one untuned PostgreSQL instance
+  covers that with large margin, which is what makes the compute-on-demand choice in ADR-0002 safe.
+- Look again if a single table passes ~1 000 000 rows, or if the breakdown p95 approaches its 500 ms
+  target. At manual-entry rates neither is expected inside the product's lifetime; csv-import is the
+  feature most likely to change that assumption.
 
 <!-- For XS/S that doesn't change deployment: <!-- N/A: feature reuses existing deployment unit -->. -->
 
