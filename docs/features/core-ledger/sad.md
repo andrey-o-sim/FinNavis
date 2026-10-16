@@ -203,39 +203,79 @@ Each tactical decision in later sections should be traceable to one of these str
 <!--           лише приклад однієї поверхні; додай/заміни під оголошене у §4. → _shared/surfaces.md -->
 <!-- 📌 Приклад: «web-app, content-api, media-worker, postgres, s3, cdn».                -->
 
-<One paragraph: layered / hexagonal / clean / event-driven. Why.>
+**Clean Architecture, four rings, no new project.** The rings already exist and were fixed by
+`docs/adr/0001-initial-setup.md`; this feature fills them in rather than changing the structure.
+Inside `Application`, code is organised by feature folder — one folder per thing the owner can do —
+which is what the empty `Application/Features/` directory already signals.
+
+The feature introduces **five aggregates and four repository ports**. `CategoryGroup` has no
+repository of its own: US-04 treats creating a category, putting it in a group and moving it between
+groups as one job, so `ICategoryRepository` serves all of it. A port is added when a use case needs
+one, never because a table exists (CLAUDE.md).
+
+The **read path is separate from the write path** (ADR-0004). Writes go through the repository ports
+and return domain entities. Reads go through `ILedgerQueries`, declared in
+`Application/Abstractions` and implemented in Infrastructure, so aggregation happens in PostgreSQL
+and only result rows travel back.
 
 **Internal decomposition:**
 
 ```
-<e.g. internal/modules/goals/>
-├── domain/       <entities + sentinel errors>
-├── app/          <use cases / services>
-├── infra/        <repository + outbox impl>
-├── ports/        <HTTP handlers, DTOs, error mapping>
-└── module.go     <self-wiring>
+src/FinNavis.Domain/
+├── Entities/        Account, Category, CategoryGroup, Transaction, Transfer
+├── ValueObjects/    Money, DateRange
+├── Enums/           CategoryKind (Expense | Income), TransactionDirection
+└── Abstractions/    IAccountRepository, ICategoryRepository,
+                     ITransactionRepository, ITransferRepository, IClock
+
+src/FinNavis.Application/
+├── Features/Accounts/      Create, Rename, Delete, GetBalances
+├── Features/Categories/    Create, Rename, MoveToGroup, Delete
+├── Features/Transactions/  Record, Edit, Remove
+├── Features/Transfers/     Record, Edit, Remove
+├── Features/Reporting/     GetHistory, GetBreakdown
+└── Abstractions/           IUnitOfWork, ILedgerQueries
+
+src/FinNavis.Infrastructure/
+├── Persistence/            FinNavisDbContext, Configurations/, Migrations/
+├── Repositories/           EF Core adapters for the four repository ports
+└── Queries/                EF Core adapter for ILedgerQueries
+
+src/FinNavis.Presentation/
+├── Endpoints/              AccountEndpoints, CategoryEndpoints, TransactionEndpoints,
+│                           TransferEndpoints, ReportingEndpoints
+└── Contracts/              request + response records
 ```
 
 **C4 Container (L2):**
 
+> The four boxes inside the boundary are the four rings. They compile into **one** ASP.NET Core
+> process and are not separately deployable — they are drawn as containers because the boundary
+> between them is the architecture here, and it is enforced by `tests/FinNavis.ArchitectureTests`.
+> `target_surfaces` declares one surface, so there is one application boundary.
+
 ```mermaid
 C4Container
-    title <system> — Containers
+    title core-ledger — Containers
 
-    Person(user, "<User>")
+    Person(owner, "Owner", "Records movements and reads reports")
 
-    Container_Boundary(boundary, "<Our System>") {
-        Container(web, "<Web/API container>", "<technology>", "<purpose>")
-        Container(svc, "<Service container>", "<technology>", "<purpose>")
-        ContainerDb(db, "<DB>", "<technology>", "<purpose>")
+    Container_Boundary(api, "FinNavis API — one ASP.NET Core process") {
+        Container(pres, "Presentation", "ASP.NET Core Minimal APIs", "Maps HTTP to use cases, owns request and response contracts, is the composition root")
+        Container(app, "Application", "C# use cases", "Orchestrates domain objects; declares IUnitOfWork and ILedgerQueries")
+        Container(dom, "Domain", "C# entities and rules", "Account, Category, CategoryGroup, Transaction, Transfer; declares the four repository ports")
+        Container(inf, "Infrastructure", "EF Core 10 + Npgsql", "Adapters for every port, DbContext, entity configurations, migrations")
     }
 
-    System_Ext(ext, "<External>", "<purpose>")
+    ContainerDb(pg, "PostgreSQL 18", "PostgreSQL", "accounts, categories, category_groups, transactions, transfers")
 
-    Rel(user, web, "<interaction>", "<protocol>")
-    Rel(web, svc, "<service calls>")
-    Rel(svc, db, "<reads/writes>", "<driver>")
-    Rel(svc, ext, "<emits>", "<protocol>")
+    Rel(owner, pres, "Records movements; reads balances, history and the breakdown", "HTTPS / JSON")
+    Rel(pres, app, "Calls use-case classes directly — there is no driving port")
+    Rel(app, dom, "Uses entities; calls the repository ports")
+    Rel(inf, dom, "Implements the repository ports")
+    Rel(inf, app, "Implements IUnitOfWork and ILedgerQueries")
+    Rel(pres, inf, "Registers every adapter in DI at startup — composition root only")
+    Rel(inf, pg, "Reads and writes", "EF Core + Npgsql")
 ```
 
 ## 6. Runtime view
