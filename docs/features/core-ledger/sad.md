@@ -6,7 +6,7 @@ updated_at: "2026-10-16"
 feature_size: M
 stage: "04-05"
 ticket: "none"
-target_surfaces: []  # filled in §4 — subset of: backend-service | web-frontend | mobile-app | desktop-app | cli | worker | library-sdk. Read (never re-derived) by api-forge/complete-sequence-diagrams/break-tasks/plan-tests/review-feature → _shared/surfaces.md
+target_surfaces: [backend-service]  # decided in §4. Read (never re-derived) by api-forge/complete-sequence-diagrams/break-tasks/plan-tests/review-feature → _shared/surfaces.md
 ---
 
 # Software Architecture Document — core-ledger
@@ -154,7 +154,11 @@ C4Context
 <!--           наступні стадії. Деривиться з PRD §1 «для кого» + §4 ролей. → _shared/surfaces.md -->
 <!-- 📌 Приклад: «Зберігати урок як таблицю блоків» — стовп, з якого виросло ADR-0001.    -->
 
-**Target surface(s) (the first decision — what's being built):** `<e.g. [backend-service, web-frontend]>`
+**Target surface(s) (the first decision — what's being built):** `[backend-service]`
+
+One REST API plus its database. No UI surface, so there is no UI-architecture decision to take here.
+PRD §3 is explicit: no web client, no installable app, no offline reading — the React PWA is a
+separate later feature that will consume this API. §5 therefore draws one application container.
 <!-- Mirror this list into the frontmatter `target_surfaces`. For each declared UI surface          -->
 <!-- (web-frontend / mobile-app / desktop-app) add a UI-architecture choice below (web → SSR/SPA/   -->
 <!-- hybrid; mobile → native/cross-platform). Multi-surface is usually an ADR (multi-module +       -->
@@ -163,9 +167,27 @@ C4Context
 
 **Top strategic choices (the seeds for ADRs):**
 
-1. **<e.g. Module isolation through events>** — <2-3 sentences rationale referencing Quality Goals and constraints>.
-2. **<e.g. Single-store persistence (Postgres)>** — <2-3 sentences>.
-3. **<e.g. UI-architecture: SPA consuming the backend API>** — <per declared UI surface; 2-3 sentences>.
+1. **A transaction and a transfer are two different records, in two tables** (ADR-0001). The glossary
+   already treats them as different things: a transaction touches one account and carries a
+   category, a transfer touches two and carries none. Keeping them apart means neither table needs a
+   nullable counter-account or a discriminator, and the breakdown satisfies AC-20 structurally —
+   it reads `transactions` and never looks at `transfers`, so a transfer cannot leak into a category
+   total. The price is paid on the read side: balance is three sums added together, and history is a
+   `UNION ALL` of two shapes. That price is acceptable because transfers are rare in this ledger, and
+   it keeps the option of dropping transfers later down to a single migration.
+
+2. **Every read is computed on demand; nothing is pre-aggregated and nothing is cached** (ADR-0002).
+   Balance, history and the period breakdown are all queries over the base tables. Three years of
+   history is about 20 000 rows (PRD §6) — small enough that one indexed aggregate query sits far
+   inside the 500 ms budget. This also makes quality goal 3 free: because the category-to-group
+   mapping is resolved at query time, moving a category between groups changes group totals at once
+   and cannot change that category's own figure (AC-13).
+
+3. **The ledger is mutable — corrections edit and delete rows in place** (ADR-0003). AC-21 and AC-22
+   describe this literally: a removed entry disappears from history and the balances return to what
+   they would have been had it never existed. That is a hard delete, not a reversing entry. It
+   matches the repo's database convention and keeps history easy to read. The accepted cost is that
+   there is no audit trail — carried into §11.
 
 Each tactical decision in later sections should be traceable to one of these strategic seeds. Tactical decisions that *contradict* a strategic choice are red flags — surface them in §11 Risks.
 
