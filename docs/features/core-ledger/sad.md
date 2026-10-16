@@ -610,12 +610,33 @@ alerts, no metrics stack, one replica.
 
 | Risk / debt | Severity | Mitigation | Owner |
 |---|---|---|---|
-| <e.g. Outbox lag may reach hours during downstream outage> | Medium | <Alert >10 min, on-call playbook, retry backoff> | <DevOps> |
-| <e.g. No event schema versioning in v1> | Medium | <ADR-NNNN planned for v2, graceful handling of unknown fields> | <Backend> |
-| Open architectural decision: <decision-headline> | Open question | Resolve before <stage trigger or YYYY-MM-DD>; <inline rationale from Step-7 Save-as-OQ> | <owner> |
+| No authentication: anyone who can reach the installation reads and edits the whole ledger | High | Keep the installation off public networks (PRD §6.1). The later OAuth feature owns the fix. §5 of the PRD carries no authorization acceptance criterion for the same reason | Andrey |
+| No integration harness, CI pipeline or compose stack exists, so not one NFR row can be measured today | High | Scheduled as the first tasks of this feature, before any ledger code (§7) | Andrey |
+| Balance correctness lives in SQL across two tables (ADR-0001) rather than in the shape of the data | Medium | QG-1 property-based test, 1 000 randomised sequences, run against real PostgreSQL in CI (§10) | Andrey |
+| Paging history across a `UNION ALL` of two tables (ADR-0001) is awkward, and the ≤ 400 ms per-page target depends on getting it right | Medium | Decided at `/sdlc-api-forge`, which owns the endpoint contract. Both tables are keyed by time-ordered UUID v7 (ADR-0005), so a merged keyset page over date and id is workable; at ~20 000 rows offset paging would also meet the bar | Andrey |
+| The breakdown has no cache and no rollup (ADR-0002), so its index is load-bearing — losing it turns the query into a sequential scan | Medium | `EXPLAIN` assertion inside the latency test (§10), so the regression shows up as a failing test | Andrey |
+| No audit trail — a wrong edit or delete is unrecoverable (ADR-0003) | Medium | Nightly `pg_dump` to a backed-up host folder (§7). Anything recorded or deleted after the last dump is still lost | Andrey |
+| Open question: what is the maximum length of a transaction note? Default now: no limit enforced | Open question | Resolve before `/sdlc-generate-data-model`; carried from PRD §8. PRD §6.1 names an unbounded note as a storage-bloat abuse case | Andrey |
+| Open question: how are stored UTC timestamps reconciled with the owner's local calendar month, so a late-evening purchase near a boundary lands in the right period? Default now: undecided | Open question | Resolve before `/sdlc-generate-data-model`; carried from PRD §8. It affects every period boundary in §10's QG-3 scenarios | Andrey |
+| Open question: `SPEC.md` Non-goals says "no authentication, one owner" while its draft requirements list Google OAuth and a secured public API | Open question | Resolve when the OAuth feature is scoped; carried from PRD §8 | Andrey |
+| No optimistic concurrency token, so a second writer would overwrite silently | Low | Accepted: one owner, one client, and no second writer exists. ADR-0003 names this as the thing to add when one appears | Andrey |
 
 **Accepted debt (acceptable in v1, plan to fix later):**
-- <e.g. Goal entity is not versioned (immutable) — OK for v1, may need audit versioning in v2>
+
+- `external_ref` ships unused and always null (ADR-0006). Paid deliberately, to spare csv-import a
+  migration against a table that by then holds real history.
+- Transfers may be withdrawn from the product later — the owner records them rarely. ADR-0001's
+  separate-table shape was chosen partly to keep that removal down to one migration against one
+  table. Recorded so a future reader knows this was deliberate, not accidental. It changes nothing
+  here: PRD US-02 commits to transfers with five acceptance criteria.
+- No metrics, alerts or tracing (§7). Accepted because there is no availability target and nobody to
+  page.
+
+**Open questions closed during this pass** (they were due at this stage, so they are no longer open):
+
+- Should an entry carry a client-supplied identifier from day one? → yes, as a nullable
+  `external_ref`. See ADR-0006.
+- Is a filter dimension outside period / account / category needed soon? → no. See §8.
 
 ## 12. Glossary
 
@@ -625,8 +646,24 @@ alerts, no metrics stack, one replica.
 <!--           Один термін може мати дві мови у заголовку: «Goal (Обʼєктив)».              -->
 <!-- 📌 Приклад: «Lesson | урок усередині курсу, що складається з блоків (text, video)». -->
 
+Domain terms come from `CONTEXT.md`, which is canonical — if anything in this document contradicts
+it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
+
 | Term | Meaning |
 |---|---|
-| <e.g. Goal> | <quarterly intent in statement form> |
-| <e.g. KR> | <Key Result — measurable target linked to a Goal> |
-| <e.g. Checkpoint> | <bi-weekly progress update on a KR> |
+| Account | A place where the owner's money sits, such as cash, a card or a savings account. A transaction is recorded on exactly one account; a transfer touches two. Not a Category — a category says what the money was for, an account says where it is |
+| Balance | How much money sits on one account right now, equal to the sum of every transaction and transfer recorded on it. Not a period total, which covers only a date range. In this design it is never stored — see ADR-0002 |
+| Category | A label the owner files a transaction under. Each belongs to either expenses or income, and every transaction names exactly one. Not a Category Group |
+| Category Group | An optional container holding related categories for reporting, for example utilities over electricity, water and gas. A category belongs to at most one group. A transaction never names a group |
+| Default group | The bucket a period breakdown reports every ungrouped category under, so group figures always add up to the period total. Produced by the breakdown, not created by the owner — it cannot be renamed, deleted or picked when filing a transaction |
+| Owner | The single person whose money this installation tracks, and the only actor in the product. Not a user account: there is no sign-in and no second person, so records carry no owner field |
+| Transaction | A single income or expense recorded on exactly one account, with an amount, a date, a category and an optional free-text note. Not a Transfer |
+| Transfer | Moves money between two different accounts of the owner: one falls and the other rises by the same amount. Carries no category and leaves the owner's total unchanged. Not a Transaction |
+
+**Terms this document introduces that are not in `CONTEXT.md`.** They are technical rather than
+domain words, so they do not need a glossary entry there — recorded here for the reader:
+
+| Term | Meaning |
+|---|---|
+| Query port (`ILedgerQueries`) | The Application-owned abstraction the read path uses, so aggregation runs in PostgreSQL instead of in memory. Separate from a repository port, which is a collection-like view of an aggregate and returns entities. See ADR-0004 |
+| External reference (`external_ref`) | A nullable, uniquely indexed column saying which outside thing an entry came from — a statement row, a message. Always null in this feature. See ADR-0006 |
