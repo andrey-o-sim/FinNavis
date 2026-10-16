@@ -290,25 +290,144 @@ C4Container
 <!--           кожним §5 AC — без обмеження. Не намагайся покрити все тут.                  -->
 <!-- 📌 Приклад: «methodist → web-app: складає чорновик → web-app → content-api: зберегти». -->
 
-**Critical flow 1: <flow name>**
+Participants are the §5 rings. Messages are semantic — HTTP verbs, paths and status codes arrive at
+the `api-forge` stage, not here. These four flows are seeds;
+`/sdlc-complete-sequence-diagrams` then covers every acceptance criterion.
+
+**Critical flow 1: record an expense** (US-01 — AC-01, AC-02, AC-03)
 
 ```mermaid
 sequenceDiagram
-    actor User
-    participant API
-    participant Service
-    participant DB
-    User->>API: <request>
-    API->>Service: <call>
-    Service->>DB: <write tx>
-    DB-->>Service: ok
-    Service-->>API: result
-    API-->>User: 201
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: record an expense with account, amount, date, category and optional note
+    Pres->>App: RecordTransaction use case
+    App->>Inf: load the named account and category
+    Inf->>PG: read account and category
+    PG-->>Inf: rows
+    Inf-->>App: Account and Category
+    alt the named category or account is not in the ledger
+        App-->>Pres: refuse and name what was not found
+        Pres-->>Owner: nothing is created, not even the unknown category
+    else the amount is zero or below zero
+        App-->>Pres: refuse and say the amount must be above zero
+        Pres-->>Owner: nothing is created
+    else both exist and the amount is valid
+        App->>Dom: build the Transaction and check the rules
+        Dom-->>App: a valid Transaction
+        App->>Inf: add the Transaction and commit the unit of work
+        Inf->>PG: insert one row
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the recorded Transaction
+        Pres-->>Owner: confirmation, with the note kept on the entry
+    end
 ```
 
-<!-- For XS/S: 1 flow above is enough. For M+: add 2-4 more (e.g. failure-mode flow, async flow). -->
+**Critical flow 2: record a transfer, and what happens when it fails** (US-02 — AC-04, AC-05, AC-06)
 
-**Critical flow 2: <e.g. async event propagation>** — <if applicable, otherwise N/A>.
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: move money from one account to another
+    Pres->>App: RecordTransfer use case
+    App->>Inf: load both accounts
+    Inf->>PG: read the two accounts
+    PG-->>Inf: rows
+    Inf-->>App: source and destination
+    App->>Dom: build the Transfer and check the rules
+    alt source and destination are the same account
+        Dom-->>App: rejected by the rule
+        App-->>Pres: refuse and say a transfer needs two different accounts
+        Pres-->>Owner: nothing is recorded
+    else two different accounts
+        Dom-->>App: a valid Transfer
+        App->>Inf: add the Transfer and commit the unit of work
+        Inf->>PG: insert one transfer row in one database transaction
+        alt the commit fails
+            PG-->>Inf: rolled back
+            Inf-->>App: failure
+            App-->>Pres: report the failure
+            Pres-->>Owner: neither account changed
+        else the commit succeeds
+            PG-->>Inf: committed
+            Inf-->>App: done
+            App-->>Pres: the recorded Transfer
+            Pres-->>Owner: confirmation
+        end
+    end
+    Note over Owner,PG: a transfer is one row and no balance is stored, so a half-applied transfer is not representable
+```
+
+**Critical flow 3: read the period breakdown** (US-07 — AC-18, AC-19, AC-20)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: ask for the breakdown of a period
+    Pres->>App: GetBreakdown use case
+    App->>Inf: ask ILedgerQueries for the period totals
+    Note over App,Inf: no repository is used here, so no entity is loaded into memory
+    Inf->>PG: one aggregate query over transactions, joined to the current category-to-group mapping
+    Note over Inf,PG: the transfers table is never read, so no transfer can be counted as spending or earning
+    PG-->>Inf: totals per category and per group, spending and earning kept apart
+    Inf-->>App: the aggregated rows
+    App->>App: put every category that belongs to no group into the Default group bucket
+    App-->>Pres: one breakdown answer
+    Pres-->>Owner: group totals and category totals in a single response
+```
+
+**Critical flow 4: correct a recorded entry** (US-08 — AC-21, AC-22, AC-23, AC-25)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: change the amount of a recorded entry, or remove it
+    Pres->>App: EditTransaction or RemoveTransaction use case
+    App->>Inf: load the entry
+    Inf->>PG: read one row
+    PG-->>Inf: row or nothing
+    Inf-->>App: the entry, or not found
+    alt the entry is not part of this ledger
+        App-->>Pres: refuse and report it as unknown
+        Pres-->>Owner: nothing is created or changed
+    else the change would give a transfer a category
+        App-->>Pres: refuse and say that transfers carry no category
+        Pres-->>Owner: the entry is unchanged
+    else the change is valid
+        App->>Dom: apply the new amount, or mark the entry for removal
+        Dom-->>App: a valid result
+        App->>Inf: commit the unit of work
+        Inf->>PG: update one row, or delete one row
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the result
+        Pres-->>Owner: confirmation
+    end
+    Note over Owner,PG: no balance is stored anywhere, so every affected balance follows on the next read
+```
 
 ## 7. Deployment view
 
