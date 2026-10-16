@@ -61,14 +61,14 @@ is built here (PRD §2, §3).
 <!-- 📌 Приклад: «Postgres 18» (не «Postgres»); «дедлайн Q3 — жорсткий» (не «бажано»).    -->
 
 These are inputs, not choices made here. Everything below was already fixed by the repo before this
-feature started.
+feature started — with one exception, marked.
 
 **Technical.**
 - .NET 10 / C# 14; nullable enabled; implicit usings; `TreatWarningsAsErrors` (`Directory.Build.props`).
 - ASP.NET Core Minimal APIs; OpenAPI document served at `/openapi/v1.json` in Development.
-- **PostgreSQL 18** through EF Core + Npgsql. The major version is pinned: it is the Testcontainers
-  image tag and the docker-compose tag. An unpinned tag would make a correctness-test failure
-  impossible to attribute.
+- PostgreSQL through EF Core + Npgsql. **The repo pins no major version today** — `SPEC.md` says
+  only "PostgreSQL". This feature picks **18** and pins it; that is a choice made here, not an
+  inherited constraint, and it is recorded in §7 together with the compose stack that carries it.
 - Clean Architecture, four projects, dependency rule enforced by `tests/FinNavis.ArchitectureTests`
   (`docs/adr/0001-initial-setup.md`).
 - Money is `decimal`. Timestamps are `DateTimeOffset`, stored UTC. Enums are stored as strings.
@@ -185,9 +185,9 @@ separate later feature that will consume this API. §5 therefore draws one appli
 
 3. **The ledger is mutable — corrections edit and delete rows in place** (ADR-0003). AC-21 and AC-22
    describe this literally: a removed entry disappears from history and the balances return to what
-   they would have been had it never existed. That is a hard delete, not a reversing entry. It
-   matches the repo's database convention and keeps history easy to read. The accepted cost is that
-   there is no audit trail — carried into §11.
+   they would have been had it never existed. That is a hard delete, not a reversing entry. It also
+   keeps history easy to read, which matters for the ≤ 400 ms history page — there are no reversed
+   pairs to detect and hide. The accepted cost is that there is no audit trail — carried into §11.
 
 Each tactical decision in later sections should be traceable to one of these strategic seeds. Tactical decisions that *contradict* a strategic choice are red flags — surface them in §11 Risks.
 
@@ -224,7 +224,7 @@ and only result rows travel back.
 src/FinNavis.Domain/
 ├── Entities/        Account, Category, CategoryGroup, Transaction, Transfer
 ├── ValueObjects/    Money, DateRange
-├── Enums/           CategoryKind (Expense | Income), TransactionDirection
+├── Enums/           CategoryKind (Expense | Income)
 └── Abstractions/    IAccountRepository, ICategoryRepository,
                      ITransactionRepository, ITransferRepository, IClock
 
@@ -437,6 +437,12 @@ sequenceDiagram
 <!-- 📌 Приклад: «500 IC → партиціонування за кварталом» (не «при зростанні подумаємо»).    -->
 <!-- 🎯 Можна N/A для XS/S функцій, що переюзають існуюче розгортання без змін.            -->
 
+**The PostgreSQL major version is pinned to 18, and this feature is what pins it.** The repo names
+no version today (`SPEC.md` says only "PostgreSQL"), so three things that do not yet exist need a
+number: the Testcontainers image tag, the compose tag, and the question of which SQL features are
+allowed. An unpinned tag would make a correctness-test failure impossible to attribute — the test
+could break on a day nothing in the code changed.
+
 One Docker Compose stack on the owner's own machine or home server: one API container, one
 PostgreSQL 18 container, one named volume for the data. One replica of each — no load balancer, no
 orchestrator, no second environment. The two containers share a private Docker network and only the
@@ -526,10 +532,12 @@ need a path that aggregates in the database), and 0003 is what makes 0002 safe t
 nothing stored, an in-place edit has nothing to invalidate. 0005 and 0006 are both about identity,
 and both exist because of features that have not been written yet.
 
-Decisions that did **not** become ADRs, and why: the PostgreSQL version pin (§2) and the aggregate
-and repository split (§5) follow existing repo convention; the deployment topology and backup
-approach (§7) are reversible in an afternoon; the crosscutting table (§8) inherits CLAUDE.md
-throughout. None of them would surprise a reader six months from now, which is the test.
+Decisions that did **not** become ADRs, and why: the aggregate and repository split (§5) follows
+CLAUDE.md's existing rule of one repository per aggregate; the PostgreSQL version pin, the
+deployment topology and the backup approach (§7) are all reversible in an afternoon — a major
+version can be changed with one `pg_upgrade` on a single-user database; the crosscutting table (§8)
+inherits CLAUDE.md throughout. None of them would surprise a reader six months from now, which is
+the test.
 
 The repo also carries `docs/adr/0001-initial-setup.md`, which is project-wide rather than feature-
 scoped. Numbering here restarts at 0001 inside this feature's folder, per the SDLC convention.
@@ -610,7 +618,7 @@ alerts, no metrics stack, one replica.
 
 | Risk / debt | Severity | Mitigation | Owner |
 |---|---|---|---|
-| No authentication: anyone who can reach the installation reads and edits the whole ledger | High | Keep the installation off public networks (PRD §6.1). The later OAuth feature owns the fix. §5 of the PRD carries no authorization acceptance criterion for the same reason | Andrey |
+| No authentication: anyone who can reach the installation reads and edits the whole ledger | High | Keep the installation off public networks (PRD §6.1). **Resolve when the OAuth feature is scoped** — the due date PRD §8 gives it. The later OAuth feature owns the fix; PRD §5 carries no authorization acceptance criterion for the same reason | Andrey |
 | No integration harness, CI pipeline or compose stack exists, so not one NFR row can be measured today | High | Scheduled as the first tasks of this feature, before any ledger code (§7) | Andrey |
 | Balance correctness lives in SQL across two tables (ADR-0001) rather than in the shape of the data | Medium | QG-1 property-based test, 1 000 randomised sequences, run against real PostgreSQL in CI (§10) | Andrey |
 | Paging history across a `UNION ALL` of two tables (ADR-0001) is awkward, and the ≤ 400 ms per-page target depends on getting it right | Medium | Decided at `/sdlc-api-forge`, which owns the endpoint contract. Both tables are keyed by time-ordered UUID v7 (ADR-0005), so a merged keyset page over date and id is workable; at ~20 000 rows offset paging would also meet the bar | Andrey |

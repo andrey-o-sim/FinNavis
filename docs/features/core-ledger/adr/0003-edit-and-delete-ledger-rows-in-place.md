@@ -24,6 +24,11 @@ a compensating one.
 The choice decides whether ledger rows are mutable, which sets the schema, the shape of every
 history read, and whether past states can be reconstructed.
 
+**AC-22 is a hard constraint on this decision, not a preference.** It says a removed entry
+"disappears from history, and every balance it affected returns to what it would have been had the
+entry never existed". Any option that keeps the entry visible contradicts it, and could only be
+taken by overruling the PRD with a recorded Decision override.
+
 ## Decision drivers
 
 - AC-21 — changing the amount of a recorded entry makes every balance affected by that entry follow
@@ -31,8 +36,8 @@ history read, and whether past states can be reconstructed.
 - AC-22 — a removed entry "disappears from history, and every balance it affected returns to what it
   would have been had the entry never existed".
 - Quality goal 1 — ledger correctness under any order of recording, editing and deletion.
-- Repo database convention (CLAUDE.md): created_at-only audit, hard delete, "the database is dumb
-  storage".
+- PRD §6 — history page p95 ≤ 400 ms per page. Reversed pairs would have to be detected and hidden
+  on every history read.
 - One owner, self-hosted, no regulatory retention duty and no second party to be accountable to
   (PRD §6.1).
 
@@ -40,26 +45,30 @@ history read, and whether past states can be reconstructed.
 
 1. **Edit and delete in place** — `UPDATE` the row on a correction, `DELETE` it on a removal. The
    ledger holds the current truth and nothing else.
-2. **Append-only with reversing entries** — a correction writes a new compensating row; nothing is
-   ever updated or deleted, and history hides reversed pairs when listing.
-3. **In place, plus a change log** — update and delete the live row as in option 1, but copy the
+2. **In place, plus a change log** — update and delete the live row as in option 1, but copy the
    previous version into a separate audit table first.
+
+**Excluded by AC-22, not weighed:** *append-only with reversing entries*, where a correction writes
+a compensating row and nothing is ever updated or deleted. It is the classic accounting answer and
+is listed here because a reader will ask about it, but it is not a live alternative — AC-22 requires
+the removed entry to disappear, and an append-only ledger keeps it. Taking it would have meant
+overruling the PRD with a Decision override bullet in SAD §1.
 
 ## Decision outcome
 
 **Chosen: option 1, edit and delete in place.**
 
 AC-22 describes this literally — it asks that a removed entry *disappear* and that balances return
-to what they would have been had it never existed. Option 2 cannot satisfy that wording: under an
-append-only ledger the entry is still there, and the balance is corrected by adding a second row
-rather than by removing the first. Choosing option 2 would have meant overruling the PRD, so the
-decision follows the acceptance criteria rather than the accounting tradition.
+to what they would have been had it never existed. An `UPDATE` and a `DELETE` are exactly that, with
+no reinterpretation of the acceptance criterion needed.
 
-Option 1 also matches the repo's existing database convention and keeps history trivial to read,
-which matters for the ≤ 400 ms history page target: no reversed pairs to detect and hide.
+It also keeps history trivial to read, which matters for the ≤ 400 ms per-page target: there are no
+reversed pairs to detect and hide on the way out.
 
-Option 3 was rejected as work without a stated need. The PRD asks for no audit trail, there is no
+Option 2 was rejected as work without a stated need. The PRD asks for no audit trail, there is no
 second party to be accountable to, and an audit table that nothing reads is a table that will rot.
+It stays the obvious upgrade path if losing a correction ever becomes a real problem — see
+Consequences.
 
 ## Consequences
 
