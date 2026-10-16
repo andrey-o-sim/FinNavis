@@ -543,22 +543,57 @@ scoped. Numbering here restarts at 0001 inside this feature's folder, per the SD
 <!--           ДОСЛІВНО (не округлюй p95 ≤250мс до ≤300мс — це F6-помилка критика).        -->
 <!-- 📌 Приклад: «p95 ≤500 мс на UPDATE блоку, перевіримо k6 load test 100 req/s».        -->
 
-Each top-3 goal from §1 expanded into a full scenario:
+Each goal from §1 expanded into a full scenario. Every number is copied from PRD §6 verbatim. QG-3
+carries no number because the PRD states none — it is an invariant, and stating it as one is
+honest; inventing a figure would not be.
 
-**QG-1. <quality attribute>**
-- **When:** <trigger condition>
-- **Then:** <expected behavior with numbers from PRD NFR>
-- **How verify:** <test / chaos drill / load test / observability>
+**QG-1. Ledger correctness**
 
-**QG-2. <quality attribute>**
-- **When:** <trigger>
-- **Then:** <expected>
-- **How verify:** <how>
+- **When:** any sequence of recordings, edits and deletions is applied to an account, in any order.
+- **Then:** reading that account's balance returns exactly the sum of every transaction and transfer
+  recorded against it — **0 balance discrepancies across at least 1 000 randomised sequences**
+  (PRD §6). A transfer between the owner's own accounts leaves the total across all accounts
+  unchanged (AC-15).
+- **How verify:** `BalanceInvariant_AnyOperationSequence_MatchesSumOfMovements`, a property-based
+  test that generates random operation sequences and compares the computed balance against an
+  independently accumulated expected value. **It runs against PostgreSQL 18 in Testcontainers, not
+  against a test double.** ADR-0001 made balance a three-part sum across two tables — transactions
+  on the account, minus transfers out of it, plus transfers into it — so the thing most likely to be
+  wrong is the SQL, and an in-memory double would never exercise it. The full 1 000 sequences run in
+  CI; a smaller sample is enough locally.
 
-**QG-3. <quality attribute>**
-- **When:** <trigger>
-- **Then:** <expected>
-- **How verify:** <how>
+**QG-2. Interactive latency**
+
+- **When:** the ledger holds three years of history, about 20 000 movements, seeded before the run.
+- **Then:**
+  - record a movement — **p95 ≤ 300 ms**
+  - period breakdown — **p95 ≤ 500 ms over 3 years of history (~20 000 movements)**
+  - history page — **p95 ≤ 400 ms per page**
+  - throughput — **≥ 10 requests/s on one instance**
+- **How verify:** `RecordTransaction_P95Under300ms`, `Breakdown_20kSeededMovements_P95Under500ms`
+  and `HistoryPage_P95Under400ms`, all timed in the integration suite against seeded data in
+  Testcontainers; throughput by the CI smoke test. Additionally an `EXPLAIN` assertion that the
+  breakdown query uses its index rather than a sequential scan — ADR-0002 removed every cache and
+  rollup, so that index is the only thing holding this budget up, and losing it would show as a slow
+  test rather than as a wrong answer.
+
+**QG-3. Report stability under re-grouping**
+
+- **When:** a category that already has recorded history is moved to another group, or out of every
+  group (AC-13).
+- **Then:** that category's figure for any period is unchanged, and group figures from then on
+  follow the new placement. Group totals added to the Default group total equal the period total, on
+  the spending side and the earning side alike (AC-19). No transfer is counted as spending or as
+  earning (AC-20).
+- **How verify:** three integration tests against seeded data in Testcontainers —
+  `Breakdown_CategoryMovedBetweenGroups_CategoryTotalUnchanged_GroupTotalsFollow` (read the
+  breakdown, move the category, read again, compare),
+  `Breakdown_GroupTotalsPlusDefaultGroup_EqualPeriodTotal`, and
+  `Breakdown_PeriodWithTransfers_CountsNoTransfer`.
+
+**Availability is deliberately not a quality goal.** PRD §6 records no target, with the reason:
+self-hosted, one user, and downtime costs only the owner's own evening. §7 follows from that — no
+alerts, no metrics stack, one replica.
 
 ## 11. Risks and technical debt
 
