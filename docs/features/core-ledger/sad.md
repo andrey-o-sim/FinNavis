@@ -60,24 +60,41 @@ is built here (PRD §2, §3).
 <!-- 📋 Що писати: чотири блоки — Технічні / Організаційні / Конвенції / Регуляторні.     -->
 <!-- 📌 Приклад: «Postgres 18» (не «Postgres»); «дедлайн Q3 — жорсткий» (не «бажано»).    -->
 
+These are inputs, not choices made here. Everything below was already fixed by the repo before this
+feature started.
+
 **Technical.**
-- <Language + version, e.g. Go 1.26>
-- <Framework + version, e.g. chi v5.1, pgx v5.7>
-- <Datastore + version, e.g. Postgres 18>
-- <Architecture convention, e.g. hexagonal per CLAUDE.md>
+- .NET 10 / C# 14; nullable enabled; implicit usings; `TreatWarningsAsErrors` (`Directory.Build.props`).
+- ASP.NET Core Minimal APIs; OpenAPI document served at `/openapi/v1.json` in Development.
+- **PostgreSQL 18** through EF Core + Npgsql. The major version is pinned: it is the Testcontainers
+  image tag and the docker-compose tag. An unpinned tag would make a correctness-test failure
+  impossible to attribute.
+- Clean Architecture, four projects, dependency rule enforced by `tests/FinNavis.ArchitectureTests`
+  (`docs/adr/0001-initial-setup.md`).
+- Money is `decimal`. Timestamps are `DateTimeOffset`, stored UTC. Enums are stored as strings.
+  Tables and columns are `snake_case`.
 
 **Organisational.**
-- <Effort budget, e.g. 3 person-weeks>
-- <Deadline, e.g. 2026-Q3 hard>
-- <Team composition, e.g. 1 backend + 0.5 frontend>
+- One developer, working evenings. No deadline, no release window, no second reviewer.
+- Every NFR row in PRD §6 except Availability is measured by an **integration harness and a CI
+  pipeline that do not exist yet** (`SPEC.md` "Planned, not built yet"). Standing them up is a
+  prerequisite task for `/sdlc-break-tasks`, not a side effect of this feature. Carried into §11.
 
 **Conventions.**
-- <Link to CLAUDE.md or project conventions>
-- <Naming, ID strategy, error-handling pattern>
+- `CLAUDE.md` — layout, dependency rules, DI, API, database and test conventions.
+- `ARCHITECTURE.md` — the four rings, and what counts as a port versus a plain interface.
+- Repository ports live in `Domain/Abstractions`; outside-world ports in `Application/Abstractions`.
+  Infrastructure implements both. Presentation is the only composition root.
+- One `IEntityTypeConfiguration<T>` file per entity. Migrations are append-only — never edit an
+  applied one.
 
 **Regulatory / external.**
-- <e.g. GDPR — user deletion behavior per ADR-NNNN>
-- <e.g. SOC2, PCI — applicable controls>
+- No external regulation applies. Self-hosted, one owner, the owner's own data. No third-party
+  personal data and no card numbers — an account is a label the owner chooses, not a bank
+  identifier (PRD §6.1).
+- Data classification: **confidential** — one person's complete financial history.
+- Security review: **required** (PRD §6.1), because the data is confidential and this feature adds
+  no authentication boundary. That absence is the main exposure and is carried into §11.
 
 ## 3. Context and scope
 
