@@ -106,4 +106,7 @@ all the work and keeps using the old tool. If the answer is "it only opens the r
 - **Give options where a scale helps** (how many evenings, how often), free text where the
   wording matters (what hurts, what it unlocks). The verbatim wording of a pain is worth more
   than a bucketed answer.
+- **Name the section, never just number it.** `§16 (What this unlocks)`, not a bare `§16`. At
+  checkpoint time the brief does not exist yet, so a number refers to nothing the user can look
+  at. The full numbering is in the Language section of `SKILL.md`.
 - **Never answer on the user's behalf.** If a checkpoint cannot fire, stop and say so.

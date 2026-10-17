@@ -51,6 +51,14 @@ A generic ideation protocol misfires on all four. This one does not.
   user, which stay **verbatim** in whatever language they said it. §1 Raw idea is a quote.
 - The question bank in `references/socratic-bank.md` is written in English. Translate each
   question into the user's language before asking it; keep the meaning, not the words.
+- **Name the section, never just number it.** `§11 (RICE)`, `§15 (Open questions)`, not a bare
+  `§11`. The user is reading a question, not the brief — a number alone makes them reconstruct the
+  numbering from memory, and at checkpoint time the document does not exist yet. Name it on every
+  mention inside a question, not only the first. The numbering:
+  §1 Raw idea · §2 Problem · §3 Who it serves · §4 Why now · §5 Out of scope ·
+  §6 Competitive analysis · §7 Strategic approaches · §8 Three-lens review ·
+  §9 Trade-offs and edge cases · §10 Risks · §11 RICE · §12 Feasibility · §13 Recommendation ·
+  §14 Parked and rejected · §15 Open questions · §16 What this unlocks · §17 Learning goal.
 - Explain the **trade-off**, not the vocabulary. The reader is a senior engineer; glossing
   "repository" or "RICE" wastes their time. Glossing *why option B costs three more evenings*
   does not.
@@ -315,7 +323,8 @@ That matches the existing history (`fd94fe4 01: idea-brief for core-ledger`).
 Next step: `my-toolkit:task-develop`, with the brief as the input to the discussion. The brief
 settles **what and why**; `task-develop` writes `docs/tasks/<name>.md` and settles **how**.
 
-No ADR here. If the recommendation locks in something hard to reverse, note it in §15 as an
+No ADR here. If the recommendation locks in something hard to reverse, note it in §15 (Open
+questions) as an
 open question and leave the decision to the stage that owns it.
 
 ## References
