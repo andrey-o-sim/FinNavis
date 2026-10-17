@@ -272,51 +272,137 @@ contradicts one is a red flag — it goes to §11, not into silence.
 <!--        and operations, drop the branches it does not touch, and mark as new any folder that -->
 <!--        does not exist yet. No Application/Features/, no central Presentation/Contracts/. -->
 
-**Clean Architecture, four rings, no new project.** <Which rings this feature touches and what it
-adds to each. Conventions quoted from CLAUDE.md are inherited, not decided here.>
+**Clean Architecture, four rings, no new project.** The rings were fixed by
+`docs/adr/0001-initial-setup.md` and this feature fills them in. It touches all four: two new
+aggregates and their repository ports in Domain, a new business area and two new outside-world
+ports in Application, four kinds of adapter in Infrastructure, and two new endpoint resources in
+Presentation. The conventions quoted below — areas at the root of Application, contracts inside
+each operation's own folder, one `IEntityTypeConfiguration<T>` per entity — come from `CLAUDE.md`
+and `ARCHITECTURE.md`. They are inherited here, not decided.
 
-<The aggregates this feature introduces, which of them get a repository port, and why any of them
-does not. One port per aggregate a use case needs — never one per table.>
+**Two new aggregates, two new repository ports.** `CONTEXT.md` already separates them:
 
-<Whether the read path is separate from the write path, and why.>
+- **`ImportRun`** — one load of one file taken as a whole. It holds the name the file came with, the
+  day it was handed over, which of the two jobs it was, the account it was loaded onto when the file
+  names only one, and its status. Three kinds of child entity live inside it and have no life
+  outside it: the **set-aside rows** with the reason each was not recorded; the **movement links**
+  saying which Transaction or Transfer this run recorded, each carrying the content fingerprint of
+  ADR-0008; and the **creation links** saying which Account or Category this run created, which is
+  what AC-17 needs to undo them.
+- **`MappingProfile`** — the rules remembered for one shape of file, keyed by the shape itself
+  (ADR-0009). Each **rule** inside it says what one of the file's own categories means: one of the
+  Owner's categories, a move between the Owner's own accounts, or recorded with no category. A
+  profile outlives every run that uses it, and AC-04 is why it is a separate aggregate — changing a
+  rule must leave recorded rows exactly as they were, which is only true if no recorded row points
+  at a rule.
+
+So the ports are `IImportRunRepository` and `IMappingProfileRepository`, both in
+`Domain/Abstractions`. **None of the child entities gets a port of its own.** A port is added per
+aggregate when a use case needs one, never because a table exists (`CLAUDE.md`) — `core-ledger`
+made the same call for `CategoryGroup` and this follows it. Reading the set-aside rows of a run
+(AC-13) and walking its movements to undo them (AC-16) are both reads of one `ImportRun`, served by
+its own repository.
+
+The four aggregates this feature writes into — Account, Category, Transaction, Transfer — belong to
+`core-ledger` and are reached through the repository ports it already declares. **This feature adds
+no column to any of them** (ADR-0007): the links above are rows in its own tables, pointing at
+core-ledger's by id.
+
+**The read path is separate, and this feature adds one query port of its own.** `core-ledger`
+ADR-0004 settled that reads which aggregate go behind a port in `Application/Abstractions` rather
+than through a repository. Two of this feature's reads qualify, and neither belongs to a single
+aggregate:
+
+- the candidate snapshot of ADR-0003 — every ledger movement that could match a row in the file,
+  bounded by the accounts the file names and the date range it covers, fetched in one query before
+  the run writes anything;
+- the AC-17 check on undo — whether any movement from outside this run now names an Account or
+  Category the run created.
+
+Both go into a new `IImportQueries`, not into `core-ledger`'s `ILedgerQueries`. That record
+anticipated the split ("may later split into one port per report"), and the alternative would make
+the ledger's own reporting port know about imports. The remaining reads from PRD §9 need no new
+port: the rules for a shape come from `IMappingProfileRepository`, and everything one load brought
+comes from `IImportRunRepository`.
+
+**One new outside-world port: `IStatementReader`** (ADR-0006). It turns a stream of bytes into a
+stream of rows and knows nothing about the ledger, the rules or the matching. `ARCHITECTURE.md`
+uses the name `IStatementImporter` as its illustration of an Application port; the real port is
+narrower than that name suggests, because a port that *imports* would pull the mapping rules into
+Infrastructure.
 
 **Internal decomposition:**
 
-<!-- Render the tree from ARCHITECTURE.md § Folder layout. Only the branches this feature touches, -->
-<!-- with its real area, resource and operation names in place of the placeholders. Annotate every -->
-<!-- folder the feature is the first to create, so a reader can tell new from existing. -->
+Folders marked `NEW` do not exist today. Branches this feature does not touch are left out.
 
 ```
-<the rendered tree>
+src/FinNavis.Domain/
+├── Entities/              ImportRun (aggregate root) with its set-aside rows, movement links and
+│                          creation links; MappingProfile (aggregate root) with its rules
+├── Enums/                 ImportRunKind, ImportRunStatus, SetAsideReason, MappingRuleTarget
+│                          — all stored as strings (CLAUDE.md)
+└── Abstractions/          IImportRunRepository, IMappingProfileRepository
+
+src/FinNavis.Application/
+├── Import/           NEW  business area, at the project root — the shared pipeline and the policy
+│                          object of ADR-0005, plus the use cases: InspectFile,
+│                          ConfirmMappingProfile, LoadStatement, MigrateHistory, GetImportRun,
+│                          UndoImportRun
+└── Abstractions/          IStatementReader NEW, IImportQueries NEW. IUnitOfWork is core-ledger's
+                           and is reused unchanged — ADR-0004 needs no new commit abstraction
+
+src/FinNavis.Infrastructure/
+├── Persistence/
+│   ├── Configurations/    one IEntityTypeConfiguration<T> per new entity
+│   └── Migrations/        one new migration. It adds tables and alters none, so `SPEC.md`'s
+│                          safe-schema-change rule holds without a backfill (ADR-0007)
+├── Repositories/          EfImportRunRepository, EfMappingProfileRepository
+├── Queries/               EfImportQueries — the candidate snapshot and the AC-17 check
+└── Import/           NEW  the CSV adapter behind IStatementReader
+
+src/FinNavis.Presentation/
+└── Endpoints/
+    ├── ImportRuns/   NEW  LoadStatement/, MigrateHistory/, Get/, Undo/
+    └── MappingProfiles/ NEW  Inspect/, Confirm/
 ```
+
+Two names worth a line. The Application area is `Import/` — singular, because it is a business area
+like `Reporting/`, not a resource. The Presentation resources are `ImportRuns/` and
+`MappingProfiles/` — plural, and named from `CONTEXT.md`, because they are what the API exposes. The
+two confirm-step operations sit under `MappingProfiles/` rather than under `ImportRuns/`: `Inspect/`
+reads a file and reports the categories it carries without recording anything, and it exists only to
+feed `Confirm/`.
 
 Each leaf folder under `Endpoints/` holds one operation: the endpoint plus the request and response
 records only that operation uses. There is no central `Contracts/` folder.
 
 **C4 Container (L2):**
 
-> <Why the four rings are drawn as containers even though they compile into one process.>
+> The four boxes inside the boundary are the four rings. They compile into **one** ASP.NET Core
+> process and are not separately deployable — they are drawn as containers because the boundary
+> between them is the architecture here, and `tests/FinNavis.ArchitectureTests` enforces it.
+> `target_surfaces` declares one surface, so there is one application boundary and no client box.
 
 ```mermaid
 C4Container
-    title <slug> — Containers
+    title csv-import — Containers
 
-    Person(owner, "Owner", "<what they do>")
+    Person(owner, "Owner", "Hands over a file, confirms the rules for a shape once, reads back and undoes a load")
 
     Container_Boundary(api, "FinNavis API — one ASP.NET Core process") {
         Container(pres, "Presentation", "ASP.NET Core Minimal APIs", "Maps HTTP to use cases, owns request and response contracts, is the composition root")
-        Container(app, "Application", "C# use cases", "Orchestrates domain objects; declares IUnitOfWork and the feature's ports")
-        Container(dom, "Domain", "C# entities and rules", "<aggregates>; declares the repository ports")
-        Container(inf, "Infrastructure", "EF Core + Npgsql", "Adapters for every port, DbContext, entity configurations, migrations")
+        Container(app, "Application", "C# use cases", "The import pipeline and its policy object; declares IStatementReader and IImportQueries; uses core-ledger's IUnitOfWork")
+        Container(dom, "Domain", "C# entities and rules", "ImportRun and MappingProfile; declares IImportRunRepository and IMappingProfileRepository")
+        Container(inf, "Infrastructure", "EF Core + Npgsql, CSV reader", "Adapters for every port, DbContext, entity configurations, migrations")
     }
 
-    ContainerDb(pg, "PostgreSQL <version>", "PostgreSQL", "<tables>")
+    ContainerDb(pg, "PostgreSQL 18", "PostgreSQL", "core-ledger's accounts, categories, transactions and transfers, plus this feature's import runs, movement links, creation links, set-aside rows and mapping profiles")
 
-    Rel(owner, pres, "<what they do>", "HTTPS / JSON")
+    Rel(owner, pres, "Hands over a file; confirms the rules; reads back and undoes a load", "HTTPS / JSON")
     Rel(pres, app, "Calls use-case classes directly — there is no driving port")
-    Rel(app, dom, "Uses entities; calls the repository ports")
-    Rel(inf, dom, "Implements the repository ports")
-    Rel(inf, app, "Implements IUnitOfWork and the Application ports")
+    Rel(app, dom, "Builds ImportRun and MappingProfile; calls the repository ports")
+    Rel(inf, dom, "Implements IImportRunRepository and IMappingProfileRepository")
+    Rel(inf, app, "Implements IStatementReader and IImportQueries, and core-ledger's IUnitOfWork")
     Rel(pres, inf, "Registers every adapter in DI at startup — composition root only")
     Rel(inf, pg, "Reads and writes", "EF Core + Npgsql")
 ```
