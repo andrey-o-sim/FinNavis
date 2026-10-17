@@ -1,6 +1,6 @@
 ---
 status: Living
-updated_at: "2026-10-14"
+updated_at: "2026-10-17"
 ---
 
 # Domain Context — FinNavis
@@ -25,10 +25,12 @@ batched «I'll consolidate later».
 - Category Group — an optional container holding related categories for reporting, for example utilities over electricity, water and gas; a category belongs to at most one group. NOT Category (a transaction always names a category, never a group).
 - Default group — the bucket a period breakdown reports every category that belongs to no Category Group under, so the group figures always add up to the period total. NOT a Category Group (it is produced by the breakdown rather than created by the owner, so it cannot be renamed, deleted, or picked when filing a transaction).
 - Duplicate — a row in a loaded file that names a money movement already recorded in the ledger, so loading that file again must not create a second transaction. NOT two separate transactions that happen to share the same date, amount and text (both are real spending, and both belong in the ledger).
+- Export — a file produced by a tracker the owner is leaving, covering all of their data in that tracker's own shape, so it names accounts and categories in the owner's own words and is loaded once. NOT a Statement (a statement comes from a bank, covers one account over a period, and carries only the bank's own categories).
 - Import run — one load of one file taken as a whole: everything it recorded, everything it found already in the ledger, and everything it set aside, so the owner can read it back or undo it in one move. NOT a Mapping profile (a profile holds the rules for a shape of file and outlives every load; a run is one event with one file).
 - Mapping profile — the rules remembered for one shape of file, saying what each category that shape carries means in the ledger, so the next file of the same shape needs no confirmation. NOT an Import run (a profile records no movement; a run records movements by following a profile).
 - Owner — the single person whose money this installation tracks and the only actor in the product; every account, category and recorded movement belongs to them. NOT a user account (there is no sign-in and no second person, so records carry no owner field — the owner is a fact about the product, not stored data).
 - Set-aside row — a row an Import run read and deliberately did not record, kept together with the reason it was not recorded, so the owner can see it and act on it later. NOT a Duplicate (a duplicate names a movement already in the ledger and needs nothing from the owner; a set-aside row is not in the ledger at all).
-- Statement — a file produced by a bank, listing the money movements on one account over a period, in a shape the bank controls and the owner cannot change. NOT an export from a tracker the owner uses (that covers all of the owner's data rather than one account, and already carries categories).
+- Shape — the arrangement of columns a file carries: which columns there are, named how, in what order, fixed by whoever produced the file. NOT the file itself (one shape outlives any number of files, which is why a Mapping profile is remembered per shape rather than per file).
+- Statement — a file produced by a bank, listing the money movements on one account over a period, in a shape the bank controls and the owner cannot change. NOT an Export from a tracker the owner uses (that covers all of the owner's data rather than one account, and already carries categories).
 - Transaction — a single income or expense recorded on exactly one account, with an amount, a date, a category, and an optional free-text note. NOT Transfer (a transfer moves money between two of the owner's own accounts, so it touches two accounts, carries no category, and leaves the owner's total unchanged).
 - Transfer — moves money between two different accounts of the owner: it decreases one and increases the other by the same amount, carries no category, and leaves the owner's total unchanged. NOT Transaction (a transaction touches one account, has a category, and changes the owner's total).
