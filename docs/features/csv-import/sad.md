@@ -820,9 +820,9 @@ waiting on; if it fails, it fails in front of them with nothing recorded (AC-22)
 | 0008 | Detect post-import hand edits with a content fingerprint stored at import time | Accepted | §5 |
 | 0009 | Recognise a statement shape by its header row, with no name the Owner has to pick | Accepted | §5 |
 
-ADR files live under `docs/features/csv-import/adr/NNNN-<title>.md`. Numbering restarts at 0001
-inside this feature's folder; `docs/adr/0001-initial-setup.md` is project-wide and is not renumbered
-from here.
+ADR files live under `docs/features/csv-import/adr/`, one file per row above. Numbering restarts at
+0001 inside this feature's folder; `docs/adr/0001-initial-setup.md` is project-wide and is not
+renumbered from here.
 
 **Nine records, where the size class L expects 10 to 15.** The gap has a reason rather than a
 missing record: five decisions an import feature would normally have to take were already taken by
