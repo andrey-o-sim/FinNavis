@@ -881,28 +881,81 @@ re-litigate something already settled.
 <!-- Write: per §1 goal — When / Then / How verify. Test names in Method_Scenario_ExpectedResult form. -->
 <!-- Watch: every number comes from PRD §6 verbatim. A goal with no number says so honestly. -->
 
-Each goal from §1 expanded into a full scenario. Every number is copied from PRD §6 verbatim.
+Each goal from §1 expanded into a full scenario. Every number is copied from PRD §6 verbatim. PRD §6
+carries exactly two, so QG-1 carries none — it is an invariant, and saying so is honest where
+inventing a figure would not be.
 
-**QG-1. <quality goal>**
+**QG-1. Nothing is recorded twice**
 
-- **When:** <the trigger condition>
-- **Then:** <the expected result, with the PRD §6 number>
-- **How verify:** <test name, where it runs, and what makes it fail>
+- **When:** a file is handed over whose rows overlap movements already in the ledger — whether an
+  earlier run recorded them or the Owner typed them in by hand on the day — and, separately, when a
+  file carries two rows that name two genuinely different spends with the same date, amount and
+  text.
+- **Then:** no row naming a movement already in the ledger produces a second one, and it is counted
+  as **already there** rather than set aside (AC-20, AC-21, AC-15). The mirror holds too and matters
+  as much: two rows naming two separate real spends are **both** recorded, because `CONTEXT.md`
+  defines them as two real spends rather than a duplicate. **PRD §6 sets no number here.** This is
+  a correctness invariant; a figure invented for it would only make §10 look more measured than it
+  is.
+- **How verify:** three integration tests against PostgreSQL 18 in Testcontainers, seeded, using the
+  synthetic sample files of §7. They run against a real database rather than a double on purpose:
+  the candidate snapshot of ADR-0003 is a SQL query over an account and a date range, so a test
+  double would prove nothing about which rows it actually selects.
+  - `LoadStatement_SameFileTwice_RecordsNothingTheSecondTime` — AC-20.
+  - `LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth` — the structural invariant of ADR-0003.
+    This one fails the moment anything lets the candidate snapshot see the run's own writes, which
+    is the regression that would silently drop real spending.
+  - `LoadStatement_RowOverlapsAHandTypedMovement_CountsItAsAlreadyThere` — AC-21.
+  **Two of the three can be written now and one cannot.** The first two do not depend on the
+  proximity tier's parameters; the third is the proximity tier, so it is blocked until PRD §8's
+  questions are answered (ADR-0002, §11). That split is stated here rather than discovered later.
+  **Prerequisite:** the Testcontainers harness, a seeded ledger and the synthetic sample files do
+  not exist today (§2, §7), and neither does `core-ledger`. Standing them up comes before any of
+  these tests.
 
-**QG-2. <quality goal>**
+**QG-2. A load is all-or-nothing, and reversible**
 
-- **When:** <…>
-- **Then:** <…>
-- **How verify:** <…>
+- **When:** a load of 1500 rows fails part-way through recording them; and, separately, a finished
+  load of 1500 rows is undone — once cleanly, once after the Owner has corrected one of its rows by
+  hand.
+- **Then:** the failed load leaves no row recorded and every balance unchanged, and the Owner is
+  told the load did not happen (AC-22). The clean undo removes every row the load recorded and every
+  account and category it created that nothing from outside the run now names (AC-16, AC-17), at
+  **undo of a load of 1500 rows, p95 ≤ 30 s** (PRD §6). The undo after a hand edit is refused, and
+  the changed rows are named back (AC-18).
+- **How verify:** integration tests against PostgreSQL 18 in Testcontainers, seeded.
+  - `LoadStatement_CommitFailsPartWay_LedgerIsUnchanged` — a fault injected at the commit; it fails
+    if any row, run record or link survives.
+  - `UndoImportRun_1500Rows_P95Under30s` — timed against the seeded ledger and the synthetic export
+    of §7.
+  - `UndoImportRun_MovementChangedByHand_IsRefusedAndNamesTheRows` — AC-18, and the only test of
+    ADR-0008's fingerprint. It fails if the fingerprint stops covering a field the Owner can edit,
+    which is the way that record goes quietly wrong.
+  - `UndoImportRun_CreatedCategoryNowUsedElsewhere_IsKept` — AC-17.
+  - `LoadStatement_RunUndoneThenSameFileAgain_RecordsEverything` — AC-19.
+  **Prerequisite:** the same harness as QG-1. The ≤ 30 s figure cannot be measured at all until it
+  exists, and `core-ledger` has to ship first for there to be a ledger to undo against.
 
-**QG-3. <quality goal>**
+**QG-3. A bulk load fits inside one evening's patience**
 
-- **When:** <…>
-- **Then:** <…>
-- **How verify:** <…>
+- **When:** the one-time move of the old history is loaded — a file of **~1500 rows, several
+  accounts** — against a ledger already holding three years of history (PRD §6, and `core-ledger`'s
+  own sizing of ~20 000 movements).
+- **Then:** **load the old history (~1500 rows, several accounts), p95 ≤ 60 s** (PRD §6).
+- **How verify:** `MigrateHistory_1500RowsSeveralAccounts_P95Under60s`, timed in the integration
+  suite against PostgreSQL 18 in Testcontainers and the synthetic export of §7. Alongside it, an
+  `EXPLAIN` assertion that the candidate-snapshot query uses the `(account_id, date)` index rather
+  than a sequential scan. That assertion is not decoration: the index belongs to `core-ledger` (§8),
+  so nothing in this feature's own code or tests would break if a future change there dropped it —
+  the loss would show up as a slow evening instead of a failing test. **Prerequisite:** as above,
+  plus the synthetic export, which has to be built from a real one first (§7).
 
-<Any quality the PRD deliberately sets no target for, and the reason — so §7 reads as a consequence
-rather than as neglect.>
+**What the PRD deliberately sets no target for, and why.** Availability, throughput and scalability
+are settled for the whole product in `SPEC.md` with no target — self-hosted, one owner, one action
+at a time — and PRD §6 does not repeat them. §7 (Deployment view) follows from that rather than
+from neglect: no metrics, no alerts, no second replica. For this feature there is a second reason
+on top of it, which is that a load is a request the Owner is waiting on, so there is no unattended
+work whose slowness or failure anyone would need to be told about.
 
 ## 11. Risks and technical debt
 
