@@ -700,27 +700,82 @@ entries, inherited from the same `core-ledger` record and not decided here.
 <!-- Write: topology + what this feature creates + backups + monitoring + scaling thresholds. -->
 <!-- Watch: "no metrics" is a decision with a reason, not a blank row. Numbers, not "later we'll see". -->
 
-<Topology in 2-3 sentences: what runs where, how many replicas, what is published and to whom.>
+**The topology is `core-ledger`'s, unchanged.** One Docker Compose stack on the Owner's own machine
+or home server: one API container, one PostgreSQL 18 container, one named volume for the database,
+one replica of each. The two containers share a private Docker network and only the API port is
+published, and only on the local network — with no authentication, that network boundary is the
+only access control there is (`core-ledger/sad.md` §7, PRD §6.1).
 
-**This feature creates <…>.** <Anything that does not exist yet and has to be built first, scheduled
-before feature code.>
+**This feature adds nothing to the deployment unit, and that is a result rather than a coincidence.**
+No second container, no background worker, no queue, no scheduled job. In particular **no volume for
+uploaded files**: ADR-0001 decided the file is never stored, so there is nothing to mount, nothing
+to clean up and no bank statement on disk. A load is one synchronous request that either commits or
+does not (ADR-0004), so there is also no job state to keep anywhere.
 
-**Backups.** <The approach and why it matters for this feature in particular, plus the residual gap.>
+**What it does depend on, and what does not exist yet.** `docker-compose.yml`, the Testcontainers
+integration harness and a CI job are all still unbuilt (`SPEC.md`, "Planned, not built yet").
+`core-ledger/sad.md` §7 schedules all three as its own first tasks. For this feature they are
+prerequisites, not deliverables — and so is `core-ledger` itself, which today is a PRD and a SAD
+with no code. Both PRD §6 numbers are unmeasurable until they exist. Carried into §11.
 
-**Monitoring.** <Deliberately thin, and why.>
+**Test fixtures, and the file that must never be committed.** PRD §9 asks for a real statement and a
+real export to be kept as sample files. A real statement is one person's complete month of spending
+with the shop names attached — §2 classifies it confidential, and the repository has no rule today
+that would stop it being committed. So:
 
-- **Logs** — <…>
-- **Metrics** — <…>
-- **Alerts** — <…>
-- **Tracing** — <…>
+- **Committed:** synthetic sample files under the test projects. They copy the *shape* — the header
+  row, the column order, the date and amount formats — and carry invented merchants and amounts.
+  The whole suite runs off them, including both PRD §6 measurements, so CI needs nothing private.
+- **Not committed, ever:** the real statement and the real export. They stay on the Owner's own
+  machine. They are needed once, to answer the three PRD §8 questions that can only be answered by
+  opening a real file — does it carry a stable operation number, does it name a currency, does the
+  export name both sides of a move between accounts — and to build the synthetic files from.
+- `CLAUDE.md` § Safety gains a line saying so, because a commit of a real statement cannot be taken
+  back without rewriting history.
+
+The residual risk is that a synthetic file is wrong about the real shape, so the suite passes
+against a format no bank produces. §11 carries it.
+
+**Backups.** The nightly `pg_dump` into a host folder that the Owner's own machine backup already
+covers, inherited from `core-ledger/sad.md` §7. This feature changes what it is *for*. Undo (US-06)
+is the in-product way back from a load that went wrong, so the dump is the backstop for the two
+cases undo cannot cover: a load whose rows the Owner has since corrected by hand, where AC-18 blocks
+the undo on purpose; and a load whose rules were wrong but plausible, where the damage is noticed
+only after more work has been built on top of it. The same residual gap applies as before — anything
+recorded after the last nightly dump is lost on a restore.
+
+**Monitoring.** Deliberately none, and for one reason that is specific to this feature: there is
+nothing here that can fail while nobody is looking. A load is a request the Owner made and is
+waiting on; if it fails, it fails in front of them with nothing recorded (AC-22).
+
+- **Logs** — structured logs to stdout through `Microsoft.Extensions.Logging`, read with
+  `docker compose logs`. One line per run: which of the two jobs, the name the file came with, and
+  the counts. **Not the rows.** A statement's rows are the confidential part (§2), and stdout with
+  no retention policy is the wrong place for them — the set-aside rows the Owner needs to act on are
+  in the run report (AC-13), which is behind the API.
+- **Metrics** — none. Both PRD §6 numbers are measured in the integration suite against seeded data,
+  not in production, and there is no concurrent load to observe.
+- **Alerts** — none. There is nobody to page, and no background job whose silent failure an alert
+  would catch.
+- **Tracing** — none. One process, four rings, no network hop to correlate.
 
 **Scaling thresholds.**
 
-- <the volume from PRD §6, and why the design is comfortable with it>
-- <the row count or latency at which to look again, with a number>
-
-<!-- A feature that changes nothing here: <!-- N/A: feature reuses the existing deployment unit --> -->
-<!-- with one sentence of justification above it. -->
+- **~1500 rows in one file** — the working size, from PRD §6, for the one-time move of the old
+  history. A monthly statement is far smaller. The design has a wide margin here: ADR-0003 replaced
+  about 1500 lookups with one query, and ADR-0004's single commit is routine at this size.
+- **~50 000 rows in one file** — the ceiling on ADR-0004. Above it, one transaction holding the
+  whole run and the change tracker holding every entity both stop being comfortable, and the
+  revisit is the resumable design that record rejected. For scale: `core-ledger` sizes the entire
+  ledger at about 20 000 movements over three years, so a file past this ceiling would hold more
+  than all the history this product is designed for.
+- **The candidate snapshot grows with the date range, not with the file.** This is the easy one to
+  miss, because it is invisible if you only watch file sizes. ADR-0003 loads every ledger movement
+  that could match, bounded by the accounts named and the dates covered — so a three-year history
+  migration pulls close to the whole ledger into memory at once, about 20 000 movements by
+  `core-ledger`'s own sizing. That is this feature's peak memory, and it is reached by the
+  **first** load rather than by growth. Look again if the ledger passes roughly 200 000 movements,
+  or if a single file is ever allowed to cover more than a few years.
 
 ## 8. Crosscutting concepts
 
