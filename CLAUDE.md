@@ -143,6 +143,10 @@ get broken most often.
 - **Do not share response records between operations**, even when two look identical today. Each
   operation owns its own shape, so changing one response can never silently change another endpoint.
 - Never return Domain entities from an endpoint.
+- **A batch operation that finished is a success, even when it could not process every item.** The
+  response body carries the counts plus one entry per skipped item with its reason. An item the
+  operation deliberately skipped is a normal outcome, not a fault, so it does not turn the response
+  into an error. Problem Details is for refusals that stop the whole operation.
 - OpenAPI document is generated at `/openapi/v1.json` in Development.
 
 ### Tests
