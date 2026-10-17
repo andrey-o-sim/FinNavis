@@ -76,6 +76,58 @@ services in DI). That reference to Infrastructure is the one intentional excepti
 rings stay out of the way" — a composition root has to see the concrete types to register them.
 No other file in Presentation may use an Infrastructure type.
 
+## Folder layout
+
+The rings above are projects. This is what sits inside them.
+
+Folders marked `*` do not exist yet. They appear when the first feature needs one. The name is
+fixed here anyway, so two features do not invent two different names for the same thing.
+
+```
+src/FinNavis.Domain/
+├── Entities/              aggregates and entities
+├── ValueObjects/          value types — Money, DateRange
+├── Enums/                 domain enums, stored as strings
+└── Abstractions/          repository ports, domain services, IClock
+
+src/FinNavis.Application/
+├── <Area>/ *              one folder per business area, at the project root — Accounts,
+│                          Transactions, Reporting. Use cases live inside
+├── Common/                shared application plumbing
+└── Abstractions/          IUnitOfWork and the other outside-world ports
+
+src/FinNavis.Infrastructure/
+├── Persistence/           FinNavisDbContext
+│   ├── Configurations/    one IEntityTypeConfiguration<T> per entity
+│   └── Migrations/        append-only
+├── Repositories/          adapters for the Domain repository ports
+├── Queries/ *             adapters for read ports that aggregate in SQL
+└── DependencyInjection/   Infrastructure registers its own services here
+
+src/FinNavis.Presentation/
+├── Endpoints/
+│   └── <Resource>/ *          plural — Accounts/, Transactions/
+│       └── <Operation>/ *     Create/, Rename/, GetBalances/ — the endpoint, plus the request
+│                              and response records only that operation uses
+├── Middleware/
+└── Program.cs             the composition root
+
+src/web/ *                 React PWA. Not started
+```
+
+Three structural rules this tree carries. Each is easy to get wrong, and each has been got wrong:
+
+- **Business areas sit at the root of Application.** Everything in that layer is a feature, so a
+  `Features/` wrapper would add a level of nesting and no information.
+- **An operation owns its contracts.** Request and response records live in the operation's own
+  folder, never in a shared `Contracts/`. Two operations do not share a response record even when
+  the shapes are identical today — otherwise changing one response silently changes another
+  endpoint.
+- **A repository port is added per aggregate, when a use case needs it.** Not one per table.
+
+Day-to-day conventions for the files inside these folders — naming, DI, database rules, test
+rules — live in `CLAUDE.md`. This section is the shape; that file is the practice.
+
 ## Ports and adapters
 
 "Port" and "adapter" come from Hexagonal Architecture, also called Ports and Adapters. We use

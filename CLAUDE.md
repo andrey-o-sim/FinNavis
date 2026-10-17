@@ -98,6 +98,10 @@ Rules:
 
 ### Folders inside a project
 
+The full tree is in `ARCHITECTURE.md` under "Folder layout" — read it there rather than
+reconstructing it from the rules below. These two are repeated here because they are the ones that
+get broken most often.
+
 - **Application**: business areas sit at the **root** of the project — `Accounts/`, `Categories/`,
   `Transactions/`, `Transfers/`, `Reporting/`. Do **not** add a `Features/` wrapper. Everything in
   the Application layer is a feature, so the word adds a level of nesting and no information.
