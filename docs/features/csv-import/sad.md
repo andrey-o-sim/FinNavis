@@ -145,32 +145,56 @@ fresh choice:
 <!-- Write: 2-3 sentences of business context + the external-systems table + the C4Context block. -->
 <!-- Watch: name what is deliberately absent. A reader cannot tell an absence from an omission. -->
 
-<Business context in 2-3 sentences: what the system does, for whom, and what it talks to.>
+The Owner hands a file to the system — either a statement their bank produced for one account, or
+an export of three years of history from the tracker they are leaving — and the system turns its
+rows into movements in the ledger. It reads back what each load did, and removes a load as a whole
+when one went wrong. The system is self-hosted and serves exactly one person. It still talks to
+nothing outside itself except its own database.
 
-<!-- brownfield: <what exists in src/ today, and what this feature is the first to build> -->
+**The trust boundary moves in this feature, and that is the point of the section.** Until now every
+byte in the ledger was typed in by the Owner, so the only untrusted input was a malformed request.
+From here on a file the Owner did not write — produced by a bank, in a shape the bank controls —
+crosses into the system and its text is stored. The boundary is still drawn at the API: the file is
+*data the Owner carries in*, not a system the product talks to. Nothing is fetched, no credential is
+held, and no bank is called. That is why the bank does not appear as an external system below.
+
+<!-- brownfield: src/ holds four AssemblyMarker.cs files and Program.cs. No entity, no endpoint, no
+     migration. core-ledger owns the ledger this feature writes into and has no code either, so the
+     only thing on disk that this feature can build on is the four projects and the architecture
+     tests. This feature is the first to read anything from outside the process. -->
 
 **External systems (in / out):**
 
 | Actor or system | Type | Interaction |
 |---|---|---|
-| Owner | Person | <what they do> |
-| PostgreSQL <version> | System (separate process, self-hosted alongside the API) | <what it stores> |
+| Owner | Person | Hands over a statement or an export; confirms once what each category a statement shape carries means; reads back what a load recorded, found already there and set aside; undoes a load |
+| PostgreSQL 18 | System (separate process, self-hosted alongside the API) | Stores the ledger `core-ledger` owns, plus this feature's own records: the import runs, the mapping profiles, the set-aside rows and the link from each recorded movement back to the load that brought it |
 
-<One paragraph naming what is deliberately not here, and which later features will consume this
-boundary rather than change it.>
+**Nothing else is here, and each absence is a decision.** There is no bank connection, no identity
+provider, no object store and no message broker (PRD §3 Non-goals). In particular there is no file
+store: §4 (Solution strategy) decides that the uploaded file is never kept, which is what keeps this
+diagram at two external boxes instead of three.
+
+PRD §3 also rules out every source other than a file the Owner hands over — chat messages, email
+and receipt photographs are all named there as non-goals, and none of them is designed for,
+scheduled or assumed anywhere in this document. If one is ever built it is its own feature with its
+own SAD; what it would reuse is the write path drawn here, not this boundary. The React PWA is the
+same case: PRD §3 says there is no screen in this feature, and `src/web` is an empty folder.
 
 **C4 Context (L1):**
 
 ```mermaid
 C4Context
-    title <slug> — System Context
+    title csv-import — System Context
 
     Person(owner, "Owner", "The single person whose money this installation tracks")
-    System(finnavis, "FinNavis API", "<one sentence>")
-    SystemDb(pg, "PostgreSQL <version>", "<what it stores>")
 
-    Rel(owner, finnavis, "<what the owner does>", "HTTPS / JSON")
-    Rel(finnavis, pg, "Reads and writes the ledger", "EF Core + Npgsql")
+    System(finnavis, "FinNavis API", "Reads a handed-over file, records the movements it names, keeps what it set aside with the reason, and can remove a whole load again")
+
+    SystemDb(pg, "PostgreSQL 18", "Stores the ledger, the import runs and their set-aside rows, the mapping profiles, and the link from each recorded movement to the load that brought it")
+
+    Rel(owner, finnavis, "Hands over a statement or an export; confirms the rules for a shape once; reads back and undoes a load", "HTTPS / JSON")
+    Rel(finnavis, pg, "Reads and writes the ledger and the import records", "EF Core + Npgsql")
 ```
 
 ## 4. Solution strategy
