@@ -17,11 +17,13 @@ ADR-0002 fixed the shape of the duplicate rule. This record fixes how it is exec
 PostgreSQL once, before writing anything, for every ledger movement that could possibly match a row
 in the file, and from then on matches only against that snapshot.
 
-The question looks like a performance question and is not. PRD §6 presents it as one — it explains
-the ≤ 60 s and ≤ 30 s targets by saying a row-by-row answer "misses both targets by a wide margin".
-That premise does not survive arithmetic: roughly 1500 indexed point lookups against a local
-PostgreSQL take a fraction of a second, well inside a 60 s budget. Per-row checking would meet the
-numbers too.
+The question looks like a performance question and is not. PRD §6 presented it as one when this
+record was written — it explained the ≤ 60 s and ≤ 30 s targets by saying a row-by-row answer
+"misses both targets by a wide margin". That premise does not survive arithmetic: roughly 1500
+indexed point lookups against a local PostgreSQL take a fraction of a second, well inside a 60 s
+budget. Per-row checking would meet the numbers too. The PRD was corrected on 2026-10-17 and no
+longer makes that claim; this paragraph keeps it because it is what the alternative had going for
+it, and removing it would make the decision below look unopposed.
 
 What actually decides it is correctness, and `CONTEXT.md` states the invariant: two separate spends
 that happen to share a date, an amount and a description are **not** duplicates — both are real and

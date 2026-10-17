@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 slug: "csv-import"
 stage: "03"
 feature_size: L
@@ -722,17 +722,15 @@ to clean up and no bank statement on disk. A load is one synchronous request tha
 does not (ADR-0004), so there is also no job state to keep anywhere.
 
 **What it does depend on, and who builds it.** `docker-compose.yml`, the Testcontainers integration
-harness and a CI job are all still unbuilt (`SPEC.md`, "Planned, not built yet"), and **two
-documents both claim them**: PRD §6 says plainly that standing them up is a task of this feature,
-and `core-ledger/sad.md` §7 schedules all three as its own first tasks. Both cannot be right, and
-the resolution is simply which feature starts first — today that is `core-ledger`, because this one
-cannot begin without it (PRD §9).
+harness and a CI job are all still unbuilt (`SPEC.md`, "Planned, not built yet"), and both this
+feature and `core-ledger` have reason to claim them. The rule is which one starts first, and today
+that is `core-ledger`, because this feature cannot begin without it (PRD §9). PRD §6's measurement
+note says the same, so the two documents agree.
 
 So: if `core-ledger` ships first, this feature inherits all three and builds none of them. If the
-order ever changes, PRD §6 stands and they are built here, before any feature code. Either way they
-come before the first timing test, because not one PRD §6 number is measurable without them. §11
-carries the row so neither document ends up waiting for the other. `core-ledger` itself is the
-other prerequisite: today it is a PRD and a SAD with no code behind them.
+order ever changes, they are built here, before any feature code. Either way they come before the
+first timing test, because not one PRD §6 number is measurable without them. `core-ledger` itself is
+the other prerequisite: today it is a PRD and a SAD with no code behind them.
 
 **Test fixtures, and the file that must never be committed.** PRD §9 asks for a real statement and a
 real export to be kept as sample files. A real statement is one person's complete month of spending
@@ -988,11 +986,9 @@ in §9, which are risks under another name.
 |---|---|---|---|
 | **`core-ledger` has no code.** PRD §9 names the ledger as a hard prerequisite, and `src/` today holds four `AssemblyMarker.cs` files and `Program.cs`. Every table this feature points at, and every inherited ADR in §2, describes something that does not exist | High | Nothing to mitigate — it is an ordering constraint. `core-ledger` ships first. Re-read §2 before starting here: anything it changes on the way is an input to this document | Andrey |
 | No integration harness, no CI pipeline and no compose stack, so neither PRD §6 number can be measured and not one §10 scenario can run | High | Confirm they landed before this feature's implementation starts, rather than discovering it at the first timing test | Andrey |
-| **Two documents both claim the harness, the compose stack and CI as their own first tasks** — PRD §6 assigns them to this feature, `core-ledger/sad.md` §7 to that one. The risk is not duplicated work; it is that each waits for the other | Medium | §7 resolves it by order: whichever feature starts first builds all three, and today that is `core-ledger`, since this one cannot begin without it. Check it when `core-ledger` is scheduled, and correct whichever document turns out to be wrong | Andrey |
 | **A false duplicate match deletes real spending silently.** The proximity tier of ADR-0002 is a heuristic by nature, and its parameters are still open. Nothing is shown to the Owner when a row is judged already there | High | `LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth` (§10) covers the structural half. The rest is the open question below. Until it is answered, the run report counts rows as "already there" (AC-13), so the Owner can at least see the number is wrong | Andrey |
 | **The calendar-date-to-UTC question blocks US-03.** `core-ledger/sad.md` §11 carries it unresolved. A monthly statement loaded under the wrong interpretation is 30 rows to fix; the one-time move of the old history is 1500, loaded once, and fixing it afterwards is a migration over real recorded history — which is what `SPEC.md`'s safe-schema-change rule exists to avoid | High | Close `core-ledger`'s question before US-03 runs. US-02 may ship first. §8 states the interim | Andrey |
 | No authentication, and this feature widens the gap: anyone who reaches the installation could already read and edit the ledger, and can now load a whole file into it | High | Keep the installation off public networks (PRD §6.1). The later sign-in feature owns the fix; PRD §5 carries no authorization criterion for the same reason | Andrey |
-| **PRD AC-03 and AC-09 are written against a model this document does not use.** Both assume a statement row names the account it belongs to; §6 decided the Owner names the account for the whole file, which is what `CONTEXT.md` *Statement* implies. AC-03 stays live for the history migration, AC-09 becomes a load-level refusal when the named account is unknown | Medium | Reword both in `PRD.md` before implementation, so the acceptance criteria and this document agree. Recorded here rather than silently reinterpreted | Andrey |
 | The synthetic sample files (§7) may be wrong about the real shape, so the whole suite passes against a format no bank produces | Medium | Build them from the real statement and the real export rather than from imagination, and rebuild them if a load ever fails on a real file in a way the suite missed | Andrey |
 | **The index the candidate snapshot needs is declared nowhere.** PRD §6's ≤ 60 s rests on an index over `transactions` and `transfers` by account and date, and `core-ledger` declares no index but the unique `external_ref` (its ADR-0006). The failure mode is not that somebody drops it — it is that each feature assumes the other creates it, and neither does | Medium | This feature's own migration creates it unless `core-ledger` already has (§8). The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10) is what turns its absence into a failing test instead of a slow evening | Andrey |
 | The candidate snapshot grows with the **date range**, not the row count (ADR-0003), so the three-year history migration pulls close to the whole ledger into memory on its very first run | Medium | §7 carries the threshold: look again past roughly 200 000 movements, or if a single file is ever allowed to cover more than a few years. Nothing grows into this gradually — it is reached immediately or not at all | Andrey |
@@ -1050,6 +1046,23 @@ in §9, which are risks under another name.
   repo-wide rule in `CLAUDE.md` § API rather than a decision local to this feature.
 - Where does an Infrastructure adapter that is neither persistence, repository nor query live? →
   `Infrastructure/Import/`, now named in `ARCHITECTURE.md` § Folder layout.
+
+**Defects this pass found in `PRD.md`, and fixed there** (2026-10-17, after this document was
+approved — `PRD.md` §1 records the same three):
+
+- AC-03 and AC-09 assumed a statement row names the account it belongs to. A statement covers one
+  account, so the Owner names it when handing the file over (§6). Both criteria and their §10
+  refusal messages were corrected; the export of the old history is unchanged, since it really does
+  name accounts per row.
+- PRD §6 explained its two numbers by claiming a row-by-row duplicate check would miss both targets
+  by a wide margin. It would not — ~1500 indexed lookups against a local database are a fraction of
+  a second. The numbers stand as budgets; the false reason was removed. ADR-0003's own argument was
+  never that one, which is why it survives the correction unchanged.
+- PRD §6 assigned the harness, the compose stack and CI to this feature while `core-ledger` claimed
+  the same three. Both now say the same thing: whichever feature starts first builds them.
+
+**Two domain words were added to `CONTEXT.md`** in the same pass — *Export*, which `Statement` had
+only ever defined by negation, and *Shape*, which `Mapping profile` and ADR-0009 both depend on.
 
 ## 12. Glossary
 
