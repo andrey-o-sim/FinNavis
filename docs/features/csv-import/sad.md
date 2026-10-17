@@ -810,15 +810,70 @@ waiting on; if it fails, it fails in front of them with nothing recorded (AC-22)
 
 | # | Title | Status | Section |
 |---|---|---|---|
-| <NNNN> | <the decision, in decision form> | Accepted | §<N> |
+| 0001 | Never store the uploaded file; have it handed over again for the load | Accepted | §4 |
+| 0002 | Match an imported row on an exact external reference first, then on a date-and-amount window | Accepted | §4 |
+| 0003 | Take one snapshot of candidate movements before an import run writes anything | Accepted | §4 |
+| 0004 | Commit an entire import run in one database transaction | Accepted | §4 |
+| 0005 | Run both import jobs through one pipeline with two entry points and a policy object | Accepted | §4 |
+| 0006 | Make the file reader a thin port that streams rows and knows nothing about the ledger | Accepted | §5 |
+| 0007 | Keep import bookkeeping in this feature's own tables instead of adding columns to the ledger | Accepted | §5 |
+| 0008 | Detect post-import hand edits with a content fingerprint stored at import time | Accepted | §5 |
+| 0009 | Recognise a statement shape by its header row, with no name the Owner has to pick | Accepted | §5 |
 
-ADR files live under `docs/features/<slug>/adr/NNNN-<title>.md`.
+ADR files live under `docs/features/csv-import/adr/NNNN-<title>.md`. Numbering restarts at 0001
+inside this feature's folder; `docs/adr/0001-initial-setup.md` is project-wide and is not renumbered
+from here.
 
-<How many, and whether that fits the size class. Which ones form one contract together and which
-follows from which.>
+**Nine records, where the size class L expects 10 to 15.** The gap has a reason rather than a
+missing record: five decisions an import feature would normally have to take were already taken by
+`core-ledger` and are inherited unchanged (§2) — the identity strategy, the split between the read
+and write paths, whether the ledger is mutable or append-only, the two-table shape of movements, and
+the `external_ref` column that was added specifically so this feature would need no backfill. That
+last one is the clearest case: ADR-0006 of `core-ledger` exists *because of* csv-import, so the
+decision is on record already and repeating it here would only dilute the folder.
 
-<What did **not** become an ADR, and why — the reversible calls, and the ones CLAUDE.md already
-made. This paragraph is what stops the next reader re-litigating a settled choice.>
+**How they relate.** They are not nine independent choices.
+
+- **0002 and 0003 are one contract, split on purpose.** 0002 fixes the *shape* of the duplicate
+  rule and leaves its parameters open; 0003 fixes *how* the rule is executed and holds whatever
+  those parameters turn out to be. Splitting them is what lets the rest of the design be finished
+  while PRD §8's questions are still open.
+- **0003 depends on 0004.** Its central argument — that a per-row check would see the run's own
+  inserts — is only true because the whole run commits at once. If 0004 were ever reversed, 0003's
+  reasoning would need rereading rather than merely its conclusion.
+- **0004 is what makes 0007 trustworthy.** The links live in separate tables from the movements they
+  describe, so the only thing stopping them disagreeing is that both land in the same commit.
+- **0007 gives 0008 a home.** The fingerprint is import bookkeeping, not ledger data, so it belongs
+  on the movement link rather than on the transaction.
+- **0001 and 0009 together shape the confirm step.** Nothing is kept between the two calls, and the
+  identity of a shape is derived from the file itself — which is the only way the first can work.
+- **0005 is the umbrella over all of them.** One pipeline is why 0002, 0003, 0004, 0007 and 0008
+  exist once rather than twice.
+- **0006 is the edge**, and the only one of the nine that would survive unchanged if the feature
+  were redesigned around a different file format.
+
+**What did not become an ADR, and why.** This paragraph exists so the next reader does not
+re-litigate something already settled.
+
+- **The target surface.** PRD §3 excludes the alternative outright, so there was never a second
+  option to weigh.
+- **Which aggregates get a repository port.** `CLAUDE.md` already says one port per aggregate, added
+  when a use case needs it. `core-ledger` applied the same rule to `CategoryGroup`.
+- **A separate `IImportQueries` rather than extending `ILedgerQueries`.** `core-ledger` ADR-0004
+  already decided that aggregating reads sit behind a query port, and anticipated the split. Which
+  port holds which read is cohesion, and moving a method between two interfaces is an afternoon.
+- **Keeping the run record after an undo, with status `Undone`.** One column and one enum value;
+  reversible, and nothing downstream depends on which way it went.
+- **How a partially-successful load reports its set-aside rows.** This outgrew the feature during
+  the pass and went into `CLAUDE.md` § API, which is where a repo-wide rule belongs. An ADR would
+  have hidden it from every feature that is not this one.
+- **That undo deletes rather than posts reversing entries.** Decided by `core-ledger` ADR-0003 for
+  the whole ledger. Deciding it again here would be a second record saying the same thing.
+- **The CSV library, and whether rows are inserted with `AddRange` or a bulk path.** Package and
+  adapter details, invisible outside Infrastructure, replaceable in an afternoon against the PRD §6
+  numbers.
+- **Everything in §2 Constraints.** Those are inputs. An ADR for one of them would fail the gate by
+  construction, because the alternative is already excluded by a constraint.
 
 ## 10. Quality requirements
 
