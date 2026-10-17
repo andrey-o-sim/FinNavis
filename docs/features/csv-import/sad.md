@@ -23,21 +23,32 @@ target_surfaces: []   # filled when §4's first decision resolves. backend-servi
 <!-- Write: one intent paragraph + the top-3 quality goals as one-liners + the stakeholder table. -->
 <!-- Watch: one person owns this. Two rows, both the same human. No invented reviewer or PM. -->
 
-**Intent.** <One paragraph from PRD §1 and §2 — what is being built, for whom, and what it leaves
-to a later feature.>
+**Intent.** Load a file the Owner hands over into the ledger. Two jobs run over one write path and
+differ in three policies (PRD §1): the monthly bank statement, where the rules for a shape of file
+are confirmed once and nothing is created that the ledger lacks; and the one-time move of three
+years of history out of the old tracker, where the file's own names are the truth and the missing
+accounts and categories are created. Every movement a load records remembers the load that brought
+it, so a load can be read back and undone as a whole; handing the same file over again records
+nothing a second time. There is no screen — PRD §3 keeps the client as a separate later feature, so
+this one ships the load itself.
 
 **Top-3 quality goals (1-liners; full scenarios in §10):**
 
-1. **<name>** — <one line, verifiable>
-2. **<name>** — <one line, verifiable>
-3. **<name>** — <one line, verifiable>
+1. **Nothing is recorded twice** — a row that names a movement already in the ledger is counted as
+   already there and is not recorded again, whether that movement came from an earlier load or was
+   typed by hand (AC-15, AC-20, AC-21).
+2. **A load is all-or-nothing, and reversible** — a load that fails part-way leaves the ledger
+   exactly as it was, and a finished load can be removed as a whole, with undo of 1500 rows at
+   p95 ≤ 30 s (AC-16 — AC-22, PRD §6).
+3. **A bulk load fits inside one evening's patience** — the move of the old history, about 1500 rows
+   across several accounts, at p95 ≤ 60 s (PRD §6).
 
 **Stakeholders.**
 
 | Role | Interest | Sign-off owner? |
 |---|---|---|
-| Owner | <what they do with the feature> | No |
-| Architect / Tech Lead (<name>) | SAD and ADR approval | Yes |
+| Owner | Hands over a statement or an export; confirms what each of the file's categories means; reads what a load did; undoes a load that went wrong | No |
+| Architect / Tech Lead (Andrey Simonenko) | SAD and ADR approval | Yes |
 
 > Solo project: the same person fills both rows. They are kept apart because the interests differ —
 > the Owner cares that the figures are right, the Architect carries the decisions recorded here.
