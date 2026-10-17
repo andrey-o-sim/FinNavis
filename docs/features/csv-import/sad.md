@@ -1044,11 +1044,28 @@ it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
 
 | Term | Meaning |
 |---|---|
-| <term> | <definition with its boundary — what it is NOT> |
+| Account | A place where the owner's money sits — cash, a card, a savings account. A transaction is recorded on exactly one; a transfer touches two. Not a Category: a category says what the money was for, an account says where it is. A statement load takes the account from the Owner, not from the file (§6) |
+| Balance | How much money sits on one account right now, equal to the sum of every movement recorded on it. Never stored (`core-ledger` ADR-0002), so a load changes no balance directly — it records movements, and the balances follow on the next read |
+| Category | A label the owner files a transaction under; each belongs to either expenses or income, and every transaction names exactly one. A statement load never creates one (AC-02, AC-09); a history migration does (AC-10) |
+| Duplicate | A row in a loaded file that names a money movement already recorded, so loading that file again must not create a second transaction. **Not** two separate transactions that happen to share a date, an amount and a description — both are real spending and both belong in the ledger. That boundary is what ADR-0003 exists to protect structurally |
+| Import run | One load of one file taken as a whole: everything it recorded, everything it found already in the ledger, and everything it set aside, so the Owner can read it back or undo it in one move. Not a Mapping profile — a profile holds the rules for a shape of file and outlives every load; a run is one event with one file |
+| Mapping profile | The rules remembered for one shape of file, saying what each category that shape carries means in the ledger, so the next file of the same shape needs no confirmation. Not an Import run — a profile records no movement. In this design its identity is the file's header row (ADR-0009), and no recorded movement points at one of its rules (AC-04) |
+| Owner | The single person whose money this installation tracks and the only actor in the product. Not a user account: there is no sign-in and no second person |
+| Set-aside row | A row an Import run read and deliberately did not record, kept with the reason it was not recorded, so the Owner can see it and act on it later. Not a Duplicate — a duplicate names a movement already in the ledger and needs nothing from the Owner; a set-aside row is not in the ledger at all. It changes no balance, and only a later load can record it (AC-14) |
+| Statement | A file produced by a bank, listing the money movements on **one** account over a period, in a shape the bank controls and the owner cannot change. Not an export from a tracker the owner uses — that covers all of the owner's data rather than one account, and already carries categories. The "one account" part is why §6 takes the account from the Owner rather than from the rows |
+| Transaction | A single income or expense recorded on exactly one account, with an amount, a date, a category and an optional free-text note. Not a Transfer |
+| Transfer | Moves money between two different accounts of the owner: one falls and the other rises by the same amount. Carries no category and leaves the owner's total unchanged. Not a Transaction. A history migration can record one (AC-11); a statement load cannot, because a statement names only one side (AC-06) |
 
 **Terms this document introduces that are not in `CONTEXT.md`.** They are technical rather than
 domain words, so they do not need an entry there — recorded here for the reader:
 
 | Term | Meaning |
 |---|---|
-| <term> | <definition> |
+| Shape key | The normalised header row of a file, reduced to a value. It is the identity of a Mapping profile: two files with the same shape key are the same shape, and the second needs no confirmation. See ADR-0009 |
+| Exact tier / proximity tier | The two halves of the duplicate match. The exact tier compares the file's own row identifier against `transactions.external_ref` and is held by a unique index; the proximity tier compares account, date and amount inside a window and is a judgement. Both always exist, because a movement typed by hand has no `external_ref`. See ADR-0002 |
+| Candidate snapshot | Every ledger movement that could match a row in the file, loaded in **one** query before the run writes anything, and matched against from then on. Taken before the first write, so it can never hold a row the run itself added. See ADR-0003 |
+| Movement link / creation link | Rows in this feature's own tables saying which Transaction or Transfer an Import run recorded, and which Account or Category it created. They carry real foreign keys into `core-ledger`'s tables, and they are what undo walks. See ADR-0007 |
+| Content fingerprint | A hash of the fields an Import run wrote for a movement, stored on its movement link. Undo recomputes it from the current row; a difference means the Owner changed that row by hand, and the undo is refused. See ADR-0008 |
+| Policy object | The three differences between the two import jobs — whether missing accounts and categories are created, whether a rules-confirmation step exists, and what a move between the Owner's own accounts becomes — carried as one object through a pipeline both jobs share. See ADR-0005 |
+| Query port (`IImportQueries`) | The Application-owned abstraction for reads that aggregate across the ledger rather than belonging to one aggregate: the candidate snapshot, and the AC-17 check on undo. Separate from a repository port, which is a collection-like view of one aggregate and returns entities. Follows `core-ledger` ADR-0004 |
+| External reference (`external_ref`) | A nullable, uniquely indexed column on `transactions` saying which outside thing an entry came from. Added unused by `core-ledger` ADR-0006 specifically so this feature would need no backfill; ADR-0002 is what starts using it |
