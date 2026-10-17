@@ -20,6 +20,10 @@ needs a new failure mode or reuses an existing one.
 
 Dependencies point inward only. Full rules in `CLAUDE.md` and `ARCHITECTURE.md`.
 
+The folder tree itself lives in `ARCHITECTURE.md` § Folder layout — do not rebuild it from the
+table below. This table adds the one thing that file has no reason to carry: what each location
+means for **feasibility**, which is the only reason this skill reads the repo at all.
+
 ```
 Presentation ──> Infrastructure ──> Application ──> Domain
                        │                                ▲
@@ -32,19 +36,20 @@ Presentation ──> Infrastructure ──> Application ──> Domain
 | `src/FinNavis.Domain/ValueObjects` | Value objects | A new value type (Money, DateRange) is cheap; changing an existing one touches everything that uses it |
 | `src/FinNavis.Domain/Enums` | Domain enums | Stored as strings, never ints — adding a member is cheap, renaming is a data change |
 | `src/FinNavis.Domain/Abstractions` | Repository ports, domain services, `IClock` | One repository per aggregate, added when a use case needs it — not per table |
-| `src/FinNavis.Application/Features` | Use cases | **Start the scan here.** A use case doing something structurally similar is the strongest Tech ☑ evidence available |
+| `src/FinNavis.Application/<Area>/` | Use cases, one folder per business area at the project root | **Start the scan here.** A use case doing something structurally similar is the strongest Tech ☑ evidence available. There is no `Features/` wrapper — everything in this layer is a feature |
 | `src/FinNavis.Application/Abstractions` | Outside-world ports: `IUnitOfWork`, importers, file storage | A feature needing a **new** outside-world port (file, network, clock) is a new adapter in Infrastructure too |
 | `src/FinNavis.Application/Common` | Shared application plumbing | Empty today. When it holds a result/error convention, a new failure mode becomes a cost to name |
 | `src/FinNavis.Infrastructure/Persistence/Configurations` | One entity configuration per entity | New entity ⇒ new configuration file ⇒ new migration |
 | `src/FinNavis.Infrastructure/Persistence/Migrations` | Schema history | **Has any migration ever run?** If not, "we know the data path works" is unproven |
 | `src/FinNavis.Infrastructure/Repositories` | Repository adapters | An adapter implementing a port that already exists is routine work |
-| `src/FinNavis.Presentation/Endpoints` | One file per resource | A feature adding a resource adds an endpoint group; one extending a resource does not |
-| `src/FinNavis.Presentation/Contracts` | Request/response records | Entities are never returned directly — a new response shape is always a new record |
+| `src/FinNavis.Infrastructure/DependencyInjection` | Registration for Infrastructure's own services | A new adapter is also a new registration — cheap, but never free to forget |
+| `src/FinNavis.Presentation/Endpoints/<Resource>/<Operation>/` | One folder per operation: the endpoint plus the request and response records only it uses | A feature adding a resource adds a folder group; one extending a resource adds one folder. There is no central `Contracts/` — contracts live with their operation, and no two operations share a response record |
 | `src/web/` | React PWA | **Not started.** Any feature needing a screen is unproven ground, whatever its effort signal says |
 | `tests/FinNavis.ArchitectureTests` | Dependency-rule guard | Already passing: the layering is enforced, not aspirational. Counts as evidence |
 | `tests/FinNavis.Infrastructure.IntegrationTests` | Testcontainers | Needs Docker. If the local setup has never run, say so — it is a real first-time cost |
 | `docs/features/*/idea-brief.md` | Earlier briefs | Read them. Their §16 may already name the feature being interviewed |
-| `docs/adr/` | Past decisions | A decision already recorded is a constraint, not an open question |
+| `docs/features/*/sad.md` + `adr/` | Per-feature architecture, once a feature has been designed | A decision recorded in an Accepted ADR is a constraint on the new feature. It also shows what that feature's own first tasks turned out to be |
+| `docs/adr/` | Project-wide decisions | A decision already recorded is a constraint, not an open question |
 
 ## How to run the scan
 
@@ -53,10 +58,17 @@ Presentation ──> Infrastructure ──> Application ──> Domain
 2. **`git log --oneline`** — has anything shipped, or is the history all scaffolding? Count
    commits between the brief of a past feature and its last code commit; that is the only
    evening baseline the repo offers.
-3. **`ls src/FinNavis.Application/Features`** — is there a use case of the same shape?
+3. **`ls src/FinNavis.Application`** — is there a business area with a use case of the same
+   shape? Areas sit at the root of the project, one folder each.
 4. **`ls src/FinNavis.Infrastructure/Persistence/Migrations`** — has the data path ever run
    for real?
 5. **`ls src/web`** — if the feature needs a screen, is there a client at all?
+
+Keep any wider scan bounded — `bin/` and `obj/` are enormous and carry nothing:
+
+```bash
+find src tests -type d -not -path "*/bin/*" -not -path "*/obj/*" | sort
+```
 
 ## Writing the three boxes
 
