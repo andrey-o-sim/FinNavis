@@ -963,18 +963,75 @@ work whose slowness or failure anyone would need to be told about.
 <!-- Write: the table, then accepted debt, then the open questions this pass closed. -->
 <!-- Watch: severity is Low / Medium / High, or the literal "Open question" with owner AND due. -->
 
+No decision in this pass was deferred — every one was taken. So the table below is made of what the
+repository does not have, what PRD §8 left open, and the Negative consequences of the nine records
+in §9, which are risks under another name.
+
 | Risk / debt | Severity | Mitigation | Owner |
 |---|---|---|---|
-| <risk> | <Low\|Medium\|High> | <mitigation, pointing at the section or test that catches it> | <name> |
-| Open question: <the undecided thing. Default now: <…>> | Open question | Resolve before <stage or date>; <where it came from> | <name> |
+| **`core-ledger` has no code.** PRD §9 names the ledger as a hard prerequisite, and `src/` today holds four `AssemblyMarker.cs` files and `Program.cs`. Every table this feature points at, and every inherited ADR in §2, describes something that does not exist | High | Nothing to mitigate — it is an ordering constraint. `core-ledger` ships first. Re-read §2 before starting here: anything it changes on the way is an input to this document | Andrey |
+| No integration harness, no CI pipeline and no compose stack, so neither PRD §6 number can be measured and not one §10 scenario can run | High | `core-ledger/sad.md` §7 schedules all three as its own first tasks. Confirm they landed before this feature's implementation starts, rather than discovering it at the first timing test | Andrey |
+| **A false duplicate match deletes real spending silently.** The proximity tier of ADR-0002 is a heuristic by nature, and its parameters are still open. Nothing is shown to the Owner when a row is judged already there | High | `LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth` (§10) covers the structural half. The rest is the open question below. Until it is answered, the run report counts rows as "already there" (AC-13), so the Owner can at least see the number is wrong | Andrey |
+| **The calendar-date-to-UTC question blocks US-03.** `core-ledger/sad.md` §11 carries it unresolved. A monthly statement loaded under the wrong interpretation is 30 rows to fix; the one-time move of the old history is 1500, loaded once, and fixing it afterwards is a migration over real recorded history — which is what `SPEC.md`'s safe-schema-change rule exists to avoid | High | Close `core-ledger`'s question before US-03 runs. US-02 may ship first. §8 states the interim | Andrey |
+| No authentication, and this feature widens the gap: anyone who reaches the installation could already read and edit the ledger, and can now load a whole file into it | High | Keep the installation off public networks (PRD §6.1). The later sign-in feature owns the fix; PRD §5 carries no authorization criterion for the same reason | Andrey |
+| **PRD AC-03 and AC-09 are written against a model this document does not use.** Both assume a statement row names the account it belongs to; §6 decided the Owner names the account for the whole file, which is what `CONTEXT.md` *Statement* implies. AC-03 stays live for the history migration, AC-09 becomes a load-level refusal when the named account is unknown | Medium | Reword both in `PRD.md` before implementation, so the acceptance criteria and this document agree. Recorded here rather than silently reinterpreted | Andrey |
+| The synthetic sample files (§7) may be wrong about the real shape, so the whole suite passes against a format no bank produces | Medium | Build them from the real statement and the real export rather than from imagination, and rebuild them if a load ever fails on a real file in a way the suite missed | Andrey |
+| The `(account_id, date)` index is **`core-ledger`'s**, but PRD §6's ≤ 60 s rests on it. Nothing in this feature would fail if a future change there dropped it | Medium | The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10), so the loss is a failing test rather than a slow evening | Andrey |
+| The candidate snapshot grows with the **date range**, not the row count (ADR-0003), so the three-year history migration pulls close to the whole ledger into memory on its very first run | Medium | §7 carries the threshold: look again past roughly 200 000 movements, or if a single file is ever allowed to cover more than a few years. Nothing grows into this gradually — it is reached immediately or not at all | Andrey |
+| Two banks whose statements carry identical headers share one Mapping profile, and the system cannot tell them apart (ADR-0009) | Medium | No mitigation today. The damage is bounded: a wrong rule produces a visible category in the run report (AC-13) or a set-aside row (AC-08), and the load is undoable as a whole (AC-16). Revisit by naming profiles if it ever happens | Andrey |
+| ADR-0008's fingerprint covers a fixed list of fields. The day a movement gains one, AC-18 silently stops noticing edits to it | Medium | Name the field list explicitly at the data-model stage, and add a line to the movement's entity configuration pointing at ADR-0008 so the next person changing it sees why | Andrey |
+| **Raw bank text is now stored.** A set-aside row keeps the file's own line, including shop names the Owner did not write, and nothing deletes it. ADR-0001 keeps whole statements off disk, but this is the part that stays | Medium | Accepted and bounded — it is only the rows that were not recorded, and it is the text the Owner needs to act on them (AC-13, AC-14). §2 classifies it confidential; §7 keeps it out of the logs | Andrey |
+| `SPEC.md` draft requirements ask to store a currency rate per expense, while its own Non-goals say single currency. AC-07 sets a foreign-currency row aside, which is only correct under the Non-goals reading | Medium | Inherited from `core-ledger/sad.md` §11, and it becomes concrete here rather than theoretical. Resolve when a currency feature is scoped; until then AC-07 stands | Andrey |
+| PRD §1 records that the scope grew past what the idea-brief priced — RICE was scored from effort M, the scope written is L | Medium | Re-score before this feature is scheduled, as PRD §1 itself asks. It is not an architecture risk; it is here so it is not lost between documents | Andrey |
+| One transaction per run stops being the right shape above roughly 50 000 rows in a file (ADR-0004) | Low | §7 carries the threshold. The Import run record is already the progress table a resumable design would need, so the revisit is bounded | Andrey |
+| A bank adding or renaming one column makes the shape new, so the Owner confirms the rules again (ADR-0009) | Low | Correct rather than broken — the file really did change. Accepted | Andrey |
+| An old run keeps listing a row as set aside after a later run recorded it, so a run report ages | Low | Accepted: a run report is a record of one event (`CONTEXT.md` *Import run*), not a live view. AC-13 asks what the load did, which is what it keeps saying | Andrey |
+| Transfers carry no `external_ref` (`core-ledger` ADR-0006 put it on transactions only), so a Transfer recorded by a history migration is reachable only by the proximity tier | Low | Costs nothing today: the export is loaded once. Noted so nobody assumes the two tiers are symmetric | Andrey |
+| No optimistic concurrency token, and ADR-0003's snapshot cannot see a movement written while a run is in flight | Low | One owner, one client, no second writer. Accepted, and stated so the assumption is visible when one appears | Andrey |
+| `SPEC.md` draft requirements ask for an expense marker usable as a filter, which `core-ledger` §8 closed as "no". A statement's payee field is where that need becomes concrete | Low | Inherited from `core-ledger/sad.md` §11, which named this feature as the trigger. Adding it later is an additive migration plus a filter, not a rewrite | Andrey |
+| Open question: what exactly makes two rows name the same movement — how wide the date window is, whether the file's text takes part, how it is normalised, and what happens when one file row matches two ledger movements. Default now: undecided; ADR-0002 fixes only the shape | Open question | Resolve before implementation starts; carried from PRD §8. It blocks `LoadStatement_RowOverlapsAHandTypedMovement_CountsItAsAlreadyThere` (§10) and fills the snapshot query's `WHERE` clause (ADR-0003) | Andrey |
+| Open question: does a real statement or a real export carry a stable operation number? Default now: unknown; ADR-0002's exact tier is used when one exists and skipped when it does not | Open question | Resolve before implementation starts, by opening a real file; carried from PRD §8. Same sitting as the two questions below | Andrey |
+| Open question: does the statement name a currency at all? If it does not, AC-07 cannot fire. Default now: AC-07 applies only when the file names one | Open question | Resolve before implementation starts; carried from PRD §8 | Andrey |
+| Open question: does the old tracker's export name a row as a move between two accounts and name both? Default now: AC-11 applies when it does | Open question | Resolve before implementation starts; carried from PRD §8. If it does not, flow 4 in §6 loses its Transfer branch | Andrey |
+| Open question: is there a limit on the size of a file that may be handed over? Default now: none enforced. ADR-0006 makes a ceiling expressible; the value is still unset | Open question | Resolve before implementation starts; carried from PRD §8. PRD §6.1 names an oversized file as an abuse case | Andrey |
+| Open question: should a move between the Owner's own accounts be paired across two statements into one transfer? Default now: no — set aside (AC-06) | Open question | Resolve after the first three monthly loads; carried from PRD §8 and the idea-brief | Andrey |
+| Open question: PRD §5 carries no criterion of the authorization type. Default now: accepted; the installation stays off public networks | Open question | Resolve when the sign-in feature is scoped; carried from PRD §8 | Andrey |
 
 **Accepted debt (acceptable now, plan to fix later):**
 
-- <what is wrong on purpose, and why that is the right call today>
+- **The proximity tier stays a heuristic.** However its parameters land, it will be a judgement
+  rather than a guarantee. Accepted because AC-21 — matching a movement the Owner typed by hand —
+  cannot be satisfied any other way, since a hand-typed movement has no `external_ref` (ADR-0002).
+- **A fingerprint is stored for every imported movement and read only if that load is ever undone**
+  (ADR-0008). Paid deliberately, to keep AC-18 independent of any discipline in `core-ledger`'s
+  edit path.
+- **Undone runs accumulate.** Nothing deletes them, and nothing is planned to. They are the only
+  trace in the whole product that a load happened and was reversed, because the ledger keeps no
+  audit trail (`core-ledger` ADR-0003).
+- **The first file of a new bank is uploaded twice** (ADR-0001). The cost is one extra upload per
+  bank for the life of the installation; what it buys is no file store and no bank statement on
+  disk.
+- **No metrics, alerts or tracing** (§7). Accepted because a load is a synchronous request the
+  Owner is waiting on — there is no unattended work to watch.
 
 **Open questions closed during this pass** (they were due at this stage, so they are no longer open):
 
-- <the question> → <the answer>. See <ADR or section>.
+- Should a recorded entry carry its own identifier from day one? → **yes**, as a nullable
+  `external_ref`. Closed by `core-ledger` ADR-0006 before this pass began, and this feature is the
+  caller it was closed for. ADR-0002 is what finally uses it.
+- Where does the uploaded file live between confirming the rules and loading it? → **nowhere**. See
+  ADR-0001.
+- How does the system recognise "the same shape of statement"? → by the **header row**. See
+  ADR-0009.
+- Where does a statement load get the account its rows belong to? → the **Owner names it** when
+  handing the file over. See §6, and the AC-03/AC-09 row above.
+- How is a hand edit after an import detected, given that the ledger keeps no audit trail? → a
+  **content fingerprint** stored at import time. See ADR-0008.
+- Does this feature add columns to `core-ledger`'s tables? → **no**. See ADR-0007.
+- How does a batch operation report items it skipped? → as a **success with a report**, now a
+  repo-wide rule in `CLAUDE.md` § API rather than a decision local to this feature.
+- Where does an Infrastructure adapter that is neither persistence, repository nor query live? →
+  `Infrastructure/Import/`, now named in `ARCHITECTURE.md` § Folder layout.
 
 ## 12. Glossary
 
