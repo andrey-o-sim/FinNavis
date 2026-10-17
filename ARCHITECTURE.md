@@ -102,6 +102,8 @@ src/FinNavis.Infrastructure/
 │   └── Migrations/        append-only
 ├── Repositories/          adapters for the Domain repository ports
 ├── Queries/ *             adapters for read ports that aggregate in SQL
+├── Import/ *              adapters for reading files the owner hands over — the CSV reader
+│                          behind IStatementReader
 └── DependencyInjection/   Infrastructure registers its own services here
 
 src/FinNavis.Presentation/
