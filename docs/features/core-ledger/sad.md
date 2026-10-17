@@ -1,5 +1,5 @@
 ---
-status: Draft
+status: Approved
 owner: "Andrey Simonenko"
 reviewers: ["Andrey Simonenko"]
 updated_at: "2026-10-16"
