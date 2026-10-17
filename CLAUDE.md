@@ -203,6 +203,10 @@ dotnet ef database update \
 - `launchSettings.json`, `.env`, `*.pem`, `*.key` are git-ignored. Never commit them.
 - Never put a real connection string, password, or key into a committed file or a shell command.
 - `launchSettings.example.json` holds variable names and value shapes only. Keep it empty of real values.
+- **Never commit a real bank statement or a real export from another tracker.** One statement is a
+  full month of the owner's spending with the shop names attached. Test fixtures are synthetic files
+  that copy the shape only — same header row, same column order, same date and amount formats, with
+  invented merchants and amounts. Real files stay outside the repository.
 
 ## Not set up yet
 
