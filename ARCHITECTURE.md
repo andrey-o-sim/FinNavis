@@ -47,7 +47,7 @@ The use cases. One class per thing a user can do: create an account, record an e
 money between accounts. Each use case orchestrates domain objects and calls **ports**.
 
 The ports Application owns live in `Application/Abstractions`, for example `IUnitOfWork` or
-`IStatementImporter`. Application says *what* it needs. It never says *how* it is done.
+`IStatementReader`. Application says *what* it needs. It never says *how* it is done.
 
 Application does not own every port it uses. Repository ports belong to Domain, and Application
 consumes them. So a use case typically takes one or more Domain repositories plus an Application
@@ -149,7 +149,7 @@ Judge by that role, not by which project the file sits in. Ports in FinNavis liv
 | `IAccountRepository` | yes | Domain | Other side is the data store |
 | `IClock` | yes | Domain | Other side is the machine clock |
 | `IUnitOfWork` | yes | Application | Other side is a database transaction |
-| `IStatementImporter` | yes | Application | Other side is a file or bank format |
+| `IStatementReader` | yes | Application | Other side is a file or bank format |
 | a domain service interface | no | Domain | Both sides are Domain. Plain polymorphism |
 
 An interface written only to allow two implementations inside the same layer is an interface,
