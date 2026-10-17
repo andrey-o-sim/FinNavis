@@ -115,8 +115,9 @@ fresh choice:
 - `CLAUDE.md` — layout, dependency rules, DI, API, database and test conventions.
 - `ARCHITECTURE.md` — the four rings, and what counts as a port versus a plain interface.
 - Repository ports live in `Domain/Abstractions`; outside-world ports in `Application/Abstractions`.
-  `ARCHITECTURE.md` names `IStatementImporter` as its example of the second kind — this feature is
-  the first to actually add one.
+  `ARCHITECTURE.md` has always carried a file-reading port as its example of the second kind, with
+  no implementation behind it. This feature is the first to actually add one, and §5 names it
+  `IStatementReader`.
 - Business areas sit at the root of the Application project; each endpoint folder holds its own
   request and response records. No `Features/` wrapper, no central `Contracts/`.
 - One `IEntityTypeConfiguration<T>` per entity. Migrations are append-only — never edit an applied
@@ -358,7 +359,11 @@ src/FinNavis.Infrastructure/
 │                          safe-schema-change rule holds without a backfill (ADR-0007)
 ├── Repositories/          EfImportRunRepository, EfMappingProfileRepository
 ├── Queries/               EfImportQueries — the candidate snapshot and the AC-17 check
-└── Import/           NEW  the CSV adapter behind IStatementReader
+├── Import/           NEW  the CSV adapter behind IStatementReader
+└── DependencyInjection/   all four new adapters are registered here — the two repositories, the
+                           query adapter and the reader (CLAUDE.md § Dependency injection).
+                           Presentation calls this registration method; it never registers an
+                           Infrastructure type one by one
 
 src/FinNavis.Presentation/
 └── Endpoints/
@@ -502,17 +507,21 @@ sequenceDiagram
         Inf-->>App: the snapshot
         Note over App,Inf: taken before the first write, so it can never hold a row this run adds
         loop every row the reader yields
-            App->>Dom: classify the row against the profile and the snapshot
-            alt its category is a move between the Owner's own accounts
+            App->>Dom: ask the MappingProfile what this row's category means
+            alt it means a move between the Owner's own accounts
                 Dom-->>App: set aside — a statement names only one side of it
-            else it is in a currency the ledger does not keep
-                Dom-->>App: set aside — another currency
-            else no rule covers its category
+            else no rule covers it
                 Dom-->>App: set aside — no rule covers it
-            else the snapshot already holds this movement
-                Dom-->>App: already there, not recorded again
-            else it is covered and new
-                Dom-->>App: a Transaction on the named account, with the category the rule gives
+            else it means one of the Owner's categories
+                Dom-->>App: that category
+                alt the row is in a currency the ledger does not keep
+                    App->>App: set aside — another currency
+                else the snapshot already holds this movement
+                    App->>App: already there, not recorded again
+                else the row is new
+                    App->>Dom: build a Transaction on the named account with that category
+                    Dom-->>App: a valid Transaction
+                end
             end
         end
         App->>Dom: build the ImportRun with its movement links, creation links and set-aside rows
@@ -712,11 +721,18 @@ uploaded files**: ADR-0001 decided the file is never stored, so there is nothing
 to clean up and no bank statement on disk. A load is one synchronous request that either commits or
 does not (ADR-0004), so there is also no job state to keep anywhere.
 
-**What it does depend on, and what does not exist yet.** `docker-compose.yml`, the Testcontainers
-integration harness and a CI job are all still unbuilt (`SPEC.md`, "Planned, not built yet").
-`core-ledger/sad.md` §7 schedules all three as its own first tasks. For this feature they are
-prerequisites, not deliverables — and so is `core-ledger` itself, which today is a PRD and a SAD
-with no code. Both PRD §6 numbers are unmeasurable until they exist. Carried into §11.
+**What it does depend on, and who builds it.** `docker-compose.yml`, the Testcontainers integration
+harness and a CI job are all still unbuilt (`SPEC.md`, "Planned, not built yet"), and **two
+documents both claim them**: PRD §6 says plainly that standing them up is a task of this feature,
+and `core-ledger/sad.md` §7 schedules all three as its own first tasks. Both cannot be right, and
+the resolution is simply which feature starts first — today that is `core-ledger`, because this one
+cannot begin without it (PRD §9).
+
+So: if `core-ledger` ships first, this feature inherits all three and builds none of them. If the
+order ever changes, PRD §6 stands and they are built here, before any feature code. Either way they
+come before the first timing test, because not one PRD §6 number is measurable without them. §11
+carries the row so neither document ends up waiting for the other. `core-ledger` itself is the
+other prerequisite: today it is a PRD and a SAD with no code behind them.
 
 **Test fixtures, and the file that must never be committed.** PRD §9 asks for a real statement and a
 real export to be kept as sample files. A real statement is one person's complete month of spending
@@ -796,7 +812,7 @@ waiting on; if it fails, it fails in front of them with nothing recorded (AC-22)
 | Time | `DateTimeOffset` stored UTC. **The file gives a calendar date with no time**, and how that becomes a stored instant is `core-ledger`'s open question, inherited unresolved. It is a blocker for US-03 and not for US-02 — see §11 | `CLAUDE.md`, `core-ledger/sad.md` §11 → §11 |
 | Validation | Shape in Presentation, use-case checks in Application, invariants inside Domain entities. Plus one check that belongs to neither: the row ceiling, enforced while the file streams, so a file that is not a statement is refused before anything is recorded (ADR-0006, PRD §6.1) | `core-ledger/sad.md` §8, ADR-0006 |
 | Concurrency | None. One owner, one client, no optimistic concurrency token. ADR-0003 names the assumption it rests on: the candidate snapshot cannot see a movement written while the run is in flight | → §11 |
-| Indexes | Five, all from PRD §9's new read paths: mapping profiles by shape key, **unique** (ADR-0009, one lookup per load); `transactions` and `transfers` by account and date (ADR-0003, the candidate snapshot — these two belong to `core-ledger` but become load-bearing for PRD §6's ≤ 60 s here); the movement and creation links by run id (reading a run and undoing it); set-aside rows by run id. `transactions.external_ref` is already unique and needs nothing added | §10, §11 |
+| Indexes | Five, all from PRD §9's new read paths: mapping profiles by shape key, **unique** (ADR-0009, one lookup per load); `transactions` and `transfers` by account and date (ADR-0003, the candidate snapshot); the movement and creation links by run id (reading a run and undoing it); set-aside rows by run id. `transactions.external_ref` is already unique (`core-ledger` ADR-0006) and needs nothing added. **The second and third do not exist in any document yet** — `core-ledger` declares no index but that unique one, so this feature's own migration creates them unless `core-ledger` has by then. §11 carries the way that goes wrong | §10, §11 |
 | Set-aside reasons | A domain enum stored as a string (`CLAUDE.md`): a move between the Owner's own accounts, another currency, no rule covers it, the named account is unknown. The Owner-facing wording for each comes from PRD §10 | PRD §10, §6 |
 | Internationalisation | N/A — English only. Separately: the file's own text is stored and shown back as plain text and **never interpreted** (PRD §6.1). The date and number formats *inside* a file are a parsing concern of the adapter, not a product language setting | ADR-0006 |
 | Observability | N/A — no metrics, alerts or tracing. A load is a synchronous request the Owner is waiting on, so nothing here can fail unobserved. See §7 | §7 |
@@ -944,11 +960,12 @@ inventing a figure would not be.
 - **Then:** **load the old history (~1500 rows, several accounts), p95 ≤ 60 s** (PRD §6).
 - **How verify:** `MigrateHistory_1500RowsSeveralAccounts_P95Under60s`, timed in the integration
   suite against PostgreSQL 18 in Testcontainers and the synthetic export of §7. Alongside it, an
-  `EXPLAIN` assertion that the candidate-snapshot query uses the `(account_id, date)` index rather
-  than a sequential scan. That assertion is not decoration: the index belongs to `core-ledger` (§8),
-  so nothing in this feature's own code or tests would break if a future change there dropped it —
-  the loss would show up as a slow evening instead of a failing test. **Prerequisite:** as above,
-  plus the synthetic export, which has to be built from a real one first (§7).
+  `EXPLAIN` assertion that the candidate-snapshot query uses an index on account and date rather
+  than a sequential scan. That assertion is not decoration: **no document declares that index
+  today** — `core-ledger` names only the unique `external_ref` — so it exists only if this
+  feature's migration creates it, and nothing else in this feature would fail if it did not. Its
+  absence would show up as a slow evening instead of a failing test (§8, §11). **Prerequisite:** as
+  above, plus the synthetic export, which has to be built from a real one first (§7).
 
 **What the PRD deliberately sets no target for, and why.** Availability, throughput and scalability
 are settled for the whole product in `SPEC.md` with no target — self-hosted, one owner, one action
@@ -970,13 +987,14 @@ in §9, which are risks under another name.
 | Risk / debt | Severity | Mitigation | Owner |
 |---|---|---|---|
 | **`core-ledger` has no code.** PRD §9 names the ledger as a hard prerequisite, and `src/` today holds four `AssemblyMarker.cs` files and `Program.cs`. Every table this feature points at, and every inherited ADR in §2, describes something that does not exist | High | Nothing to mitigate — it is an ordering constraint. `core-ledger` ships first. Re-read §2 before starting here: anything it changes on the way is an input to this document | Andrey |
-| No integration harness, no CI pipeline and no compose stack, so neither PRD §6 number can be measured and not one §10 scenario can run | High | `core-ledger/sad.md` §7 schedules all three as its own first tasks. Confirm they landed before this feature's implementation starts, rather than discovering it at the first timing test | Andrey |
+| No integration harness, no CI pipeline and no compose stack, so neither PRD §6 number can be measured and not one §10 scenario can run | High | Confirm they landed before this feature's implementation starts, rather than discovering it at the first timing test | Andrey |
+| **Two documents both claim the harness, the compose stack and CI as their own first tasks** — PRD §6 assigns them to this feature, `core-ledger/sad.md` §7 to that one. The risk is not duplicated work; it is that each waits for the other | Medium | §7 resolves it by order: whichever feature starts first builds all three, and today that is `core-ledger`, since this one cannot begin without it. Check it when `core-ledger` is scheduled, and correct whichever document turns out to be wrong | Andrey |
 | **A false duplicate match deletes real spending silently.** The proximity tier of ADR-0002 is a heuristic by nature, and its parameters are still open. Nothing is shown to the Owner when a row is judged already there | High | `LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth` (§10) covers the structural half. The rest is the open question below. Until it is answered, the run report counts rows as "already there" (AC-13), so the Owner can at least see the number is wrong | Andrey |
 | **The calendar-date-to-UTC question blocks US-03.** `core-ledger/sad.md` §11 carries it unresolved. A monthly statement loaded under the wrong interpretation is 30 rows to fix; the one-time move of the old history is 1500, loaded once, and fixing it afterwards is a migration over real recorded history — which is what `SPEC.md`'s safe-schema-change rule exists to avoid | High | Close `core-ledger`'s question before US-03 runs. US-02 may ship first. §8 states the interim | Andrey |
 | No authentication, and this feature widens the gap: anyone who reaches the installation could already read and edit the ledger, and can now load a whole file into it | High | Keep the installation off public networks (PRD §6.1). The later sign-in feature owns the fix; PRD §5 carries no authorization criterion for the same reason | Andrey |
 | **PRD AC-03 and AC-09 are written against a model this document does not use.** Both assume a statement row names the account it belongs to; §6 decided the Owner names the account for the whole file, which is what `CONTEXT.md` *Statement* implies. AC-03 stays live for the history migration, AC-09 becomes a load-level refusal when the named account is unknown | Medium | Reword both in `PRD.md` before implementation, so the acceptance criteria and this document agree. Recorded here rather than silently reinterpreted | Andrey |
 | The synthetic sample files (§7) may be wrong about the real shape, so the whole suite passes against a format no bank produces | Medium | Build them from the real statement and the real export rather than from imagination, and rebuild them if a load ever fails on a real file in a way the suite missed | Andrey |
-| The `(account_id, date)` index is **`core-ledger`'s**, but PRD §6's ≤ 60 s rests on it. Nothing in this feature would fail if a future change there dropped it | Medium | The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10), so the loss is a failing test rather than a slow evening | Andrey |
+| **The index the candidate snapshot needs is declared nowhere.** PRD §6's ≤ 60 s rests on an index over `transactions` and `transfers` by account and date, and `core-ledger` declares no index but the unique `external_ref` (its ADR-0006). The failure mode is not that somebody drops it — it is that each feature assumes the other creates it, and neither does | Medium | This feature's own migration creates it unless `core-ledger` already has (§8). The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10) is what turns its absence into a failing test instead of a slow evening | Andrey |
 | The candidate snapshot grows with the **date range**, not the row count (ADR-0003), so the three-year history migration pulls close to the whole ledger into memory on its very first run | Medium | §7 carries the threshold: look again past roughly 200 000 movements, or if a single file is ever allowed to cover more than a few years. Nothing grows into this gradually — it is reached immediately or not at all | Andrey |
 | Two banks whose statements carry identical headers share one Mapping profile, and the system cannot tell them apart (ADR-0009) | Medium | No mitigation today. The damage is bounded: a wrong rule produces a visible category in the run report (AC-13) or a set-aside row (AC-08), and the load is undoable as a whole (AC-16). Revisit by naming profiles if it ever happens | Andrey |
 | ADR-0008's fingerprint covers a fixed list of fields. The day a movement gains one, AC-18 silently stops noticing edits to it | Medium | Name the field list explicitly at the data-model stage, and add a line to the movement's entity configuration pointing at ADR-0008 so the next person changing it sees why | Andrey |
