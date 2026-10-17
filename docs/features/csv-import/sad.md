@@ -785,19 +785,22 @@ waiting on; if it fails, it fails in front of them with nothing recorded (AC-22)
 
 | Concept | Convention | Where defined |
 |---|---|---|
-| Logging | <…> | <…> |
-| Authentication | <…> | <…> |
-| Authorization | <…> | <…> |
-| Error handling | <…> | <…> |
-| ID strategy | <…> | <…> |
-| Money | <…> | CLAUDE.md |
-| Time | <…> | CLAUDE.md, ARCHITECTURE.md |
-| Validation | <…> | <…> |
-| Concurrency | <…> | <…> |
-| Indexes | <the read path this feature adds and the index it needs> | <§10, §11> |
-| Internationalisation | <…> | — |
-| Observability | <…> | §7 |
-| Outbox / events | <…> | — |
+| Logging | Structured logs to stdout. One line per run — which job, the file's name, the counts. **Never the rows**: a statement's lines are the confidential part and stdout has no retention policy | §7 |
+| Authentication | None. One owner, no sign-in. Network isolation is the only control, and this feature makes the gap wider — anyone who reaches the installation can now load a file, not only read | PRD §6.1 → §11 |
+| Authorization | None. There is no second actor to deny (PRD §5 N/A note) | PRD §5 → §11 |
+| Error handling — refusals | A refusal that stops the whole load is a domain error, mapped by Presentation to an RFC 9457 Problem Details response, with the wording taken from PRD §10 and not invented. Covers AC-02, AC-03, AC-18 and the AC-22 rollback | `core-ledger/sad.md` §8, PRD §10 |
+| Error handling — partial success | **A load that finished is a success, even when some rows were set aside.** The response body carries the counts and every set-aside row with its reason (AC-08, AC-13); a set-aside row is a normal outcome of a working load, not a fault. This is a repo-wide convention for any batch operation, recorded in `CLAUDE.md` § API | `CLAUDE.md`, here |
+| ID strategy | UUID v7 generated in the Application layer with `Guid.CreateVersion7()`. This feature is the caller that record was written for: a whole run and the links between its rows exist in memory before the single commit | `core-ledger` ADR-0005, ADR-0004 here |
+| External reference | `transactions.external_ref`, nullable with a unique index, stops being unused. It carries the file's own identifier for a row when the file supplies one, and it is the exact tier of the duplicate match | `core-ledger` ADR-0006, ADR-0002 here |
+| Money | `decimal`, single currency, no currency code stored. A row the file names in another currency is set aside rather than converted (AC-07) | `CLAUDE.md`, PRD §3 |
+| Time | `DateTimeOffset` stored UTC. **The file gives a calendar date with no time**, and how that becomes a stored instant is `core-ledger`'s open question, inherited unresolved. It is a blocker for US-03 and not for US-02 — see §11 | `CLAUDE.md`, `core-ledger/sad.md` §11 → §11 |
+| Validation | Shape in Presentation, use-case checks in Application, invariants inside Domain entities. Plus one check that belongs to neither: the row ceiling, enforced while the file streams, so a file that is not a statement is refused before anything is recorded (ADR-0006, PRD §6.1) | `core-ledger/sad.md` §8, ADR-0006 |
+| Concurrency | None. One owner, one client, no optimistic concurrency token. ADR-0003 names the assumption it rests on: the candidate snapshot cannot see a movement written while the run is in flight | → §11 |
+| Indexes | Five, all from PRD §9's new read paths: mapping profiles by shape key, **unique** (ADR-0009, one lookup per load); `transactions` and `transfers` by account and date (ADR-0003, the candidate snapshot — these two belong to `core-ledger` but become load-bearing for PRD §6's ≤ 60 s here); the movement and creation links by run id (reading a run and undoing it); set-aside rows by run id. `transactions.external_ref` is already unique and needs nothing added | §10, §11 |
+| Set-aside reasons | A domain enum stored as a string (`CLAUDE.md`): a move between the Owner's own accounts, another currency, no rule covers it, the named account is unknown. The Owner-facing wording for each comes from PRD §10 | PRD §10, §6 |
+| Internationalisation | N/A — English only. Separately: the file's own text is stored and shown back as plain text and **never interpreted** (PRD §6.1). The date and number formats *inside* a file are a parsing concern of the adapter, not a product language setting | ADR-0006 |
+| Observability | N/A — no metrics, alerts or tracing. A load is a synchronous request the Owner is waiting on, so nothing here can fail unobserved. See §7 | §7 |
+| Outbox / events | N/A — one process, one transaction per run, no module-to-module messaging | ADR-0004 |
 
 ## 9. Architecture decisions
 
