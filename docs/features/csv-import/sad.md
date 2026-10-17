@@ -6,7 +6,7 @@ feature_size: L
 depth: medium
 updated_at: "2026-10-17"
 source_prd: "./PRD.md"
-target_surfaces: []   # filled when §4's first decision resolves. backend-service | web-frontend
+target_surfaces: [backend-service]   # decided in §4. One container in §5.
 ---
 
 # Software Architecture Document — csv-import
@@ -203,17 +203,63 @@ C4Context
 <!-- Write: target surface FIRST, then 3-4 strategic choices, each with 2-3 sentences of rationale. -->
 <!-- Watch: mirror the surface list into the frontmatter. It gates §5 and every later stage. -->
 
-**Target surface(s) (the first decision — what is being built):** `<[backend-service]>`
+**Target surface(s) (the first decision — what is being built):** `[backend-service]`
 
-<Why that surface, citing PRD §3. For a UI surface, the UI-architecture decision goes here — and it
-opens by saying that src/web does not exist yet.>
+One REST API plus the database `core-ledger` already defines. PRD §3 is explicit — "No screen —
+there is no client yet; this feature ships the load itself" — and `src/web` holds a README and
+nothing else (`SPEC.md`, "Planned, not built yet"). There is no UI surface, so no UI-architecture
+decision is taken here, and §5 (Building block view) draws one application container.
 
 **Top strategic choices (the seeds for ADRs):**
 
-1. **<the decision, in a sentence>** (ADR-<NNNN>). <2-3 sentences: what it buys, citing a §1 quality
-   goal and a §2 constraint, and what it costs.>
-2. **<the decision>** (ADR-<NNNN>). <2-3 sentences.>
-3. **<the decision>** (ADR-<NNNN>). <2-3 sentences.>
+1. **The uploaded file is never stored** (ADR-0001). Confirming the rules for a statement shape
+   (AC-01) needs the file read before the first load, because the Owner can only name what each of
+   the file's categories means once the system can show which categories it carries. That makes the
+   first load of a new shape two calls — read, then load — and the file is handed over for both.
+   The alternative, keeping the file under an upload id, buys one fewer upload per bank and costs
+   an `IFileStorage` port, an adapter, a volume in §7 (Deployment view), a lifetime policy for
+   abandoned uploads, and whole bank statements sitting on disk. §2 classifies that text
+   confidential and PRD §6.1 names it the feature's main new exposure, so the cheapest way to
+   protect it is not to have it. The price paid: the Owner uploads twice, once per bank, ever.
+
+2. **A row is matched against the ledger before it is recorded — exactly first, by proximity
+   second — and always against a snapshot taken before the run writes anything** (ADR-0002,
+   ADR-0003). This is quality goal 1 and the feature's main risk: a false match deletes real
+   spending silently, while a missed match leaves a visible row the Owner can remove. Two tiers,
+   because neither covers the other. The exact tier uses `transactions.external_ref`, which
+   ADR-0006 of `core-ledger` put there for this purpose and left unique-indexed, so a second load
+   of a row the bank numbered is refused by the database rather than by a guess. The proximity tier
+   — same account, date within a window, same amount — is unavoidable regardless, because AC-21
+   requires a file row to match a movement the Owner typed by hand, and a hand-typed movement
+   carries no `external_ref` at all.
+
+   The two records are separate because the two halves are separable. ADR-0002 fixes the *shape* of
+   the rule; its parameters — how wide the date window is, whether the file's text takes part, how
+   that text is normalised — need a real statement and a real export opened first, and stay open
+   questions in §11 (Risks and technical debt), carried from PRD §8. ADR-0003 fixes *how* the match
+   is executed and holds whatever the parameters turn out to be: one query before the first write,
+   then matching against that snapshot only. The deciding argument there is correctness, not speed.
+   `CONTEXT.md` says two identical spends are two real spends and both belong in the ledger, so the
+   check must not see rows this same run just added — which a snapshot taken up front gives for
+   free, and a per-row check interleaved with inserts has to be made careful about.
+
+3. **A load is one unit: one database transaction to record it, and one record of everything it
+   did** (ADR-0004). AC-22 requires a load that fails part-way to leave the ledger exactly as it
+   was, which is quality goal 2 — so the whole run commits through a single `IUnitOfWork`, the port
+   `core-ledger` already declares. This is affordable because ADR-0005 of `core-ledger` generates
+   UUID v7 keys in the Application layer: every row and every link between rows exists in memory
+   before anything is written. The cost is a ceiling rather than a defect — one transaction holding
+   a whole file stops being the right shape somewhere above the row count this product will ever
+   see. ADR-0004 names that number, and §7 (Deployment view) repeats it as a scaling threshold.
+
+4. **Both jobs run through one pipeline with two entry points** (ADR-0005). PRD §1 says the monthly
+   statement and the one-time move of the old history share the write path and differ in exactly
+   three policies: whether missing accounts and categories are created, whether a rules-confirmation
+   step exists, and what a move between the Owner's own accounts becomes — set aside under AC-06,
+   recorded as a Transfer under AC-11. Those three live in one policy object; everything else —
+   reading the file, matching, setting rows aside, recording the run, undoing it — exists once. Two
+   use cases with their own endpoints keep the two jobs honestly different at the edge, so loading a
+   monthly statement can never create an account because of one wrong field in a request.
 
 Each tactical decision in a later section should trace to one of these. A tactical decision that
 contradicts one is a red flag — it goes to §11, not into silence.
