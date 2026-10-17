@@ -62,28 +62,82 @@ this one ships the load itself.
 <!-- Write: four blocks — Technical / Organisational / Conventions / Regulatory. -->
 <!-- Watch: assembled from the repo, not asked. Mark anything this feature pins for the first time. -->
 
-These are inputs, not choices made here. Everything below was already fixed by the repo before this
-feature started<, with the exceptions marked>.
+These are inputs, not choices made here. Everything below was already fixed by the repo or by an
+earlier feature before this one started, with the two exceptions marked.
 
 **Technical.**
-- <language, framework, build rules from Directory.Build.props and CLAUDE.md>
-- <datastore and its version — say plainly if the repo pins none and this feature does>
-- <architecture style and what enforces it>
-- <type-level rules the feature leans on: decimal, DateTimeOffset UTC, enums as strings, snake_case>
+- .NET 10 / C# 14; nullable enabled; implicit usings; `TreatWarningsAsErrors`
+  (`Directory.Build.props`).
+- ASP.NET Core Minimal APIs; OpenAPI document served at `/openapi/v1.json` in Development.
+- **PostgreSQL 18** through EF Core + Npgsql. The major version was pinned by `core-ledger`
+  (`core-ledger/sad.md` §2 and §7), not by a root file — the root `SPEC.md` still says only
+  "PostgreSQL". Cite that feature, not `SPEC.md`, for the number.
+- Clean Architecture, four projects, dependency rule enforced by `tests/FinNavis.ArchitectureTests`
+  (`docs/adr/0001-initial-setup.md`).
+- Money is `decimal`. Timestamps are `DateTimeOffset`, stored UTC. Enums are stored as strings.
+  Tables and columns are `snake_case`.
+- **Pinned here for the first time:** a CSV reading library in Infrastructure. The repo names none,
+  and this feature is the first to need one. Domain and Application never see it — it sits behind
+  an Application port (§5), so the package choice stays an Infrastructure detail and is settled at
+  implementation rather than here.
+
+**Inherited from `core-ledger`, not re-decided here.** Each is an Accepted ADR of a feature that
+ships before this one. Re-opening any of them would be a new ADR that supersedes the old one, not a
+fresh choice:
+
+- UUID v7 primary keys generated in the Application layer (ADR-0005). The deciding argument in that
+  record was this feature: an Import run can build its rows and the links between them in memory
+  and commit them as one unit, because the identifiers exist before the insert.
+- `transactions.external_ref`, nullable with a unique index, present before any row exists
+  (ADR-0006). It was added for this feature and `core-ledger` writes null into it everywhere. That
+  record deliberately left *how* a duplicate is recognised to this feature.
+- The ledger is corrected by editing and deleting rows in place, with no audit trail (ADR-0003).
+  Undo here is therefore a real delete rather than a reversing entry. That is inherited, not chosen.
+- Reads that aggregate go through a query port in `Application/Abstractions`, not through the
+  repositories (ADR-0004).
+- Transactions and transfers live in two separate tables (ADR-0001), so anything that has to cover
+  both kinds of movement covers two tables.
 
 **Organisational.**
 - One developer, working evenings. No deadline, no release window, no second reviewer.
-- <which PRD §6 rows cannot be measured today, and what has to exist first>
+- **`core-ledger` has no code.** PRD §9 names the ledger as a hard prerequisite — accounts,
+  categories, transactions, transfers, balances. Today `src/` holds four `AssemblyMarker.cs` files
+  and `Program.cs`: no entity, no migration, no endpoint. This feature cannot begin until that one
+  ships, and every inherited ADR above describes a table that does not exist yet. Carried into §11.
+- Both PRD §6 rows need the integration test harness, a seeded ledger and a real sample file. None
+  of the three exists (`SPEC.md` "Planned, not built yet"; PRD §6 says the same in its own
+  measurement note). Carried into §7 and §11.
+- PRD §1 records that the scope grew past what the idea-brief priced — RICE was scored from effort
+  signal M, and the scope written is L. That ranking must be re-checked before this feature is
+  scheduled. Not an architecture matter; carried into §11 so it is not lost.
 
 **Conventions.**
 - `CLAUDE.md` — layout, dependency rules, DI, API, database and test conventions.
 - `ARCHITECTURE.md` — the four rings, and what counts as a port versus a plain interface.
-- <only the conventions this feature actually leans on>
+- Repository ports live in `Domain/Abstractions`; outside-world ports in `Application/Abstractions`.
+  `ARCHITECTURE.md` names `IStatementImporter` as its example of the second kind — this feature is
+  the first to actually add one.
+- Business areas sit at the root of the Application project; each endpoint folder holds its own
+  request and response records. No `Features/` wrapper, no central `Contracts/`.
+- One `IEntityTypeConfiguration<T>` per entity. Migrations are append-only — never edit an applied
+  one.
+- `SPEC.md` "Safe schema change" — a change reaching a database that already holds rows must lose
+  or alter no row. This feature is the first whose own writes land next to history the owner typed
+  by hand, so the rule is load-bearing here rather than theoretical (AC-12).
 
 **Regulatory / external.**
-- <external regulation, or the reasoned absence of it>
-- Data classification: <…>
-- <what the missing authentication boundary means, from PRD §6.1>
+- No external regulation applies. Self-hosted, one owner, the owner's own data. No bank
+  integration: the file is handed over by the owner, so no third party is called and no credential
+  is held.
+- Data classification: **confidential**, and this feature widens what that covers. For the first
+  time the product stores text the owner did not write — shop names and descriptions produced by
+  their bank — together with the name the file came with (PRD §6.1).
+- Security review: **required** (PRD §6.1), for a reason specific to this feature: it is the first
+  time the product reads a file from outside itself. The question to read the design with is the
+  PRD's own — what does a file that is not what it claims to be do before anything is recorded?
+- No authentication boundary, so anyone who reaches the installation can load a file into the
+  ledger, not only read it. Accepted for now; the installation stays off public networks. Carried
+  into §11.
 
 ## 3. Context and scope
 
