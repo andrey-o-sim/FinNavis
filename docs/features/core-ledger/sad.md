@@ -205,8 +205,21 @@ Each tactical decision in later sections should be traceable to one of these str
 
 **Clean Architecture, four rings, no new project.** The rings already exist and were fixed by
 `docs/adr/0001-initial-setup.md`; this feature fills them in rather than changing the structure.
-Inside `Application`, code is organised by feature folder — one folder per thing the owner can do —
-which is what the empty `Application/Features/` directory already signals.
+**Inside `Application`, business areas sit at the root of the project** — `Accounts/`,
+`Categories/`, `Transactions/`, `Transfers/`, `Reporting/`. There is no `Features/` wrapper:
+everything in the Application layer *is* a feature, so the word would add a level of nesting and no
+information. (The empty `Application/Features/` directory in the repo today is scaffolding and is
+removed by this change.)
+
+**Inside `Presentation`, each operation is a vertical slice** — one folder per operation, holding
+the endpoint together with its own request and response records. Changing one operation then means
+editing one folder, not two distant ones. Response records are **not** shared between operations
+even when two look identical today: each operation owns its own shape, so changing one response can
+never silently change another endpoint. Resource folders are plural (`Accounts/`), matching the
+Application layer and REST convention.
+
+These are conventions rather than architecture, so neither is an ADR. Both are recorded in
+`CLAUDE.md`, which is where the repo keeps its day-to-day rules.
 
 The feature introduces **five aggregates and four repository ports**. `CategoryGroup` has no
 repository of its own: US-04 treats creating a category, putting it in a group and moving it between
@@ -229,22 +242,36 @@ src/FinNavis.Domain/
                      ITransactionRepository, ITransferRepository, IClock
 
 src/FinNavis.Application/
-├── Features/Accounts/      Create, Rename, Delete, GetBalances
-├── Features/Categories/    Create, Rename, MoveToGroup, Delete
-├── Features/Transactions/  Record, Edit, Remove
-├── Features/Transfers/     Record, Edit, Remove
-├── Features/Reporting/     GetHistory, GetBreakdown
-└── Abstractions/           IUnitOfWork, ILedgerQueries
+├── Accounts/         Create, Rename, Delete, GetBalances
+├── Categories/       Create, Rename, MoveToGroup, Delete
+├── Transactions/     Record, Edit, Remove
+├── Transfers/        Record, Edit, Remove
+├── Reporting/        GetHistory, GetBreakdown
+├── Common/           helpers shared across the layer
+└── Abstractions/     IUnitOfWork, ILedgerQueries
 
 src/FinNavis.Infrastructure/
-├── Persistence/            FinNavisDbContext, Configurations/, Migrations/
-├── Repositories/           EF Core adapters for the four repository ports
-└── Queries/                EF Core adapter for ILedgerQueries
+├── Persistence/      FinNavisDbContext, Configurations/, Migrations/
+├── Repositories/     EF Core adapters for the four repository ports
+└── Queries/          EF Core adapter for ILedgerQueries
 
 src/FinNavis.Presentation/
-├── Endpoints/              AccountEndpoints, CategoryEndpoints, TransactionEndpoints,
-│                           TransferEndpoints, ReportingEndpoints
-└── Contracts/              request + response records
+├── Endpoints/
+│   ├── Accounts/
+│   │   ├── Create/        endpoint + CreateAccountRequest + CreateAccountResponse
+│   │   ├── Rename/        endpoint + its own request and response records
+│   │   ├── Delete/
+│   │   └── GetBalances/
+│   ├── Categories/        Create, Rename, MoveToGroup, Delete
+│   ├── Transactions/      Record, Edit, Remove
+│   ├── Transfers/         Record, Edit, Remove
+│   └── Reporting/         GetHistory, GetBreakdown
+└── Middleware/
+```
+
+Each leaf folder under `Endpoints/` holds one operation: the endpoint itself plus the request and
+response records only that operation uses. There is no central `Contracts/` folder — it is removed
+by this change.
 ```
 
 **C4 Container (L2):**
@@ -627,6 +654,8 @@ alerts, no metrics stack, one replica.
 | Open question: what is the maximum length of a transaction note? Default now: no limit enforced | Open question | Resolve before `/sdlc-generate-data-model`; carried from PRD §8. PRD §6.1 names an unbounded note as a storage-bloat abuse case | Andrey |
 | Open question: how are stored UTC timestamps reconciled with the owner's local calendar month, so a late-evening purchase near a boundary lands in the right period? Default now: undecided | Open question | Resolve before `/sdlc-generate-data-model`; carried from PRD §8. It affects every period boundary in §10's QG-3 scenarios | Andrey |
 | Open question: `SPEC.md` Non-goals says "no authentication, one owner" while its draft requirements list Google OAuth and a secured public API | Open question | Resolve when the OAuth feature is scoped; carried from PRD §8 | Andrey |
+| Open question: `SPEC.md` draft requirements now ask to store a currency rate per expense, while its own Non-goals say "no multi-currency, single currency for now" — and §8 here stores `decimal` with no currency code | Open question | Resolve when a currency feature is scoped. It is a data-model change, not an addition: money would need a currency and a stored rate, which touches the `transactions` table and every total in the breakdown. Decide before it ships, not after history exists | Andrey |
+| Open question: `SPEC.md` draft requirements now ask for an expense marker usable as a filter, which is the extra filter dimension §8 closed as "no" during this pass | Open question | Resolve before `/sdlc-generate-data-model`, or before csv-import is scoped — a bank statement's payee field is when the need becomes concrete. Adding it later is an additive migration plus a new filter, not a rewrite | Andrey |
 | No optimistic concurrency token, so a second writer would overwrite silently | Low | Accepted: one owner, one client, and no second writer exists. ADR-0003 names this as the thing to add when one appears | Andrey |
 
 **Accepted debt (acceptable in v1, plan to fix later):**

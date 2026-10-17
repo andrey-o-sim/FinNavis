@@ -96,6 +96,14 @@ Rules:
 - We have no driving (inbound) ports. Presentation calls use-case classes directly. Do not add
   an interface per use case.
 
+### Folders inside a project
+
+- **Application**: business areas sit at the **root** of the project — `Accounts/`, `Categories/`,
+  `Transactions/`, `Transfers/`, `Reporting/`. Do **not** add a `Features/` wrapper. Everything in
+  the Application layer is a feature, so the word adds a level of nesting and no information.
+  `Abstractions/` and `Common/` sit alongside them.
+- **Presentation**: one folder per operation — see the API section below.
+
 ### C#
 
 - .NET 10, C# 14, nullable enabled, implicit usings enabled.
@@ -123,8 +131,14 @@ Rules:
 
 ### API
 
-- Minimal APIs. Endpoint groups live in `Presentation/Endpoints`, one file per resource.
-- Request and response records live in `Presentation/Contracts`. Never return Domain entities from an endpoint.
+- Minimal APIs. **One folder per operation**, under `Presentation/Endpoints/<Resource>/<Operation>/` —
+  for example `Presentation/Endpoints/Accounts/Create/`. Resource folders are plural.
+- **The endpoint and its contracts live together** in that folder: the endpoint itself plus the
+  request and response records only that operation uses. There is no central `Contracts/` folder.
+  Changing one operation touches one folder.
+- **Do not share response records between operations**, even when two look identical today. Each
+  operation owns its own shape, so changing one response can never silently change another endpoint.
+- Never return Domain entities from an endpoint.
 - OpenAPI document is generated at `/openapi/v1.json` in Development.
 
 ### Tests
