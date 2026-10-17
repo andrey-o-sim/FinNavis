@@ -416,7 +416,15 @@ C4Container
 Participants are the §5 rings. Messages are semantic — request methods, paths and status codes
 belong to the API-contract stage, not here.
 
-**Critical flow 1: <what happens>** (US-<nn> — AC-<nn>, AC-<nn>)
+Six flows cover all 22 acceptance criteria. **A statement load takes the account from the Owner, not
+from the file** — a Statement covers one account by definition (`CONTEXT.md`), so the Owner names it
+when handing the file over and no column in the file is read for it. PRD AC-03 and AC-09 are written
+against the other model, where a statement row names its own account; §11 (Risks and technical debt)
+carries that as a wording gap in the PRD rather than hiding it here. A history migration does read
+accounts per row, which is what AC-10 asks for.
+
+**Critical flow 1: confirm the rules for a statement shape never seen before** (US-01 — AC-01,
+AC-02, AC-03, AC-04)
 
 ```mermaid
 sequenceDiagram
@@ -427,28 +435,264 @@ sequenceDiagram
     participant Inf as Infrastructure
     participant PG as PostgreSQL
 
-    Owner->>Pres: <what the owner asks for>
-    Pres->>App: <UseCase> use case
-    alt <refusal condition, in the words of PRD §10>
-        App-->>Pres: refuse and say <the refusal>
-        Pres-->>Owner: nothing is created or changed
-    else <valid path>
-        App->>Dom: <build or change the entity, check the rules>
-        Dom-->>App: <a valid result>
-        App->>Inf: <persist> and commit the unit of work
-        Inf->>PG: <one write>
+    Owner->>Pres: hand over a file to see what is in it
+    Pres->>App: InspectFile use case
+    App->>Inf: read the file through IStatementReader
+    Inf-->>App: the header row, then the rows one at a time
+    alt the file names no date or no amount
+        App-->>Pres: refuse and say which of them is missing
+        Pres-->>Owner: nothing is remembered and nothing is recorded
+    else the file can be read
+        App->>Inf: look for a profile whose shape key matches this header
+        Inf->>PG: read one mapping profile
+        PG-->>Inf: the profile, or nothing
+        Inf-->>App: the profile, or nothing
+        App-->>Pres: the categories this file carries, and whether rules already exist for its shape
+        Pres-->>Owner: the list of the file's own categories
+    end
+    Owner->>Pres: say what each of those categories means
+    Pres->>App: ConfirmMappingProfile use case
+    App->>Inf: load the categories the rules point at
+    Inf->>PG: read categories
+    PG-->>Inf: rows
+    Inf-->>App: the categories that exist
+    alt a rule points at a category the ledger does not have
+        App-->>Pres: refuse and name the unknown category
+        Pres-->>Owner: no rule is remembered and no category is created
+    else every rule points at something real
+        App->>Dom: build the MappingProfile and its rules
+        Dom-->>App: a valid profile
+        App->>Inf: add the profile and commit the unit of work
+        Inf->>PG: insert the profile and its rules
         PG-->>Inf: committed
         Inf-->>App: done
-        App-->>Pres: <the result>
-        Pres-->>Owner: confirmation
+        App-->>Pres: the profile
+        Pres-->>Owner: the rules are remembered for this shape
     end
-    Note over Owner,PG: <the invariant this flow preserves>
+    Note over Owner,PG: no recorded movement points at a rule, so changing a rule later cannot change anything already recorded (AC-04)
 ```
 
-**Critical flow 2: <…>** (US-<nn> — AC-<nn>)
+The file is handed over twice here, and that is ADR-0001: nothing is stored between the two steps.
+The shape key comes from the header row (ADR-0009), so the next file of this shape skips both steps.
 
-<!-- Keep going until every critical path in the PRD has a flow. Group flows that differ only in -->
-<!-- which noun they touch; note the difference underneath rather than drawing it twice. -->
+**Critical flow 2: load a monthly statement** (US-02 — AC-05, AC-06, AC-07, AC-08, AC-22)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: hand over the month's file and name the account it covers
+    Pres->>App: LoadStatement use case, carrying the statement policy
+    App->>Inf: load the named account and the profile for this file's shape
+    Inf->>PG: read the account and the mapping profile
+    PG-->>Inf: rows
+    Inf-->>App: the account and the profile, or nothing
+    alt the named account is not in the ledger, or no rules exist for this shape
+        App-->>Pres: refuse and say which one is missing
+        Pres-->>Owner: nothing is recorded and no account is created
+    else both exist
+        App->>Inf: ask IImportQueries for the candidate snapshot
+        Inf->>PG: one query over that account across the dates the file covers
+        PG-->>Inf: every movement that could match
+        Inf-->>App: the snapshot
+        Note over App,Inf: taken before the first write, so it can never hold a row this run adds
+        loop every row the reader yields
+            App->>Dom: classify the row against the profile and the snapshot
+            alt its category is a move between the Owner's own accounts
+                Dom-->>App: set aside — a statement names only one side of it
+            else it is in a currency the ledger does not keep
+                Dom-->>App: set aside — another currency
+            else no rule covers its category
+                Dom-->>App: set aside — no rule covers it
+            else the snapshot already holds this movement
+                Dom-->>App: already there, not recorded again
+            else it is covered and new
+                Dom-->>App: a Transaction on the named account, with the category the rule gives
+            end
+        end
+        App->>Dom: build the ImportRun with its movement links, creation links and set-aside rows
+        Dom-->>App: a valid run
+        App->>Inf: add everything and commit the unit of work
+        Inf->>PG: one transaction — the movements, the run, its links and its set-aside rows
+        alt the commit fails
+            PG-->>Inf: rolled back
+            Inf-->>App: failure
+            App-->>Pres: report that the load did not happen
+            Pres-->>Owner: nothing is recorded and every balance is unchanged
+        else the commit succeeds
+            PG-->>Inf: committed
+            Inf-->>App: done
+            App-->>Pres: the run and its counts
+            Pres-->>Owner: how many recorded, how many already there, and every set-aside row with its reason
+        end
+    end
+    Note over Owner,PG: a set-aside row changes no balance, so the month's spending is never raised by money that only moved or by a row nobody filed
+```
+
+AC-06 and AC-07 are the first two set-aside branches; AC-08 is the third, and it names the uncovered
+category back so the Owner can add a rule and hand the same file over again — which is flow 3. AC-22
+is the failing-commit branch, and it costs nothing to guarantee because ADR-0004 commits the whole
+run at once.
+
+**Critical flow 3: hand over a file that is already in the ledger, in whole or in part** (US-05,
+US-07 — AC-15, AC-20, AC-21)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: hand over a file that was already loaded, or loaded only in part
+    Pres->>App: LoadStatement use case
+    App->>Inf: ask IImportQueries for the candidate snapshot
+    Inf->>PG: one query over the named account across the dates the file covers
+    PG-->>Inf: every movement that could match, whoever recorded it
+    Inf-->>App: the snapshot
+    Note over App,PG: the snapshot holds movements the Owner typed by hand as well as ones an earlier run recorded, and treats neither differently
+    loop every row the reader yields
+        alt the file gives this row an identifier and a movement already carries it as its external_ref
+            App->>App: already there — an exact match, held by the unique index rather than by a judgement
+        else a movement in the snapshot is on the same account, inside the date window, for the same amount
+            App->>App: already there — a proximity match
+        else nothing in the snapshot matches
+            App->>App: record it
+        end
+    end
+    App-->>Pres: the counts, including the rows an added rule has now let through
+    Pres-->>Owner: how many were recorded and how many were already there
+    Note over Owner,PG: two identical rows inside one file are both recorded — the snapshot was taken before this run wrote anything, so it can never contain the run's own work
+```
+
+The two tiers are ADR-0002 and the snapshot is ADR-0003. AC-15 is this flow run a second time after
+a rule was added: the rows that were set aside now find a rule, and the rows the earlier load
+recorded are found in the snapshot and counted as already there. AC-21 is the case where the
+matching movement was typed by hand — it has no `external_ref`, so only the proximity tier can find
+it, which is why ADR-0002 keeps that tier.
+
+**Critical flow 4: move the old history across** (US-03 — AC-03, AC-10, AC-11, AC-12)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: hand over the old tracker's export
+    Pres->>App: MigrateHistory use case, carrying the migration policy
+    Note over Pres,App: no profile and no confirmation step — the export already names accounts and categories in the Owner's own words
+    App->>Inf: read the file through IStatementReader
+    Inf-->>App: the header row
+    alt the export does not name a date, an amount, or the account a row belongs to
+        App-->>Pres: refuse and say which of the three is missing
+        Pres-->>Owner: nothing is recorded
+    else the export can be read
+        App->>Inf: ask IImportQueries for the candidate snapshot
+        Inf->>PG: one query over every account the file names, across the whole range it covers
+        PG-->>Inf: every movement that could match
+        Inf-->>App: the snapshot
+        loop every row the reader yields
+            alt the snapshot already holds this movement
+                App->>App: already there, not recorded again
+            else the row names two of the Owner's own accounts
+                App->>Dom: build a Transfer, creating either account the ledger lacks
+                Dom-->>App: a Transfer — no category, and the Owner's total unchanged
+            else the row names one account and one category
+                App->>Dom: build a Transaction keeping the file's own date, creating the account or category the ledger lacks
+                Dom-->>App: a Transaction
+            end
+        end
+        App->>Inf: add everything and commit the unit of work
+        Inf->>PG: one transaction — created accounts and categories, movements, the run and all its links
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the run and its counts
+        Pres-->>Owner: what was recorded, what was already there, and what was set aside
+    end
+    Note over Owner,PG: every write is an insert, so a month the Owner already filled in by hand gains the loaded rows and loses nothing (AC-12)
+```
+
+This is flow 2 with a different policy object, which is ADR-0005. The three differences are all
+visible: no profile and no confirmation step, accounts and categories created rather than refused,
+and a move between the Owner's own accounts recorded as a Transfer instead of set aside. The
+creation links the run keeps are what lets AC-17 undo those creations later.
+
+**Critical flow 5: read what a load did** (US-04 — AC-13, AC-14)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: ask what a load did
+    Pres->>App: GetImportRun use case
+    App->>Inf: load the run through IImportRunRepository
+    Inf->>PG: read the run with its movement links, creation links and set-aside rows
+    PG-->>Inf: rows
+    Inf-->>App: the ImportRun
+    Note over App,Inf: no query port is used here — this is one aggregate read through its own repository, not an aggregation across the ledger
+    App-->>Pres: how many were recorded, how many were already there, every set-aside row with its reason, and whether the run has been undone
+    Pres-->>Owner: the run report
+    Note over Owner,PG: a set-aside row is kept with its reason and is never recorded on its own — only a later load can record it (AC-14)
+```
+
+**Critical flow 6: undo a load** (US-06 — AC-16, AC-17, AC-18, AC-19)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Owner->>Pres: undo a load
+    Pres->>App: UndoImportRun use case
+    App->>Inf: load the run with its links, and the movements those links point at
+    Inf->>PG: read the run, then its transactions and transfers
+    PG-->>Inf: rows
+    Inf-->>App: the run and its movements
+    alt the run was already undone
+        App-->>Pres: refuse and say it was undone already
+        Pres-->>Owner: nothing changes
+    else a movement no longer matches the fingerprint stored when the load wrote it
+        App-->>Pres: refuse and name the rows that were changed by hand
+        Pres-->>Owner: the load cannot be undone as a whole
+    else every movement still present is as the load wrote it
+        App->>Inf: ask IImportQueries which of the run's created accounts and categories are now named from outside it
+        Inf->>PG: one query over movements that belong to no link of this run
+        PG-->>Inf: the ones still in use
+        Inf-->>App: the list
+        App->>Dom: mark the run Undone
+        Dom-->>App: a valid run
+        App->>Inf: delete the run's movements and the created accounts and categories nobody else names, then commit
+        Inf->>PG: one transaction — the deletes, then the run's new status
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the run, now Undone
+        Pres-->>Owner: every row the load recorded is gone and every balance is back to what it would have been
+    end
+    Note over Owner,PG: the run record stays with status Undone but its movements do not, so handing the same file over again records everything afresh (AC-19)
+```
+
+The fingerprint check is ADR-0008 and it is what makes AC-18 independent of `core-ledger`, which
+keeps no audit trail (its ADR-0003). A movement the Owner **deleted** by hand is simply absent and
+blocks nothing — there is nothing left to remove. The deletes are real deletes rather than reversing
+entries, inherited from the same `core-ledger` record and not decided here.
 
 ## 7. Deployment view
 
