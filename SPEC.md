@@ -34,6 +34,8 @@ The initial version must support:
 - Integration with google drive
 - Capturing expenses from Telegram or email by monitoring incoming messages that match configured formats, extracting the spent amount, and creating the corresponding expense transaction.
 - Authrorization through Google OAuth
+- Expense marker - required and optional. Use it in filter as well
+- Let user choose most valueble currencies and when Expense is saved, save currencies rate on expanse date. Base currency is USD = 1.
 
 The initial version does not include:
 
