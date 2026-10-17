@@ -4,7 +4,7 @@ slug: "csv-import"
 stage: "02"
 feature_size: "L"
 depth: "medium"
-updated_at: "2026-10-14"
+updated_at: "2026-10-17"
 source_brief: "./idea-brief.md"
 ---
 
@@ -54,6 +54,20 @@ load records remembers the load that brought it; handing the same file over agai
   0.27. The scope written here is **L** — 30 evenings or more — because of the undo, the set-aside
   rows and the second job. The ranking is not re-scored here, but it must be re-checked before this
   feature is scheduled.
+
+**Corrected on 2026-10-17, after the architecture stage** (`sad.md` §11 raised all three):
+
+- **AC-03 and AC-09** were written assuming a statement names the account each of its rows belongs
+  to. A statement covers one account (`CONTEXT.md`), so the owner names it when handing the file
+  over, and the file is not read for it. Both criteria now say so, and §10 follows. The export of
+  the old history is unchanged — it does name accounts per row.
+- **§6's explanation of its two numbers** claimed that answering "is this row already in the ledger"
+  one row at a time would miss both targets by a wide margin. That does not hold: ~1500 indexed
+  lookups against a local database are a fraction of a second. The numbers stand as budgets for the
+  whole load; the claim about why is removed.
+- **§6's measurement prerequisite** said standing up the harness, the seeded ledger and the sample
+  file is a task of this feature. `core-ledger` claims the same three. The note now says which
+  feature builds them, and when that changes.
 
 ## 2. Goals
 
@@ -142,9 +156,14 @@ confirmation
 
 ### AC-03 (US-01) — error
 
-**Given** a file that does not say the date, the amount, or the account a row belongs to
+**Given** a file that does not say the date or the amount of a row — and, when the file is an export
+of the old history, one that does not say the account a row belongs to either
 **When** the owner hands it over
-**Then** nothing is recorded and the owner is told which of the three is missing
+**Then** nothing is recorded and the owner is told which of them is missing
+
+> A statement covers one account, and the owner names that account when handing the file over
+> (AC-05). So a statement is not required to name an account per row, and a column naming one is not
+> read. An export covers every account, so it must name one per row (AC-10).
 
 ### AC-04 (US-01) — history integrity
 
@@ -179,9 +198,13 @@ balance follows
 
 ### AC-09 (US-02) — cross-context
 
-**Given** a row names an account that is not in the ledger
-**When** the file is loaded
-**Then** the row is set aside, the unknown account is named back, and no account is created
+**Given** the owner names an account that is not in the ledger as the one the file covers
+**When** they hand the file over
+**Then** nothing is recorded, the unknown account is named back, and no account is created
+
+> This refuses the whole load rather than one row: every row of a statement lands on the one account
+> the owner named, so if that account does not exist there is nothing to load onto. For an export,
+> which names accounts per row, a missing account is created instead (AC-10).
 
 ### AC-10 (US-03) — happy
 
@@ -277,13 +300,16 @@ change are settled for the whole product in `SPEC.md` and are not repeated here.
 | Load the old history (~1500 rows, several accounts), p95 | ≤ 60 s | timed in the integration suite against a seeded file |
 | Undo a load of 1500 rows, p95 | ≤ 30 s | timed in the integration suite |
 
-Both rows exist for one reason: "is this row already in the ledger" is asked once per row, so a load
-of the old history asks it ~1500 times, and the undo walks the same movements again (§9). A row-by-row
-answer misses both targets by a wide margin, and that is the decision these numbers force.
+Both rows exist because "is this row already in the ledger" is asked once per row, so a load of the
+old history asks it ~1500 times, and the undo walks the same movements again (§9). The numbers are a
+ceiling on the whole load, not a test of that single lookup, and they are deliberately generous —
+the one-time move of the old history should not cost an evening of waiting.
 
 > **Measurement prerequisite.** Both rows need the integration test harness, a seeded ledger and a
-> real sample file. None of the three exists today. Standing them up is a task of this feature,
-> listed in §9.
+> sample file. None of the three exists today, and `core-ledger` claims the same three as its own
+> first tasks. Whichever feature starts first builds them — today that is `core-ledger`, because
+> this one cannot begin without it (§9). If that order ever changes, they are built here, before any
+> feature code.
 
 ## 6.1 Security / privacy
 
@@ -365,9 +391,9 @@ Two, and both answer themselves — the owner learns the answer by living a mont
 | AC | What the owner is told |
 |---|---|
 | AC-02 | There is no category with that name, so a rule cannot point at it. |
-| AC-03 | This file does not say the date, the amount, or the account, so nothing can be recorded from it. |
+| AC-03 | This file does not say the date or the amount, so nothing can be recorded from it. (For an export of the old history, add: or the account each row belongs to.) |
 | AC-06 | This row is a move between your own accounts, so it was set aside instead of being recorded as spending. |
 | AC-07 | This row is in another currency, so it was set aside. |
-| AC-09 | This row names an account you do not have, so it was set aside and no account was created. |
+| AC-09 | You do not have an account with that name, so there was nothing to load this file onto. Nothing was recorded and no account was created. |
 | AC-14 | No rule covers this row, so it was set aside instead of being recorded without one. |
 | AC-18 | Some rows from this load were changed by hand afterwards, so the load cannot be undone as a whole. |
