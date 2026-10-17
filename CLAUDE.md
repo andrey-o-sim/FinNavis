@@ -82,7 +82,7 @@ Pick by asking **who needs the abstraction**, not by what implements it.
 **`Application/Abstractions`** — ports for what a use case needs from the outside world:
 
 - `IUnitOfWork` for committing a set of changes.
-- Integrations such as `IStatementImporter` or `IFileStorage`.
+- Integrations such as `IStatementReader`, for a file the owner hands over.
 
 Rules:
 
