@@ -272,7 +272,6 @@ src/FinNavis.Presentation/
 Each leaf folder under `Endpoints/` holds one operation: the endpoint itself plus the request and
 response records only that operation uses. There is no central `Contracts/` folder — it is removed
 by this change.
-```
 
 **C4 Container (L2):**
 
