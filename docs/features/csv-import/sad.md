@@ -421,12 +421,23 @@ C4Container
 Participants are the §5 rings. Messages are semantic — request methods, paths and status codes
 belong to the API-contract stage, not here.
 
-Six flows cover all 22 acceptance criteria. **A statement load takes the account from the Owner, not
-from the file** — a Statement covers one account by definition (`CONTEXT.md`), so the Owner names it
-when handing the file over and no column in the file is read for it. PRD AC-03 and AC-09 are written
-against the other model, where a statement row names its own account; §11 (Risks and technical debt)
-carries that as a wording gap in the PRD rather than hiding it here. A history migration does read
-accounts per row, which is what AC-10 asks for.
+Six flows cover all 7 PRD §4 user stories and all 22 §5 acceptance criteria. Every criterion is
+shown by a step, a branch or a note; none is recorded as non-runtime, and none is left uncovered.
+
+Reading order by user story: US-01 flow 1 · US-02 flow 2 · US-03 flow 4 · US-04 flow 5 · US-05
+flows 1 and 3 · US-06 flow 6 · US-07 flow 3. US-05 needs two flows because adding the rule is the
+confirm step of flow 1 and handing the file over again is flow 3.
+
+All six flows were drawn at the architecture stage. A later audit pass added no flow — it added
+AC-09 to flow 2's heading, the rule step to flow 3's loop, and one clause to flow 6's hand-edit
+refusal. The numbering was deliberately left alone, because commits and ADRs point at these numbers.
+
+**A statement load takes the account from the Owner, not from the file** — a Statement covers one
+account by definition (`CONTEXT.md`), so the Owner names it when handing the file over and no column
+in the file is read for it. PRD AC-03 and AC-09 are written against the other model, where a
+statement row names its own account; §11 (Risks and technical debt) carries that as a wording gap in
+the PRD rather than hiding it here. A history migration does read accounts per row, which is what
+AC-10 asks for.
 
 **Critical flow 1: confirm the rules for a statement shape never seen before** (US-01 — AC-01,
 AC-02, AC-03, AC-04)
@@ -480,7 +491,7 @@ sequenceDiagram
 The file is handed over twice here, and that is ADR-0001: nothing is stored between the two steps.
 The shape key comes from the header row (ADR-0009), so the next file of this shape skips both steps.
 
-**Critical flow 2: load a monthly statement** (US-02 — AC-05, AC-06, AC-07, AC-08, AC-22)
+**Critical flow 2: load a monthly statement** (US-02 — AC-05, AC-06, AC-07, AC-08, AC-09, AC-22)
 
 ```mermaid
 sequenceDiagram
@@ -556,6 +567,7 @@ sequenceDiagram
     actor Owner
     participant Pres as Presentation
     participant App as Application
+    participant Dom as Domain
     participant Inf as Infrastructure
     participant PG as PostgreSQL
 
@@ -567,12 +579,18 @@ sequenceDiagram
     Inf-->>App: the snapshot
     Note over App,PG: the snapshot holds movements the Owner typed by hand as well as ones an earlier run recorded, and treats neither differently
     loop every row the reader yields
-        alt the file gives this row an identifier and a movement already carries it as its external_ref
-            App->>App: already there — an exact match, held by the unique index rather than by a judgement
-        else a movement in the snapshot is on the same account, inside the date window, for the same amount
-            App->>App: already there — a proximity match
-        else nothing in the snapshot matches
-            App->>App: record it
+        App->>Dom: ask the MappingProfile what this row's category means
+        alt still no rule covers it
+            Dom-->>App: set aside again — no rule covers it
+        else a rule covers it, including one the Owner added since the earlier load
+            Dom-->>App: that category
+            alt the file gives this row an identifier and a movement already carries it as its external_ref
+                App->>App: already there — an exact match, held by the unique index rather than by a judgement
+            else a movement in the snapshot is on the same account, inside the date window, for the same amount
+                App->>App: already there — a proximity match
+            else nothing in the snapshot matches
+                App->>App: record it — a row the earlier load set aside now lands
+            end
         end
     end
     App-->>Pres: the counts, including the rows an added rule has now let through
@@ -680,7 +698,7 @@ sequenceDiagram
         Pres-->>Owner: nothing changes
     else a movement no longer matches the fingerprint stored when the load wrote it
         App-->>Pres: refuse and name the rows that were changed by hand
-        Pres-->>Owner: the load cannot be undone as a whole
+        Pres-->>Owner: the load cannot be undone as a whole — no movement was deleted, no created account or category was removed, and the run keeps its status
     else every movement still present is as the load wrote it
         App->>Inf: ask IImportQueries which of the run's created accounts and categories are now named from outside it
         Inf->>PG: one query over movements that belong to no link of this run
@@ -702,6 +720,43 @@ The fingerprint check is ADR-0008 and it is what makes AC-18 independent of `cor
 keeps no audit trail (its ADR-0003). A movement the Owner **deleted** by hand is simply absent and
 blocks nothing — there is nothing left to remove. The deletes are real deletes rather than reversing
 entries, inherited from the same `core-ledger` record and not decided here.
+
+### Notes flagged while completing §6
+
+Flagged for the next stages. Nothing here is decided — no ADR is written from this list.
+
+- **Index hints for the data-model stage.** Four reads, and they do not all want the same thing.
+  (1) *The candidate snapshot* (flows 2, 3, 4) reads transactions and transfers **by account and by
+  date**, as one range query — one account for a statement load, every account the file names for a
+  history migration. This is the read PRD §6's ≤ 60 s rests on, and §11 records that neither this
+  feature nor `core-ledger` has yet claimed the index. (2) *The exact match tier* (flow 3) looks up a
+  transaction **by `external_ref`**; `core-ledger` ADR-0006 already declares that unique index, so
+  this needs no new one. (3) *Everything one run brought* (flows 5 and 6) reads movement links,
+  creation links and set-aside rows **by import run id** — three child tables, the same key. (4) *The
+  AC-17 check* (flow 6) asks only **whether** a movement outside the run names an account or category
+  the run created. It is an existence check, not a read, so it may not want the same index as (1).
+  (5) *The profile lookup* (flows 1 and 2) reads one mapping profile **by shape key**, once per load.
+
+- **Sync or async.** No flow in this feature is asynchronous. §5 declares no queue, no worker and no
+  external system — every flow is one request the Owner waits on, so none carries an idempotency
+  step, a retry note or a dead-letter branch. The absence is a decision, not an omission: §7 gives
+  the same reason for having no metrics or alerts, and ADR-0004 commits a whole run in one database
+  transaction, which only works while the run is one synchronous call.
+
+- **Left for the API-contract stage.** Three things the flows had to assume. Flow 5 returns *every*
+  set-aside row of a run, and a history migration can set aside many — nothing in the PRD or §10
+  says whether that list is paged or ordered, and PRD §8 has no open question covering it. Flow 1
+  hands the file over twice (ADR-0001), so inspect and confirm are two operations, and nothing says
+  whether the second is required to carry the same file. Flows 2 and 4 both answer with counts plus
+  one entry per set-aside row — `CLAUDE.md` § API fixes that shape as a success with a report, but
+  the field names are not set anywhere yet.
+
+- **Deliberate deviations.** Two, both in blocks this pass chose not to rewrite. Flow 3 now shows
+  rows being recorded but still shows **no commit step**, which departs from the rule that a write
+  flow draws its unit of work; it was left that way because flow 3 exists to show the two match
+  tiers, and flow 2 draws the commit for the same `LoadStatement` use case. Flow 4 shows only the
+  success path of its commit while flow 2 shows the failing branch — AC-22 is a US-02 criterion so
+  the migration is not required to show it, and ADR-0004 commits both jobs identically.
 
 ## 7. Deployment view
 
