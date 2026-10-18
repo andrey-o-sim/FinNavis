@@ -20,15 +20,6 @@ reader wrote `ARCHITECTURE.md`.
 2. **An option label is the next mechanical step, not a name.** "Two tables, plus an ADR" says what
    will happen. "Option A" does not.
 
-## Language
-
-Mirror the language the user wrote in. Every question, label and description follows it. Do not
-switch, and do not ask which language they prefer — it is already on screen. The artifact is written
-in English regardless, and so are the commit messages.
-
-Keep identifiers and names in their original form, in any language: `CLAUDE.md`, `ILedgerQueries`,
-`AC-04`, `§11`, `target_surfaces`, `UUID v7`. They are names, not jargon to translate.
-
 ## Shape
 
 - **`question`** — three short blocks, each one or two sentences:

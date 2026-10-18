@@ -58,16 +58,10 @@ every feature. Never create a second copy under `docs/features/<slug>/`.
 
 ## Language
 
-- **Ask in the language the user wrote in.** Mirror what is already on screen; do not switch and do
-  not ask which language they prefer.
-- **Write the artifact in English**, to match the rest of the repo. Quotes from the user stay
-  **verbatim** in the language they said it.
-- **Name the section, never just number it.** `§5 (Acceptance criteria)`, not a bare `§5`, on every
-  mention inside a question. The user is reading a question, not the document — a number alone
-  makes them reconstruct the numbering from memory.
-- **Explain the trade-off, not the vocabulary.** The reader is a senior engineer. Glossing "index",
-  "migration" or "invariant" wastes their time; explaining *what it costs in evenings* does not.
-  Full rules → [references/ask-style.md](references/ask-style.md).
+Project rule, loaded from [`.claude/rules/language.md`](../../rules/language.md): ask in the user's
+language, write the artifact in English, quote the user verbatim, name every section instead of
+numbering it. Question shape for this stage →
+[references/ask-style.md](references/ask-style.md).
 
 ## Mode
 

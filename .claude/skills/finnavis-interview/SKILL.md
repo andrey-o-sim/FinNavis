@@ -44,24 +44,20 @@ A generic ideation protocol misfires on all four. This one does not.
 
 ## Language
 
-- **Ask in the language the user wrote in.** They opened the conversation in some language;
-  every question, option label and option description follows it. Do not switch, and do not
-  ask which language they prefer — mirror what is already on screen.
-- **Write the artifact in English**, to match the rest of the repo — except quotes from the
-  user, which stay **verbatim** in whatever language they said it. §1 Raw idea is a quote.
-- The question bank in `references/socratic-bank.md` is written in English. Translate each
-  question into the user's language before asking it; keep the meaning, not the words.
-- **Name the section, never just number it.** `§11 (RICE)`, `§15 (Open questions)`, not a bare
-  `§11`. The user is reading a question, not the brief — a number alone makes them reconstruct the
-  numbering from memory, and at checkpoint time the document does not exist yet. Name it on every
-  mention inside a question, not only the first. The numbering:
+Project rule, loaded from [`.claude/rules/language.md`](../../rules/language.md): ask in the user's
+language, write the artifact in English, quote the user verbatim (§1 Raw idea **is** a quote), name
+every section instead of numbering it.
+
+Two things specific to this stage:
+
+- The question bank in `references/socratic-bank.md` is English. Translate each question into the
+  user's language before asking it; keep the meaning, not the words.
+- At checkpoint time the brief does not exist yet, so a bare `§11` cannot even be looked up. The
+  numbering to name from:
   §1 Raw idea · §2 Problem · §3 Who it serves · §4 Why now · §5 Out of scope ·
   §6 Competitive analysis · §7 Strategic approaches · §8 Three-lens review ·
   §9 Trade-offs and edge cases · §10 Risks · §11 RICE · §12 Feasibility · §13 Recommendation ·
   §14 Parked and rejected · §15 Open questions · §16 What this unlocks · §17 Learning goal.
-- Explain the **trade-off**, not the vocabulary. The reader is a senior engineer; glossing
-  "repository" or "RICE" wastes their time. Glossing *why option B costs three more evenings*
-  does not.
 
 ## Inputs
 

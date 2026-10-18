@@ -13,15 +13,6 @@ the person who wrote the repo.
 2. **An option label is the next mechanical step, not a name.** "Прийняти як є" tells the user what
    happens. "Option A" does not.
 
-## Language
-
-Mirror the language the user wrote in. They opened the conversation in some language; every question,
-label and description follows it. Do not switch, and do not ask which language they prefer. The artifact
-is still written in English — only the conversation mirrors them.
-
-Keep identifiers and domain terms in their original form: `CONTEXT.md`, `AC-04`, RICE, `Default group`.
-They are names, not jargon to translate.
-
 ## Shape
 
 - **`question`** — three short blocks, each one or two sentences:

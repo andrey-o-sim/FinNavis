@@ -81,24 +81,12 @@ produces a fictional §2 and a §5 that fights the repo. Phase 0 reads all three
 
 ## Language
 
-> **This skill is written in English. The conversation is not.**
->
-> Every file here — this one, the references, the templates, the examples, the option labels — is
-> English because the repository is English and a skill that is half-translated rots. **None of it
-> is a script to read out.** When the run starts, look at what the user actually typed and hold
-> every question, option label and option description in **that** language for the whole session.
-> The English examples below show the *shape* of a good question, not its wording.
+Project rule, loaded from [`.claude/rules/language.md`](../../rules/language.md): ask in the user's
+language, write the artifact in English, keep identifiers as names, name every section instead of
+numbering it, explain the trade-off rather than the vocabulary.
 
-- **Ask in the language the user wrote in.** Mirror what is on screen; do not switch mid-run, and
-  do not ask which language they prefer — it is already visible.
-- **Write the artifact in English**, whatever language the conversation is in. `sad.md`, the ADRs
-  and the commit messages all match the rest of the repo. The user's own words stay verbatim when
-  quoted.
-- **Keep names as names.** `CLAUDE.md`, `ILedgerQueries`, `target_surfaces`, `AC-04`, `UUID v7`,
-  `§11` are identifiers, not jargon to translate — in any language.
-- **Explain the trade-off, not the vocabulary.** The reader wrote `ARCHITECTURE.md`. Glossing
-  "port", "aggregate" or "backfill" wastes their time; saying what the choice costs in evenings does
-  not. Full rules → [references/ask-style.md](references/ask-style.md).
+`sad.md`, the ADRs and the commit messages are all English. Question shape for this stage →
+[references/ask-style.md](references/ask-style.md).
 
 ## Mode
 
