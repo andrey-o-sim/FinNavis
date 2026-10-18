@@ -4,7 +4,7 @@ slug: "csv-import"
 stage: "03"
 feature_size: L
 depth: medium
-updated_at: "2026-10-17"
+updated_at: "2026-10-18"
 source_prd: "./PRD.md"
 target_surfaces: [backend-service]   # decided in §4. One container in §5.
 ---
@@ -292,7 +292,10 @@ and `ARCHITECTURE.md`. They are inherited here, not decided.
   what AC-17 needs to undo them.
 - **`MappingProfile`** — the rules remembered for one shape of file, keyed by the shape itself
   (ADR-0009). Each **rule** inside it says what one of the file's own categories means: one of the
-  Owner's categories, a move between the Owner's own accounts, or recorded with no category. A
+  Owner's categories, or a move between the Owner's own accounts. **Two meanings, not three** — a
+  rule saying "record this with no category" was dropped on 2026-10-18 at the data-model stage,
+  because a Transaction names exactly one category (`CONTEXT.md`) and there is no default category.
+  A file category the Owner leaves without a rule has its rows set aside instead (AC-08, AC-14). A
   profile outlives every run that uses it, and AC-04 is why it is a separate aggregate — changing a
   rule must leave recorded rows exactly as they were, which is only true if no recorded row points
   at a rule.
@@ -865,8 +868,8 @@ waiting on; if it fails, it fails in front of them with nothing recorded (AC-22)
 | Time | `DateTimeOffset` stored UTC. **The file gives a calendar date with no time**, and how that becomes a stored instant is `core-ledger`'s open question, inherited unresolved. It is a blocker for US-03 and not for US-02 — see §11 | `CLAUDE.md`, `core-ledger/sad.md` §11 → §11 |
 | Validation | Shape in Presentation, use-case checks in Application, invariants inside Domain entities. Plus one check that belongs to neither: the row ceiling, enforced while the file streams, so a file that is not a statement is refused before anything is recorded (ADR-0006, PRD §6.1) | `core-ledger/sad.md` §8, ADR-0006 |
 | Concurrency | None. One owner, one client, no optimistic concurrency token. ADR-0003 names the assumption it rests on: the candidate snapshot cannot see a movement written while the run is in flight | → §11 |
-| Indexes | Five, all from PRD §9's new read paths: mapping profiles by shape key, **unique** (ADR-0009, one lookup per load); `transactions` and `transfers` by account and date (ADR-0003, the candidate snapshot); the movement and creation links by run id (reading a run and undoing it); set-aside rows by run id. `transactions.external_ref` is already unique (`core-ledger` ADR-0006) and needs nothing added. **The second and third do not exist in any document yet** — `core-ledger` declares no index but that unique one, so this feature's own migration creates them unless `core-ledger` has by then. §11 carries the way that goes wrong | §10, §11 |
-| Set-aside reasons | A domain enum stored as a string (`CLAUDE.md`): a move between the Owner's own accounts, another currency, no rule covers it, the named account is unknown. The Owner-facing wording for each comes from PRD §10 | PRD §10, §6 |
+| Indexes | Thirteen, all on **this feature's own tables**: mapping profiles by shape key, **unique** (ADR-0009, one lookup per load); the rules by profile; each link table and the set-aside rows by run id; plus the FK index every foreign key needs. **Nothing is added to `transactions` or `transfers`** — `core-ledger/data-model.md` (2026-10-18) declares the indexes the candidate snapshot and the AC-17 check need, so ADR-0007's "adds tables and alters none" holds literally. `transactions.external_ref` is already unique (`core-ledger` ADR-0006). `data-model.md` § Indexes carries the query-by-query reasoning and the escape hatch if the §10 `EXPLAIN` assertion ever disagrees — **updated 2026-10-18, superseding the claim that this feature's migration must create the snapshot index** | §10, `data-model.md` |
+| Set-aside reasons | A domain enum stored as a string (`CLAUDE.md`), **three** values: a move between the Owner's own accounts, another currency, no rule covers it. An unknown account is **not** one of them — AC-09 refuses the whole load, so no row is ever set aside for it (corrected 2026-10-18 at the data-model stage, which found the fourth value had no flow and no criterion behind it). The Owner-facing wording for each comes from PRD §10 | PRD §10, §6 |
 | Internationalisation | N/A — English only. Separately: the file's own text is stored and shown back as plain text and **never interpreted** (PRD §6.1). The date and number formats *inside* a file are a parsing concern of the adapter, not a product language setting | ADR-0006 |
 | Observability | N/A — no metrics, alerts or tracing. A load is a synchronous request the Owner is waiting on, so nothing here can fail unobserved. See §7 | §7 |
 | Outbox / events | N/A — one process, one transaction per run, no module-to-module messaging | ADR-0004 |
@@ -1045,7 +1048,7 @@ in §9, which are risks under another name.
 | **The calendar-date-to-UTC question blocks US-03.** `core-ledger/sad.md` §11 carries it unresolved. A monthly statement loaded under the wrong interpretation is 30 rows to fix; the one-time move of the old history is 1500, loaded once, and fixing it afterwards is a migration over real recorded history — which is what `SPEC.md`'s safe-schema-change rule exists to avoid | High | Close `core-ledger`'s question before US-03 runs. US-02 may ship first. §8 states the interim | Andrey |
 | No authentication, and this feature widens the gap: anyone who reaches the installation could already read and edit the ledger, and can now load a whole file into it | High | Keep the installation off public networks (PRD §6.1). The later sign-in feature owns the fix; PRD §5 carries no authorization criterion for the same reason | Andrey |
 | The synthetic sample files (§7) may be wrong about the real shape, so the whole suite passes against a format no bank produces | Medium | Build them from the real statement and the real export rather than from imagination, and rebuild them if a load ever fails on a real file in a way the suite missed | Andrey |
-| **The index the candidate snapshot needs is declared nowhere.** PRD §6's ≤ 60 s rests on an index over `transactions` and `transfers` by account and date, and `core-ledger` declares no index but the unique `external_ref` (its ADR-0006). The failure mode is not that somebody drops it — it is that each feature assumes the other creates it, and neither does | Medium | This feature's own migration creates it unless `core-ledger` already has (§8). The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10) is what turns its absence into a failing test instead of a slow evening | Andrey |
+| ~~**The index the candidate snapshot needs is declared nowhere.**~~ **Closed 2026-10-18** at the data-model stage. `core-ledger/data-model.md` landed the day after this document and declares `idx_transactions_occurred_on_account_id`, `idx_transactions_account_id`, `idx_transfers_occurred_on` and both `transfers` account indexes. They serve the snapshot and the AC-17 check, so this feature adds no index to either ledger table. The failure mode named here — each feature assuming the other creates it — did not happen | Closed | The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10) still guards it. If it ever reports a sequential scan for a **monthly** load, `data-model.md` § Indexes names `transactions(account_id, occurred_on)` as the index to add, as a separate `CONCURRENTLY` migration | Andrey |
 | The candidate snapshot grows with the **date range**, not the row count (ADR-0003), so the three-year history migration pulls close to the whole ledger into memory on its very first run | Medium | §7 carries the threshold: look again past roughly 200 000 movements, or if a single file is ever allowed to cover more than a few years. Nothing grows into this gradually — it is reached immediately or not at all | Andrey |
 | Two banks whose statements carry identical headers share one Mapping profile, and the system cannot tell them apart (ADR-0009) | Medium | No mitigation today. The damage is bounded: a wrong rule produces a visible category in the run report (AC-13) or a set-aside row (AC-08), and the load is undoable as a whole (AC-16). Revisit by naming profiles if it ever happens | Andrey |
 | ADR-0008's fingerprint covers a fixed list of fields. The day a movement gains one, AC-18 silently stops noticing edits to it | Medium | Name the field list explicitly at the data-model stage, and add a line to the movement's entity configuration pointing at ADR-0008 so the next person changing it sees why | Andrey |
@@ -1115,6 +1118,21 @@ approved — `PRD.md` §1 records the same three):
   never that one, which is why it survives the correction unchanged.
 - PRD §6 assigned the harness, the compose stack and CI to this feature while `core-ledger` claimed
   the same three. Both now say the same thing: whichever feature starts first builds them.
+
+**Defects the data-model stage found, and fixed** (2026-10-18 — the audit report
+`_audit/data-model-2026-10-18.md` carries the diffs):
+
+- **AC-01 offered a third kind of rule that cannot be stored** — "recorded with no category",
+  against a `category_id` that is required. Fixed in `PRD.md` AC-01 and in §5 of this document,
+  after confirming with the owner that a category is required and no default category exists. "Do
+  not file this one" is said by adding no rule, which AC-08 and AC-14 already cover.
+- **§8 listed a fourth set-aside reason, "the named account is unknown".** No flow draws it and no
+  criterion reaches it — AC-09 refuses the whole load instead. Removed from §8.
+- **§8 and the risk row above both claimed this feature must create the candidate-snapshot index.**
+  `core-ledger/data-model.md` landed a day after this document and already declares it. Both
+  corrected, and the risk row is closed.
+- **PRD §8 still carried the identifier question as open** while §11 above already listed it as
+  closed. The PRD row is removed.
 
 **Two domain words were added to `CONTEXT.md`** in the same pass — *Export*, which `Statement` had
 only ever defined by negation, and *Shape*, which `Mapping profile` and ADR-0009 both depend on.

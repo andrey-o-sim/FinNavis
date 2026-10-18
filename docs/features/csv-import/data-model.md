@@ -229,8 +229,9 @@ These are schema-level choices the PRD and SAD left open. Each one is a decision
 
 9. **Three set-aside reasons, not four.** `SetAsideReason` is `NoRuleCovers`,
    `TransferBetweenOwnAccounts`, `ForeignCurrency` — the three branches SAD §6 flows 2 and 4 actually
-   draw. SAD §8 lists a fourth, "the named account is unknown", but AC-09 refuses the **whole load**
-   when the named account does not exist, so no row is ever set aside for it. Carried as a finding.
+   draw. SAD §8 *listed* a fourth, "the named account is unknown", but AC-09 refuses the **whole
+   load** when the named account does not exist, so no row is ever set aside for it. Reported as a
+   finding and **corrected in SAD §8 on 2026-10-18**.
 
 10. **Bounds, and where each number came from.** The PRD gives none of them, so each is a working
     bound stated as such, and each becomes the validation rule in Presentation and Application:
@@ -250,9 +251,10 @@ These are schema-level choices the PRD and SAD left open. Each one is a decision
     `HistoryMigration` must have no `account_id`. Both are domain invariants, refused in the
     `MappingRule` and `ImportRun` entities before a row is built (`.claude/rules/migrations.md`).
 
-13. **No new index on `transactions` or `transfers`.** SAD §8 and §11 say the candidate snapshot's
-    index "does not exist in any document yet" and that this feature's migration must create it.
-    That was written on 2026-10-17; `core-ledger/data-model.md` landed on 2026-10-18 and declares
+13. **No new index on `transactions` or `transfers`.** SAD §8 and §11 *said* the candidate
+    snapshot's index "does not exist in any document yet" and that this feature's migration must
+    create it. That was written on 2026-10-17 and **both were corrected on 2026-10-18**;
+    `core-ledger/data-model.md` landed on 2026-10-18 and declares
     five. The three that matter are already there — see the negative list under *Indexes* for the
     query-by-query reasoning and the escape hatch if the `EXPLAIN` assertion ever disagrees. This is
     what keeps ADR-0007's promise literal: the migration **adds tables and alters none**.

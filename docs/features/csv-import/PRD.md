@@ -4,7 +4,7 @@ slug: "csv-import"
 stage: "02"
 feature_size: "L"
 depth: "medium"
-updated_at: "2026-10-17"
+updated_at: "2026-10-18"
 source_brief: "./idea-brief.md"
 ---
 
@@ -68,6 +68,18 @@ load records remembers the load that brought it; handing the same file over agai
 - **§6's measurement prerequisite** said standing up the harness, the seeded ledger and the sample
   file is a task of this feature. `core-ledger` claims the same three. The note now says which
   feature builds them, and when that changes.
+
+**Corrected on 2026-10-18, after the data-model stage** (`data-model.md` raised both):
+
+- **AC-01 offered a third kind of rule — "recorded with no category" — that cannot be stored.** A
+  transaction names exactly one category (`CONTEXT.md`), and `core-ledger` makes that column
+  required. Confirmed with the owner: a category is required and the owner provides it; there is no
+  default category. `CONTEXT.md`'s *Default group* is a different thing — a bucket the breakdown
+  produces, which cannot be picked when filing a transaction. AC-01 now has two kinds of rule, and
+  "do not file this one" is said by adding no rule at all, which AC-08 and AC-14 already cover.
+- **§8 still carried the identifier question as open.** `core-ledger` ADR-0006 closed it before the
+  architecture stage began, and `sad.md` §11 already lists it as closed. The row is removed, so the
+  two documents stop disagreeing.
 
 ## 2. Goals
 
@@ -143,10 +155,14 @@ CONTEXT.md), so no actor can lack permission. Tracked in §8; the sign-in featur
 ### AC-01 (US-01) — happy
 
 **Given** a statement of a shape never handed over before
-**When** the owner says, per category the file carries, that it is one of their categories, a move
-between their own accounts, or recorded with no category
+**When** the owner says, per category the file carries, that it is one of their categories or a move
+between their own accounts — and leaves a category they do not want to file without a rule
 **Then** the rules are remembered for that shape, and the next file of the same shape needs no
 confirmation
+
+> A category left without a rule is not a gap. Its rows are set aside and the category is named
+> back (AC-08), and a set-aside row is never recorded on its own (AC-14). So "do not file this one"
+> is said by adding no rule, not by a third kind of rule.
 
 ### AC-02 (US-01) — cross-context
 
@@ -343,8 +359,6 @@ Two, and both answer themselves — the owner learns the answer by living a mont
       not the rule. — owner: Andrey, due: before implementation starts (idea-brief §15)
 - [ ] Open a real statement and a real export: does either carry a stable operation number? — owner:
       Andrey, due: before implementation starts (idea-brief §15)
-- [ ] Should a recorded entry carry its own identifier from day one? Default now: no. — owner: Andrey,
-      due: core-ledger data-model stage (idea-brief §15; core-ledger §8 carries the same row)
 - [ ] Does the statement name a currency at all? If it does not, AC-07 cannot fire. Default now: AC-07
       applies only when the file names one. — owner: Andrey, due: before implementation starts
 - [ ] Does the old tracker's export name a row as a move between two accounts and name both? Default

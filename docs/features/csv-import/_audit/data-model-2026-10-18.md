@@ -142,8 +142,27 @@ limit. None of them changes a column — they land in the snapshot query's `WHER
 or in a configuration value. They are listed in `data-model.md` § Open items so the next stage finds
 them.
 
-**Upstream updated:** **no — left for the owner.** Five edits are proposed below and none has been
-applied. They are shown rather than made because four of them change `PRD.md` §5, which is Approved.
+**Upstream updated:** **yes — applied on 2026-10-18 after the owner approved them.** The five edits
+below were proposed first and made second; the diffs are kept verbatim so the change is reviewable
+without a `git diff`.
+
+**A sixth edit was needed and is not in the list below.** `sad.md` §5 (Building block view) also
+described three rule meanings — the same defect as finding 1, in a second place. Leaving it would
+have recreated the contradiction the AC-01 edit removes, so it was corrected in the same pass:
+
+```diff
+-  Owner's categories, a move between the Owner's own accounts, or recorded with no category. A
++  Owner's categories, or a move between the Owner's own accounts. **Two meanings, not three** — a
++  rule saying "record this with no category" was dropped on 2026-10-18 at the data-model stage,
++  because a Transaction names exactly one category (`CONTEXT.md`) and there is no default category.
++  A file category the Owner leaves without a rule has its rows set aside instead (AC-08, AC-14). A
+```
+
+**Three consequential edits**, made so no document describes the others as they were before this
+pass: a short correction block in `PRD.md` §1 and in `sad.md` §11 recording what changed and why
+(both files already use that pattern, dated 2026-10-17); `updated_at` bumped to `2026-10-18` in both
+front matters; and the back-references in `data-model.md` decisions 9 and 13 and in two staged SQL
+comments moved to the past tense, since they quoted SAD §8 as it read before the edit.
 
 ### Proposed edit 1 — `PRD.md` AC-01 (finding 1, High)
 
@@ -230,11 +249,9 @@ or `TBD` inside the block.
 
 **Follow-ups for the owner:**
 
-1. **Reword `PRD.md` AC-01** (proposed edit 1). Until then PRD §5 describes a rule target this
-   schema refuses. Highest-value item here — it is a live contradiction between an Approved PRD and
-   the design.
-2. **Apply proposed edits 2–5** to `PRD.md` §8 and `sad.md` §8 and §11, so the three documents stop
-   disagreeing about what is settled and about which feature owns the snapshot index.
+1. ~~Reword `PRD.md` AC-01.~~ **Done 2026-10-18**, together with `sad.md` §5.
+2. ~~Apply proposed edits 2–5 to `PRD.md` §8 and `sad.md` §8 and §11.~~ **Done 2026-10-18.** All
+   three documents now agree on what is settled and on which feature owns the snapshot index.
 3. **Add the two missing acceptance criteria** (findings 4 and 5): a movement belongs to at most one
    import run, and confirming two rules for one of the file's categories is refused. Both
    constraints are in the schema already; without the criteria, the refusal messages never get

@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS mapping_profile_rules (
 -- transactions.category_id is NOT NULL and CONTEXT.md says every transaction names exactly one
 -- category. Confirmed with the owner on 2026-10-18 that a category is required and there is no
 -- default category. A file category the Owner does not want to file gets no rule at all, and its
--- rows are set aside with reason 'NoRuleCovers' (AC-08, AC-14). See data-model.md decision 1 and
--- the audit report — AC-01 still needs rewording.
+-- rows are set aside with reason 'NoRuleCovers' (AC-08, AC-14). See data-model.md decision 1.
+-- AC-01 and SAD §5 were both corrected on 2026-10-18 to describe two rule targets.
 --
 -- target_category_id is set EXACTLY when target = 'Category', and null otherwise. That is a domain
 -- invariant refused in the MappingRule entity, NOT a CHECK constraint — the database stays dumb

@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS import_set_aside_rows (
 --   'TransferBetweenOwnAccounts' — a move between the Owner's own accounts, on a statement that
 --                                  names only one side (AC-06)
 --   'ForeignCurrency'            — a currency the ledger does not keep (AC-07)
--- SAD §8 lists a FOURTH, "the named account is unknown". It is not here: AC-09 refuses the WHOLE
--- load when the named account does not exist, so no row is ever set aside for it. Recorded as a
--- finding in the audit report — data-model.md decision 9.
+-- SAD §8 LISTED a FOURTH, "the named account is unknown". It is not here: AC-09 refuses the WHOLE
+-- load when the named account does not exist, so no row is ever set aside for it. Reported as a
+-- finding and corrected in SAD §8 on 2026-10-18 — data-model.md decision 9.
 --
 -- source_category is the file's own category text for this row. AC-08 names the uncovered category
 -- back to the Owner, and this is what it reads — re-parsing raw_line to recover it would make the
