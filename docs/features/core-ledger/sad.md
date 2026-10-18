@@ -317,8 +317,13 @@ C4Container
 <!-- 📌 Приклад: «methodist → web-app: складає чорновик → web-app → content-api: зберегти». -->
 
 Participants are the §5 rings. Messages are semantic — HTTP verbs, paths and status codes arrive at
-the `api-forge` stage, not here. These four flows are seeds;
-`/sdlc-complete-sequence-diagrams` then covers every acceptance criterion.
+the `api-forge` stage, not here. §6 is now complete: **nine flows cover all eight §4 user stories and
+all 25 §5 acceptance criteria.** Flows 1 to 4 were seeded by `/sdlc-architecture-design`; flows 5 to
+9 were added by `/sdlc-complete-sequence-diagrams` and appended rather than interleaved, so the
+blocks above keep the numbers the earlier commits gave them.
+
+Reading order by user story: US-01 flow 1 · US-02 flow 2 · US-03 flow 5 · US-04 flow 6 ·
+US-05 flow 7 · US-06 flow 8 · US-07 flow 3 · US-08 flows 4 and 9.
 
 **Critical flow 1: record an expense** (US-01 — AC-01, AC-02, AC-03)
 
@@ -454,6 +459,243 @@ sequenceDiagram
     end
     Note over Owner,PG: no balance is stored anywhere, so every affected balance follows on the next read
 ```
+
+**Critical flow 5: keep the accounts** (US-03 — AC-07, AC-08, AC-09, AC-10)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: the ledger is reachable and the owner knows which account they mean
+    Owner->>Pres: create, rename or delete an account
+    Pres->>App: CreateAccount, RenameAccount or DeleteAccount use case
+    alt create an account
+        App->>Dom: build the Account
+        Dom-->>App: a valid Account
+        App->>Inf: add the Account and commit the unit of work
+        Inf->>PG: insert one row
+        Note over Inf,PG: persists Account (informs data-model indexes)
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the new Account
+        Pres-->>Owner: it appears in the account list with a balance of zero
+    else rename an account that recorded history already names
+        App->>Inf: load the account
+        Inf->>PG: read one row
+        PG-->>Inf: row or nothing
+        Inf-->>App: the Account, or not found
+        App->>Dom: apply the new name
+        Dom-->>App: a valid Account, same identity
+        App->>Inf: commit the unit of work
+        Inf->>PG: update the name only
+        Note over Inf,PG: persists Account — every movement points at the account by identity, not by name, so no other row is touched
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the renamed Account
+        Pres-->>Owner: history, balances and the breakdown still name the same account
+    else delete an account
+        App->>Inf: ask ILedgerQueries whether any movement names this account
+        Inf->>PG: one existence query over transactions and transfers for this account
+        Note over Inf,PG: reads transactions and transfers by account (informs data-model indexes)
+        PG-->>Inf: yes or no
+        Inf-->>App: the answer
+        alt recorded history names the account
+            App-->>Pres: refuse and say that recorded history depends on it
+            Pres-->>Owner: the account stays and nothing is removed
+        else no movement names the account
+            App->>Inf: remove the Account and commit the unit of work
+            Inf->>PG: delete one row
+            Note over Inf,PG: persists Account removal (informs data-model indexes)
+            PG-->>Inf: committed
+            Inf-->>App: done
+            App-->>Pres: removed
+            Pres-->>Owner: the account is gone
+        end
+    end
+    Note over Owner,PG: Postcondition: no recorded movement is ever left pointing at an account the ledger no longer has
+```
+
+**Critical flow 6: keep the categories and their groups** (US-04 — AC-11, AC-12, AC-13)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: a group is optional, so a category may belong to one group or to none
+    Owner->>Pres: create a category, move one between groups, or delete one
+    Pres->>App: CreateCategory, MoveCategoryToGroup or DeleteCategory use case
+    Note over Pres,App: CategoryGroup has no repository of its own, so ICategoryRepository serves all three
+    alt create a category, with or without a group
+        App->>Inf: load the named group, if one was named
+        Inf->>PG: read one category group
+        PG-->>Inf: row or nothing
+        Inf-->>App: the group, or none
+        App->>Dom: build the Category and check the rules
+        Dom-->>App: a valid Category
+        App->>Inf: add the Category and commit the unit of work
+        Inf->>PG: insert one row
+        Note over Inf,PG: persists Category with its optional group link (informs data-model indexes)
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the new Category
+        Pres-->>Owner: it can now be named when recording a transaction
+    else move a category that already has recorded history
+        App->>Inf: load the category and the group it is moving to, if any
+        Inf->>PG: read the category and the group
+        PG-->>Inf: rows
+        Inf-->>App: the Category and the target group, or none
+        App->>Dom: put the category in the new group, or in no group at all
+        Dom-->>App: a valid Category, same identity
+        App->>Inf: commit the unit of work
+        Inf->>PG: update the group link only
+        Note over Inf,PG: persists Category — no transaction row is rewritten, because a transaction names its category and never its group
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the moved Category
+        Pres-->>Owner: the figure for this category in a closed period is unchanged, and group figures follow the new placement from now on
+    else delete a category
+        App->>Inf: ask ILedgerQueries whether any transaction names this category
+        Inf->>PG: one existence query over transactions for this category
+        Note over Inf,PG: reads transactions by category (informs data-model indexes)
+        PG-->>Inf: yes or no
+        Inf-->>App: the answer
+        alt recorded history names the category
+            App-->>Pres: refuse and say that recorded history depends on it
+            Pres-->>Owner: the category stays and nothing is removed
+        else no transaction names the category
+            App->>Inf: remove the Category and commit the unit of work
+            Inf->>PG: delete one row
+            Note over Inf,PG: persists Category removal (informs data-model indexes)
+            PG-->>Inf: committed
+            Inf-->>App: done
+            App-->>Pres: removed
+            Pres-->>Owner: the category is gone
+        end
+    end
+    Note over Owner,PG: Postcondition: the breakdown reads the current category-to-group mapping, so re-grouping moves group figures and never a category figure
+```
+
+**Critical flow 7: read the balances** (US-05 — AC-14, AC-15, and the read side of AC-25)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: no balance is stored anywhere, so every balance here is computed from the movements at read time
+    Owner->>Pres: ask for the balance of each account and the total across all of them
+    Pres->>App: GetBalances use case
+    alt the owner named an account the ledger does not have
+        App-->>Pres: refuse and report it as unknown
+        Pres-->>Owner: nothing is created and no balance is invented
+    else every named account is in the ledger
+        App->>Inf: ask ILedgerQueries for the balance of every account
+        Note over App,Inf: no repository is used here, so no entity is loaded into memory
+        Inf->>PG: one aggregate query summing transactions and transfers per account
+        Note over Inf,PG: reads transactions and transfers by account (informs data-model indexes)
+        PG-->>Inf: one figure per account
+        Inf-->>App: the aggregated rows
+        App->>App: add the per-account figures together for the total
+        App-->>Pres: a balance per account and one total
+        Pres-->>Owner: the balances
+    end
+    Note over Owner,PG: Postcondition: a balance equals the sum of every movement recorded against that account, whatever order recordings, edits and deletions happened in (AC-14)
+    Note over Owner,PG: a transfer lowers one account and raises the other by the same amount, so summing all accounts leaves the total unchanged (AC-15)
+```
+
+**Critical flow 8: browse the history** (US-06 — AC-16, AC-17)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: every filter is optional, and a request with none of them asks for the whole history
+    Owner->>Pres: list movements filtered by period, account and category
+    Pres->>App: GetHistory use case, carrying the filters and the page asked for
+    App->>Inf: ask ILedgerQueries for one page of history
+    Note over App,Inf: no repository is used here, so no entity is loaded into memory
+    Inf->>PG: one query over transactions and transfers, filtered by period and account
+    Note over Inf,PG: reads transactions and transfers by date and by account (informs data-model indexes)
+    Note over Inf,PG: a transfer carries no category, so a category filter can never match one
+    PG-->>Inf: the matching rows for this page
+    Inf-->>App: the page
+    alt nothing was recorded in the period asked for
+        App-->>Pres: an empty page
+        Pres-->>Owner: an empty list, and the request is not reported as a failure
+    else the period holds movements
+        App-->>Pres: the page, each row marked as a transaction or a transfer
+        Pres-->>Owner: the matching movements, with the note shown on every transaction
+    end
+    Note over Owner,PG: Postcondition: history is read, never changed, so browsing can be repeated as often as the owner likes
+```
+
+**Critical flow 9: refuse to turn one kind of entry into the other** (US-08 — AC-24)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: a Transaction and a Transfer are separate entities, so neither can become the other by editing
+    Owner->>Pres: edit a recorded transaction and name a second account on it
+    Pres->>App: EditTransaction use case
+    App->>Inf: load the entry
+    Inf->>PG: read one row
+    PG-->>Inf: row or nothing
+    Inf-->>App: the Transaction, or not found
+    App->>Dom: apply the change
+    Dom-->>App: rejected by the rule, because a second account would make this a Transfer
+    App-->>Pres: refuse and say that a transaction and a transfer are different kinds of entry, and that this one must be removed and recorded again as the other kind
+    Pres-->>Owner: the entry is unchanged, no unit of work is committed, and no Transfer is created
+    Note over Owner,PG: Postcondition: the refusal is the mirror of AC-23 in flow 4, where a transfer is refused a category
+    Note over Owner,PG: the owner's way through is flow 4 to remove the entry, then flow 2 to record it as a transfer
+```
+
+### Notes flagged while completing §6
+
+Flagged for the next stages. Nothing here is decided — no ADR is written from this list.
+
+- **Participant names are the §5 rings, not generic placeholders.** The sequence stage normally draws
+  `<service>` and `<data-store>` so the runtime view cannot lock in a technology before the
+  architecture stage picks one. Here §5 already picked it — four rings and PostgreSQL 18 — so the
+  flows use those names and stay readable next to the seeded flows 1 to 4. This is a deliberate
+  deviation, recorded so a later reader sees a choice rather than a slip.
+- **Index hints for `/sdlc-generate-data-model`.** Four read paths in the new flows need support:
+  movements by account (flow 5's delete check and flow 7's balances), transactions by category
+  (flow 6's delete check), and movements by date together with account (flow 8's history page). The
+  two delete checks only ask whether a row exists, so they may not need the same index as the
+  aggregates.
+- **No flow in this feature is asynchronous.** Every one is request and response, so none carries an
+  idempotency key, a retry note or a dead-letter branch. Stated here so a reader does not read the
+  absence as an omission.
+- **History paging is drawn but never specified.** Flow 8 passes a page because §10 sets a per-page
+  latency target, yet neither the PRD nor §10 says what a page holds. `/sdlc-api-forge` needs a page
+  size, and PRD §8 has no open question covering it.
+- **A transfer carries no category, so a category filter in flow 8 can never match one.** AC-16 asks
+  for filtering by category and for transfers to be marked in the result, and those two pull in
+  opposite directions. The flow resolves it by filtering transfers out whenever a category filter is
+  given. The PRD does not say this, so confirm it at `/sdlc-api-forge`.
 
 ## 7. Deployment view
 
