@@ -1028,7 +1028,7 @@ dump is still lost — is carried in §11.
 | Logging | Structured logs to stdout through `Microsoft.Extensions.Logging`. No PII scrubbing — every value is the owner's own data | §7 |
 | Authentication | None. One owner, no sign-in. Network isolation is the only control | PRD §3, §6.1 → §11 |
 | Authorization | None. There is no second actor to deny and no existence to hide (PRD §5 N/A note) | PRD §5 → §11 |
-| Error handling | A broken domain rule produces a sentinel domain error; Presentation maps it to an RFC 9457 Problem Details response. Refusal wording is taken from the PRD acceptance criteria, not invented | here |
+| Error handling | A broken domain rule produces a sentinel domain error; Presentation maps it to the flat envelope `{code, message, details?}`, where `code` is `module.error_name` in snake_case. Refusal wording is taken from the PRD acceptance criteria, not invented | `docs/adr/0002-*` |
 | ID strategy | UUID v7, generated in the Application layer with `Guid.CreateVersion7()`, stored as PostgreSQL `uuid` | ADR-0005 |
 | External reference | Every transaction carries a nullable `external_ref` with a unique index. Unused and always null in this feature; csv-import and message capture fill it later | ADR-0006 |
 | Money | `decimal`, single currency, no currency code stored | CLAUDE.md, PRD §3 |
@@ -1074,6 +1074,19 @@ the test.
 
 The repo also carries `docs/adr/0001-initial-setup.md`, which is project-wide rather than feature-
 scoped. Numbering here restarts at 0001 inside this feature's folder, per the SDLC convention.
+
+**Project-wide ADRs that bind this feature.** They are not in the table above, because that table is
+closed against this feature's `adr/` folder and every row there must have a file in it:
+
+| # | Title | Status | Affects |
+|---|---|---|---|
+| `docs/adr/0002` | Return a flat error envelope instead of RFC 9457 Problem Details | Accepted | §8 Error handling |
+
+**ADR-0002 supersedes the §8 Error handling row as it was approved on 2026-10-16.** That row said
+Presentation maps a domain error to an RFC 9457 Problem Details response, which contradicted
+`.claude/rules/openapi.md` and the contract written against it. The row now states the envelope and
+cites the ADR. The decision is project-wide rather than feature-scoped because it binds every HTTP
+surface in the repository and amends `CLAUDE.md`, so a later feature would not find it here.
 
 ## 10. Quality requirements
 

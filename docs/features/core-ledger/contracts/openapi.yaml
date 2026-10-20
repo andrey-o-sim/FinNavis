@@ -1064,9 +1064,10 @@ components:
         The unified error envelope. `code` is the neutral `module.error_name` convention — a
         naming rule, not a language artifact.
 
-        NOTE: this flat envelope was chosen at the api-forge gate and **contradicts**
-        `sad.md` §8 and `CLAUDE.md` §API, which both name RFC 9457 Problem Details. The conflict
-        is unresolved — see `api-sync-report.md` → Deferrals.
+        Settled by `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md`
+        (Accepted, 2026-10-20, project-wide). It supersedes the `sad.md` §8 row that named RFC 9457
+        Problem Details; `sad.md` §8 and `CLAUDE.md` §API were amended to match. This envelope is
+        now the shape for every HTTP surface in the repository.
       required: [code, message]
       additionalProperties: false
       properties:

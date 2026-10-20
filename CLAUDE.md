@@ -143,10 +143,17 @@ get broken most often.
 - **Do not share response records between operations**, even when two look identical today. Each
   operation owns its own shape, so changing one response can never silently change another endpoint.
 - Never return Domain entities from an endpoint.
+- **Every error response is the flat envelope `{code, message, details?}`** — not RFC 9457 Problem
+  Details. `code` is `module.error_name` in snake_case (`transaction.category_not_found`,
+  `account.has_recorded_history`) and is what a client switches on; `message` is the refusal wording
+  from the PRD acceptance criteria, not invented; `details` is optional and carries field-level
+  validation only. One `code` in a contract equals one constant in the error registry, returning the
+  same string. See `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` and
+  `.claude/rules/openapi.md`.
 - **A batch operation that finished is a success, even when it could not process every item.** The
   response body carries the counts plus one entry per skipped item with its reason. An item the
   operation deliberately skipped is a normal outcome, not a fault, so it does not turn the response
-  into an error. Problem Details is for refusals that stop the whole operation.
+  into an error. The error envelope is for refusals that stop the whole operation.
 - OpenAPI document is generated at `/openapi/v1.json` in Development.
 
 ### Tests

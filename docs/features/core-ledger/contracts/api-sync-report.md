@@ -307,7 +307,7 @@ types.
 |---|---|---|
 | **No `category_groups` operations** | Fix-the-source-first — the PRD has no user story, and inventing four endpoints would break the "never invent" rule | `/sdlc-write-prd core-ledger` → add a US for keeping category groups (create / list / rename / delete), with ACs. Then `/sdlc-api-forge core-ledger --reconcile`. **This is the FAIL.** |
 | **No `renameCategory` operation** | Fix-the-source-first — `sad.md` §5 declares the use case, the PRD has no story | Either add the story to `PRD.md` §4, **or** drop `Categories/Rename` from `sad.md` §5. The two disagree today. |
-| **Error envelope contradicts `sad.md` §8 and `CLAUDE.md`** | You chose the flat `{code, message, details?}` at this gate. `sad.md` §8 (status **Approved**) says "Presentation maps it to an RFC 9457 Problem Details response"; `CLAUDE.md` §API says "Problem Details is for refusals that stop the whole operation". **Neither file was edited.** | Write an ADR superseding the §8 row and amend `CLAUDE.md` — `/sdlc-decide-adr core-ledger "Use a flat error envelope instead of Problem Details"`. Or revert `.claude/rules/openapi.md` to Problem Details and `--reconcile`. **Needs ADR.** |
+| ~~**Error envelope contradicts `sad.md` §8 and `CLAUDE.md`**~~ | **CLOSED 2026-10-20.** `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` settles it in favour of the flat `{code, message, details?}`. The ADR is project-wide, not feature-scoped, because it binds every HTTP surface. `sad.md` §8 and §9 and `CLAUDE.md` §API were amended in the same change; `.claude/rules/openapi.md` §5 records it as resolved. The 24 codes in `openapi.yaml` stand as written | None. `--reconcile` no longer blocks on this |
 | **No error registry in the repo** (drift point 2) | `src/` is a skeleton; there is nothing to check the 24 codes against | `implement-tasks` creates the registry from the list in point 2. Then `--reconcile` verifies it. |
 | **7 responses with no §6 `alt` branch** (drift point 5) | Validation and uniqueness branches a sequence diagram legitimately omits | `/sdlc-complete-sequence-diagrams core-ledger` — add a not-found branch to flow 2, and a duplicate-name branch to flows 5 and 6. Low urgency. |
 | **No "list categories" operation** | No AC asks for it and `sad.md` §5 declares no use case | Fold into the PRD pass above — a client cannot build a category picker without it. |
@@ -362,5 +362,5 @@ now closed:
 
 1. The two Fix-the-source-first deferrals — `category_groups` operations and `renameCategory`. These
    are what the verdict turns on.
-2. The error-envelope conflict — whether an ADR landed, or the rules file went back to Problem Details.
+2. ~~The error-envelope conflict~~ — **closed.** `docs/adr/0002` landed on 2026-10-20 and kept the flat envelope; `sad.md` §8, `CLAUDE.md` §API and `csv-import/sad.md` §8 were amended to match.
 3. Whether `src/` gained an error registry, so drift point 2 can move from deferred to checked.

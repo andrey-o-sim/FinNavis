@@ -161,7 +161,7 @@ offered first. The default set:
 | Logging | Structured logs to stdout through `Microsoft.Extensions.Logging`. No PII scrubbing — every value is the owner's own data |
 | Authentication | None. One owner, no sign-in. Network isolation is the only control → §11 |
 | Authorization | None. No second actor to deny, no existence to hide → §11 |
-| Error handling | A broken domain rule produces a domain error; Presentation maps it to an RFC 9457 Problem Details response. Refusal wording comes from PRD §10, not invented here |
+| Error handling | A broken domain rule produces a domain error; Presentation maps it to the flat envelope `{code, message, details?}`, `code` being `module.error_name` in snake_case. Refusal wording comes from PRD §10, not invented here. **Not** RFC 9457 Problem Details — `docs/adr/0002` settled this project-wide |
 | ID strategy | UUID v7 generated in the Application layer, stored as PostgreSQL `uuid` |
 | Money | `decimal`, single currency, no currency code stored |
 | Time | `DateTimeOffset` stored UTC; `IClock` in `Domain/Abstractions` keeps date rules testable |

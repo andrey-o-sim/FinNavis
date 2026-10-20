@@ -142,7 +142,10 @@ New from the PRD amendment, both also owned by `/sdlc-api-forge` and both carrie
 **Unblocks:** `/sdlc-complete-sequence-diagrams core-ledger` — `sad.md` §6 lists AC-26 to AC-36 as
 the gap, and the participants and tables they need now all exist.
 
-**Does not unblock `/sdlc-api-forge core-ledger --reconcile` on its own.** A second blocker is still
-open and is unrelated to the schema: `.claude/rules/openapi.md` §5 records that its error envelope
-`{code, message, details?}` contradicts `sad.md` §8 and `CLAUDE.md`, which both name RFC 9457
-Problem Details. That needs an ADR or a rules change before the contract can be re-run.
+**Does not unblock `/sdlc-api-forge core-ledger --reconcile` on its own.** A second blocker was open
+at the time this report was written, unrelated to the schema: the error envelope contradicted
+`sad.md` §8 and `CLAUDE.md`.
+
+**Update, same day:** that blocker is closed by
+`docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md`, which keeps the flat
+envelope and amends both sources.

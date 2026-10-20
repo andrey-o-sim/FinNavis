@@ -83,15 +83,19 @@ against itself. The no-sharing rule governs the **C# code** — each
 even when two serialise to the same shape. `implement-tasks` follows both: generate a record per
 operation folder from a single `$ref`'d schema.
 
-### 5. Open — the error envelope contradicts `sad.md` §8 and `CLAUDE.md`
+### 5. Resolved — the flat error envelope, not RFC 9457 Problem Details
 
-The envelope above (`{code, message, details?}`) was chosen for core-ledger at the api-forge gate.
-It conflicts with two committed sources that both name **RFC 9457 Problem Details**:
+The envelope above (`{code, message, details?}`) was chosen for core-ledger at the api-forge gate
+and once conflicted with two committed sources that both named **RFC 9457 Problem Details**:
+`sad.md` §8 Crosscutting concepts (status Approved) and `CLAUDE.md` §API.
 
-- `sad.md` §8 Crosscutting concepts, Error handling row (document status: Approved).
-- `CLAUDE.md` §API: "Problem Details is for refusals that stop the whole operation."
+**Settled 2026-10-20 by `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md`,
+in favour of the envelope.** Both sources were amended in the same change: the `sad.md` §8 Error
+handling row now states the envelope and cites the ADR, and `CLAUDE.md` §API carries the rule
+directly. This file is unchanged — it was already right.
 
-**Nothing has been edited to resolve this.** Either write an ADR that supersedes the §8 row and
-amend `CLAUDE.md`, or change this file back to Problem Details and re-run
-`/sdlc-api-forge core-ledger --reconcile`. Tracked in
-`docs/features/core-ledger/contracts/api-sync-report.md` → Deferrals.
+Why the envelope won, in one line: every refusal here is a business refusal the owner reads, so the
+one field that matters is a stable `code` the client switches on, and Problem Details would make
+that field a non-standard extension member while adding `type`, `instance` and `title`, none of
+which this product has a use for. The ADR carries the full reasoning and the condition that would
+reopen it — a public API, which PRD §3 currently rules out.
