@@ -1,6 +1,6 @@
 -- REFERENCE SPEC — not an applied migration. See .claude/rules/migrations.md.
 --
--- core-ledger · categories · SAD §5 · PRD US-04
+-- core-ledger · categories · SAD §5 · PRD US-04, US-10
 
 CREATE TABLE IF NOT EXISTS categories (
     id                UUID         NOT NULL,
@@ -25,7 +25,14 @@ CREATE TABLE IF NOT EXISTS categories (
 -- No ON DELETE CASCADE anywhere. AC-12 blocks deleting a category that history names, and that
 -- check runs in Application before the delete (flow 6). A cascade would do the opposite.
 
+-- No ON DELETE SET NULL either, even though AC-29 clears this column when a group is removed.
+-- The removing use case does it explicitly, in one transaction: UPDATE the categories to NULL,
+-- then DELETE the group. Keeping it in Application means AC-29 is covered by a use-case test, and
+-- a forgotten UPDATE fails loudly on the FK instead of quietly rewriting rows the DB chose for us.
+
 -- FK index — required by .claude/rules/migrations.md.
--- Query it serves: flow 3 joins categories to their current group for group totals (AC-18, AC-19).
+-- Query it serves: flow 3 joins categories to their current group for group totals (AC-18, AC-19);
+-- AC-33 lists categories narrowed to one group; AC-29 finds the categories to clear before the
+-- group row is removed.
 CREATE INDEX IF NOT EXISTS idx_categories_category_group_id
     ON categories (category_group_id);

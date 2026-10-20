@@ -2,7 +2,7 @@
 status: Draft
 owner: "Andrey Simonenko"
 reviewers: ["Andrey Simonenko"]
-updated_at: "2026-10-18"
+updated_at: "2026-10-20"
 feature_size: "M"
 stage: "07"
 ticket: "none"
@@ -15,7 +15,12 @@ REFERENCE SPEC, not a migration. This repo uses EF Core migrations; implement-ta
 entity configurations, runs `./build.sh migrate <Name>`, and diffs the generated SQL against the
 staged spec. See .claude/rules/migrations.md. -->
 
-> **Inputs:** [PRD](./PRD.md) §4, §5 · [SAD](./sad.md) §5, §6 (nine flows), §8 ·
+> **Revised 2026-10-20** against the PRD amendment of the same date (US-09, US-10, AC-26 to AC-36)
+> and the matching `sad.md` §5 revision. Three schema changes: `category_groups` gains a side, its
+> name is unique per side rather than globally, and AC-29's link-clearing is written down. See
+> decisions 4, 7 and 8, and `_audit/data-model-2026-10-20.md`.
+>
+> **Inputs:** [PRD](./PRD.md) §4, §5 · [SAD](./sad.md) §5, §6, §8 ·
 > [ADR-0001](./adr/0001-keep-transactions-and-transfers-in-separate-tables.md) ·
 > [ADR-0002](./adr/0002-compute-every-read-on-demand.md) ·
 > [ADR-0003](./adr/0003-edit-and-delete-ledger-rows-in-place.md) ·
@@ -41,6 +46,7 @@ erDiagram
     CATEGORY_GROUPS {
         uuid id PK
         varchar name UK
+        varchar kind UK
         timestamptz created_at
     }
 
@@ -100,11 +106,15 @@ These are schema-level choices the PRD and SAD left open. Each one is a decision
    row adds or subtracts. At ~20 000 rows that join is on a primary key and costs nothing (PRD §6).
    A transfer needs no such join — its direction is which of the two account columns it sits in.
 
-4. **Account names are unique; category names are unique per kind.** AC-07 is phrased *"Given the
-   owner has no account by that name"*, which only makes sense if a name identifies an account.
-   Categories are scoped by kind so that "Gifts" can exist once as spending and once as earning.
-   **No acceptance criterion covers a duplicate name**, so this is an added rule — flagged in the
-   audit report.
+4. **Account names are unique; category and group names are unique per kind.** AC-07 is phrased
+   *"Given the owner has no account by that name"*, which only makes sense if a name identifies an
+   account. Categories and groups are scoped by kind so that "Gifts" can exist once as spending and
+   once as earning.
+   **Closed 2026-10-20.** When this document was first written no acceptance criterion covered a
+   duplicate name, so the rule was flagged as an addition. The PRD amendment closes that: **AC-35**
+   states it for accounts, **AC-36** for categories per kind, and **AC-31** for groups per side.
+   AC-31 was not merely documentation — the original spec made a group name unique globally, so it
+   is one of this revision's three schema changes.
 
 5. **No `updated_at` on any table.** The ledger is mutable (ADR-0003), so the column would be
    defensible, but nothing in the PRD reads a "last changed" value and no acceptance criterion
@@ -112,7 +122,30 @@ These are schema-level choices the PRD and SAD left open. Each one is a decision
 
 6. **No `CHECK` constraint anywhere.** AC-02 (amount above zero) and AC-05 (a transfer needs two
    different accounts) are both domain invariants, enforced in the Domain entities. The database
-   stays dumb storage (`.claude/rules/migrations.md`).
+   stays dumb storage (`.claude/rules/migrations.md`). AC-30 joins them — see decision 7.
+
+7. **A group carries a `kind`, and "a group and its categories share a side" stays a domain
+   invariant.** `category_groups.kind` is new in this revision (AC-26, AC-30, and `CONTEXT.md`,
+   which is canonical). The *column* is structural; the *rule* about matching sides is not. A
+   composite FK — `UNIQUE (id, kind)` on `category_groups` plus a two-column FK from `categories` —
+   would make a mismatched placement unrepresentable, and it was considered seriously. It is
+   rejected for two reasons: it costs a second unique index that no query reads, and it freezes a
+   group's `kind`, because changing it would have to cascade into every category pointing at it.
+   The entity refuses the placement instead, exactly as it does for AC-02 and AC-05, and the owner
+   gets the refusal wording the acceptance criterion asks for rather than an FK violation.
+
+8. **Removing a group clears its categories' link from the Application layer, not from the FK.**
+   AC-29 says the group goes, the categories stay with all their history, and the breakdown then
+   reports them under the Default group. The FK stays `NO ACTION`; the removing use case does the
+   work in one transaction — `UPDATE categories SET category_group_id = NULL WHERE
+   category_group_id = <id>`, then `DELETE FROM category_groups WHERE id = <id>`. `ON DELETE SET
+   NULL` would be shorter and was rejected: it moves AC-29's behaviour into DDL, where no use-case
+   test covers it and no reviewer of the delete endpoint sees it. With `NO ACTION`, forgetting the
+   `UPDATE` fails loudly on the foreign key instead of silently rewriting rows.
+   **Nothing is assigned to the Default group.** It is produced by the breakdown and is never a row
+   (SAD §12), so a category reaches it by having no group at all. This is the one place where the
+   wording "the category gets the default group" would lead an implementer to create a real
+   `Default` row — the schema must not grow one.
 
 ## Entities
 
@@ -137,17 +170,29 @@ also what makes AC-21 and AC-22 free — nothing stored has to be corrected when
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | `id` | UUID | PK, app-generated (UUID v7) | |
-| `name` | VARCHAR(100) | NOT NULL, UNIQUE | e.g. "Utilities" over electricity, water and gas |
+| `name` | VARCHAR(100) | NOT NULL | e.g. "Utilities" over electricity, water and gas. Unique per `kind`, not on its own — see below |
+| `kind` | VARCHAR(16) | NOT NULL | `CategoryKind` — `Expense` or `Income`. The side of the ledger the group belongs to (AC-26). Stored as a string, never as an int (`CLAUDE.md`) |
 | `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
 
-**Aggregate root:** root, but it has **no repository of its own** — `ICategoryRepository` serves it
-(SAD §5), because US-04 treats creating a category and placing it in a group as one job.
-**Access patterns:** load one group by id when creating or moving a category (flow 6) → primary
-key · join to `categories` for the breakdown (flow 3) → index lives on `categories`.
-**Constraints:** UNIQUE on `name`.
+**Aggregate root:** root, served by **`ICategoryGroupRepository`** (SAD §5). This changed on
+2026-10-20: the group used to share `ICategoryRepository`, on the reading that US-04 made grouping
+part of managing a category. US-09 makes the group lifecycle — create, list, rename, remove — a job
+in its own right, so a use case needs the port directly.
+**Access patterns:** list every group (AC-27, US-09) → no index, the table holds a handful of rows ·
+load one group by id when creating or moving a category (flow 6), or before renaming or removing it
+→ primary key · find the categories to clear before removing the group (AC-29) →
+`idx_categories_category_group_id`, which lives on `categories` · join to `categories` for the
+breakdown (flow 3) → same index.
+**Constraints:** UNIQUE on (`name`, `kind`) — AC-31.
+**A group belongs to one side of the ledger** and holds only categories from that same side
+(AC-26, AC-30, `CONTEXT.md`). The matching-sides rule is a domain invariant rather than a composite
+FK — decision 7 gives the trade-off.
+**Removing a group does not remove its categories** (AC-29). The use case clears their
+`category_group_id` and then deletes this row — decision 8.
 **The Default group is not a row here.** It is a bucket the breakdown produces for categories with
 no group (SAD §12, flow 3). It cannot be renamed, deleted, or picked when filing a transaction, so
-storing it would invite exactly the mistakes the glossary rules out.
+storing it would invite exactly the mistakes the glossary rules out — including the one AC-29 makes
+tempting, where a removed group's categories look like they should be *moved* somewhere.
 
 ### `categories`
 
@@ -161,8 +206,15 @@ storing it would invite exactly the mistakes the glossary rules out.
 
 **Aggregate root:** root. Served by `ICategoryRepository`.
 **Access patterns:** join to `category_groups` for the breakdown (flow 3) → `idx_categories_category_group_id` ·
-join from `transactions` to learn a row's direction (flow 7) → primary key.
-**Constraints:** UNIQUE on (`name`, `kind`); FK → `category_groups(id)`.
+list categories narrowed to one group (AC-33, US-10) → same index · find the categories to clear
+when their group is removed (AC-29) → same index · list every category (AC-33) → no index, a
+handful of rows · join from `transactions` to learn a row's direction (flow 7) → primary key.
+**Constraints:** UNIQUE on (`name`, `kind`) — AC-36; FK → `category_groups(id)`.
+**Renaming a category touches this row only** (AC-34, US-10). A transaction names its category by
+id, so every recorded movement, balance and breakdown follows the new name with nothing rewritten
+and no closed period changed — the same property that makes AC-13 free.
+**The group it points at must be on the same side** (AC-30). Refused by the entity, not by the
+schema — decision 7.
 **Moving a category between groups updates this row only** (AC-13, flow 6). A transaction names its
 category and never its group, so no transaction row is rewritten and that category's figure for a
 closed period cannot change. The group mapping is resolved at query time (ADR-0002).
@@ -231,15 +283,20 @@ behind them were discarded.
 | `idx_transactions_account_id` | `transactions(account_id)` | Flow 7 balance sums every transaction per account over all time, and flow 5 asks whether any transaction names an account before deleting it. Neither filters by date, so the composite above cannot serve them — AC-14, AC-09 |
 | `idx_transactions_category_id` | `transactions(category_id)` | Flow 6 asks whether any transaction names a category before deleting it — AC-12. Also the FK index required by `.claude/rules/migrations.md` |
 | `ux_transactions_external_ref` | `transactions(external_ref)` UNIQUE | Required by ADR-0006. Unused in this feature; it makes "this outside thing is already recorded" a database guarantee for csv-import rather than a check that can race |
-| `idx_categories_category_group_id` | `categories(category_group_id)` | Flow 3 joins categories to their current group to produce group totals — AC-18, AC-19. Also the FK index |
+| `idx_categories_category_group_id` | `categories(category_group_id)` | Flow 3 joins categories to their current group to produce group totals — AC-18, AC-19. AC-33 lists categories narrowed to one group. AC-29 finds the categories to clear before removing a group. Also the FK index |
 | `idx_transfers_source_account_id` | `transfers(source_account_id)` | Flow 7 subtracts transfers out of an account, and flow 5 checks them before deleting the account — AC-14, AC-09. Also the FK index |
 | `idx_transfers_destination_account_id` | `transfers(destination_account_id)` | Flow 7 adds transfers into an account, and flow 5 checks them too — AC-14, AC-09. Also the FK index |
 | `idx_transfers_occurred_on` | `transfers(occurred_on)` | Flow 8 reads the transfers half of the history page by period. The breakdown never reads this table (AC-20), so no composite with a category is wanted |
 
 **Indexes deliberately not created:**
 
-- Nothing on `accounts(name)` or `category_groups(name)` beyond the unique constraints — PostgreSQL
-  backs a UNIQUE with an index already.
+- Nothing on `accounts(name)` or `category_groups(name, kind)` beyond the unique constraints —
+  PostgreSQL backs a UNIQUE with an index already. That index is also what AC-31, AC-35 and AC-36
+  check against.
+- **Nothing on `category_groups(kind)` or `categories(kind)`.** Listing groups (AC-27) and listing
+  categories (AC-33) read a handful of rows, and the unique indexes above already lead with `name`
+  — a side-only index would serve no query that a sequential scan over a few dozen rows does not.
+  Revisit if the owner ever keeps hundreds of categories.
 - No index on `transactions(note)`. Nothing searches notes; PRD §8 closed the extra-filter-dimension
   question as "no" and SAD §8 records it.
 - No partial or covering index on the breakdown. ADR-0002 removed every cache and rollup, so
@@ -267,8 +324,8 @@ Builders go in the test projects, never in a migration. The repo uses xUnit with
 (`CLAUDE.md`), so a builder-per-entity in a shared test helper fits the existing convention:
 
 - `AccountBuilder` — an account with a generated UUID v7 and a default name.
-- `CategoryGroupBuilder` — a named group.
-- `CategoryBuilder` — a category with a kind, optionally placed in a group.
+- `CategoryGroupBuilder` — a named group on one side of the ledger.
+- `CategoryBuilder` — a category with a kind, optionally placed in a group on that same side.
 - `TransactionBuilder` — a transaction on an account and a category, with an amount, an
   `occurred_on` and an optional note.
 - `TransferBuilder` — a transfer between two distinct accounts.
