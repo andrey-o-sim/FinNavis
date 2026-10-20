@@ -1,0 +1,1486 @@
+# Derived by sdlc:api-forge (scenario A) — NOT hand-written.
+#   fields + constraints  <- data-model.md (every property traces to a column; maxLength/pattern/enum copied)
+#   error responses       <- sad.md §6 sequence alt-branches (one response per branch)
+#   endpoint list + shape <- PRD.md §4 user stories / §5 acceptance criteria
+# Conventions and the five FinNavis deviations live in .claude/rules/openapi.md.
+# Every field's origin is tabulated in ./api-sync-report.md.
+#
+# THIS CONTRACT IS NOT FINAL. api-sync-report.md carries **Verdict: FAIL** — there is no
+# operation that creates a category group, so AC-11 ("with a group") and AC-13 ("move it to
+# another group") cannot be reached through this API. Fix PRD.md §4, then re-run
+# `/sdlc-api-forge core-ledger --reconcile`.
+openapi: 3.1.0
+
+info:
+  title: FinNavis core-ledger API
+  version: 0.1.0
+  description: |
+    The ledger the rest of FinNavis stands on.
+
+    The owner tracks their money in another personal-finance tool today, which cannot answer
+    "show expenses for a period, broken down by category" and offers no programmatic access of
+    any kind. This API closes both gaps. It holds accounts, flat categories with optional groups
+    over them, transactions and transfers, and it answers two reads: a filtered history, and one
+    period breakdown that reports group totals and category totals in a single request.
+
+    One owner, self-hosted, single currency, manual entry. Import, export, summaries and the web
+    client are separate later features that read from or write to this ledger (PRD §1, §3).
+
+    **No authentication.** There is one owner, no sign-in and no second actor, so this API
+    declares no security scheme. Keep the installation off public networks until the OAuth
+    feature ships (PRD §3, §6.1 · sad.md §8, §11).
+
+servers:
+  - url: http://localhost:5080
+    description: Local development
+  - url: https://finnavis.home.arpa
+    description: The owner's self-hosted installation (hostname is the owner's own)
+
+# Deviation from the api-forge default of `BearerAuth` global — see .claude/rules/openapi.md §1.
+# PRD §3 and sad.md §8 both state there is no sign-in, so there is no token to require.
+security: []
+
+tags:
+  - name: Accounts
+    description: Where the owner's money sits (US-03, US-05)
+  - name: Categories
+    description: What the money was for (US-04)
+  - name: Transactions
+    description: A single income or expense on exactly one account (US-01, US-08)
+  - name: Transfers
+    description: Money moved between two of the owner's own accounts (US-02, US-08)
+  - name: Reporting
+    description: Filtered history and the period breakdown (US-06, US-07)
+
+paths:
+  # ───────────────────────────── Accounts ─────────────────────────────
+  /api/v1/accounts:
+    post:
+      tags: [Accounts]
+      summary: Create an account
+      description: |
+        US-03, AC-07. A new account starts with a balance of zero, because no movement names it
+        yet and no balance is stored anywhere (ADR-0002).
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateAccountRequest" }
+            example:
+              name: "Test Account"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Account" }
+              example:
+                id: "01937a1e-0000-7000-8000-000000000001"
+                name: "Test Account"
+                created_at: "2026-10-20T09:15:00Z"
+        "400":
+          description: The name is empty or longer than 100 characters
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.name_invalid"
+                message: "An account name must be between 1 and 100 characters."
+        "409":
+          description: |
+            Another account already has this name. `accounts.name` is UNIQUE (data-model.md
+            decision 4). No acceptance criterion covers a duplicate name — see the sync report.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.duplicate_name"
+                message: "An account named 'Test Account' already exists."
+
+  /api/v1/accounts/balances:
+    get:
+      tags: [Accounts]
+      summary: Read the balance of every account and the total across all of them
+      description: |
+        US-05, AC-14, AC-15. Every figure is computed from the movements at read time — no
+        balance is stored (ADR-0002), so a balance always equals the sum of every transaction
+        and transfer recorded against that account, whatever order recordings, edits and
+        deletions happened in.
+
+        A transfer lowers one account and raises the other by the same amount, so `total` is
+        unchanged by any transfer between the owner's own accounts (AC-15).
+
+        Omit `account_id` to read every account. The list is not paginated: sad.md §6 flow 7
+        reads every account in one query, and data-model.md records that `accounts` holds a
+        handful of rows.
+      operationId: getAccountBalances
+      parameters:
+        - in: query
+          name: account_id
+          required: false
+          description: Read one account instead of all of them.
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountBalances" }
+              example:
+                accounts:
+                  - account_id: "01937a1e-0000-7000-8000-000000000001"
+                    name: "Test Account"
+                    balance: "1250.0000"
+                  - account_id: "01937a1e-0000-7000-8000-000000000002"
+                    name: "Test Savings"
+                    balance: "-40.5000"
+                total: "1209.5000"
+        "404":
+          description: |
+            AC-25 — the named account is not part of this ledger. Nothing is created and no
+            balance is invented (sad.md §6 flow 7, first alt-branch).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.not_found"
+                message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+  /api/v1/accounts/{account_id}:
+    parameters:
+      - $ref: "#/components/parameters/AccountId"
+    patch:
+      tags: [Accounts]
+      summary: Rename an account
+      description: |
+        US-03, AC-08. Every recorded movement points at the account by identity, never by name,
+        so history, balances and the breakdown keep referring to the same account under its new
+        name and no other row is touched (sad.md §6 flow 5).
+      operationId: renameAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RenameAccountRequest" }
+            example:
+              name: "Test Account (renamed)"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Account" }
+              example:
+                id: "01937a1e-0000-7000-8000-000000000001"
+                name: "Test Account (renamed)"
+                created_at: "2026-10-20T09:15:00Z"
+        "400":
+          description: The name is empty or longer than 100 characters
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.name_invalid"
+                message: "An account name must be between 1 and 100 characters."
+        "404":
+          $ref: "#/components/responses/AccountNotFound"
+        "409":
+          description: Another account already has this name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.duplicate_name"
+                message: "An account named 'Test Account (renamed)' already exists."
+
+    delete:
+      tags: [Accounts]
+      summary: Delete an account
+      description: |
+        US-03, AC-09, AC-10. The deletion is refused while any transaction or transfer names
+        the account, so no recorded movement is ever left pointing at an account the ledger no
+        longer has (sad.md §6 flow 5, postcondition). There is no cascade and no soft delete.
+      operationId: deleteAccount
+      responses:
+        "204":
+          description: |
+            AC-10 — no movement named the account, so it was removed.
+        "404":
+          $ref: "#/components/responses/AccountNotFound"
+        "409":
+          description: |
+            AC-09 — at least one transaction or transfer is recorded against this account, so
+            recorded history depends on it.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.has_recorded_history"
+                message: "Recorded history depends on this account, so it cannot be deleted."
+                details:
+                  transaction_count: 42
+                  transfer_count: 3
+
+  # ───────────────────────────── Categories ─────────────────────────────
+  /api/v1/categories:
+    post:
+      tags: [Categories]
+      summary: Create a category, with or without a group
+      description: |
+        US-04, AC-11. A group is optional: omit `category_group_id`, or send `null`, to leave
+        the category ungrouped. An ungrouped category is reported under the **Default group**
+        bucket by the breakdown — that bucket is produced by the report, never created here
+        (sad.md §12).
+
+        A category belongs to either expenses or income, and the `kind` cannot be changed after
+        creation: the breakdown keeps the two sides apart (AC-18) and moving a category across
+        would silently rewrite closed periods.
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategoryRequest" }
+            example:
+              name: "Test Groceries"
+              kind: "Expense"
+              category_group_id: "01937a1e-0000-7000-8000-00000000a001"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000c1"
+                name: "Test Groceries"
+                kind: "Expense"
+                category_group_id: "01937a1e-0000-7000-8000-00000000a001"
+                created_at: "2026-10-20T09:20:00Z"
+        "400":
+          description: The name is empty or longer than 100 characters, or `kind` is not a known value
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category.name_invalid"
+                message: "A category name must be between 1 and 100 characters."
+        "404":
+          description: |
+            The named group is not in the ledger. AC-25 — nothing is created implicitly, not
+            even the group (sad.md §6 flow 6, create branch).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category.group_not_found"
+                message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+        "409":
+          description: |
+            Another category of the same `kind` already has this name. `categories` is UNIQUE on
+            (`name`, `kind`), so "Gifts" may exist once as spending and once as earning
+            (data-model.md decision 4). No acceptance criterion covers this — see the sync report.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category.duplicate_name"
+                message: "An expense category named 'Test Groceries' already exists."
+
+  /api/v1/categories/{category_id}:
+    parameters:
+      - $ref: "#/components/parameters/CategoryId"
+    delete:
+      tags: [Categories]
+      summary: Delete a category
+      description: |
+        US-04, AC-12. Refused while any transaction names the category. The check runs before
+        the delete and there is no `ON DELETE CASCADE` — a cascade would silently do the
+        opposite of what AC-12 asks for (data-model.md, `categories`).
+      operationId: deleteCategory
+      responses:
+        "204":
+          description: No transaction named the category, so it was removed.
+        "404":
+          $ref: "#/components/responses/CategoryNotFound"
+        "409":
+          description: |
+            AC-12 — at least one transaction names this category, so recorded history depends
+            on it.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category.has_recorded_history"
+                message: "Recorded history depends on this category, so it cannot be deleted."
+                details:
+                  transaction_count: 17
+
+  /api/v1/categories/{category_id}/group:
+    parameters:
+      - $ref: "#/components/parameters/CategoryId"
+    put:
+      tags: [Categories]
+      summary: Move a category into a group, or out of every group
+      description: |
+        US-04, AC-13. Send a `category_group_id` to place the category, or `null` to take it out
+        of every group.
+
+        This updates the category row only. A transaction names its category and never its
+        group, so no transaction row is rewritten: the figure for this category in a closed
+        period is unchanged, and group figures follow the new placement from the next read
+        onwards (ADR-0002, sad.md §6 flow 6).
+      operationId: setCategoryGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SetCategoryGroupRequest" }
+            example:
+              category_group_id: "01937a1e-0000-7000-8000-00000000a002"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000c1"
+                name: "Test Groceries"
+                kind: "Expense"
+                category_group_id: "01937a1e-0000-7000-8000-00000000a002"
+                created_at: "2026-10-20T09:20:00Z"
+        "404":
+          description: |
+            AC-25 — either the category or the target group is not part of this ledger. Nothing
+            is created implicitly.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                category_missing:
+                  summary: The category is unknown
+                  value:
+                    code: "category.not_found"
+                    message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+                group_missing:
+                  summary: The target group is unknown
+                  value:
+                    code: "category.group_not_found"
+                    message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
+
+  # ───────────────────────────── Transactions ─────────────────────────────
+  /api/v1/transactions:
+    post:
+      tags: [Transactions]
+      summary: Record an expense or an income
+      description: |
+        US-01, AC-01, AC-02, AC-03. The transaction is recorded on exactly one account and names
+        exactly one category — a movement touching two accounts is a transfer, not a transaction
+        (sad.md §12).
+
+        `amount` is always positive. Whether the account balance falls or rises comes from the
+        category's `kind`, not from the sign (data-model.md decision 3).
+
+        `occurred_on` is a calendar day with no time and no timezone, so a late-evening purchase
+        near a month boundary cannot slide into the next period (data-model.md decision 1).
+      operationId: recordTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordTransactionRequest" }
+            example:
+              account_id: "01937a1e-0000-7000-8000-000000000001"
+              category_id: "01937a1e-0000-7000-8000-0000000000c1"
+              amount: "42.5000"
+              occurred_on: "2026-10-19"
+              note: "Test note"
+      responses:
+        "201":
+          description: |
+            AC-01 — recorded, with the note kept on the entry. The account balance follows on
+            the next read of `/api/v1/accounts/balances`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transaction" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000e1"
+                account_id: "01937a1e-0000-7000-8000-000000000001"
+                category_id: "01937a1e-0000-7000-8000-0000000000c1"
+                amount: "42.5000"
+                occurred_on: "2026-10-19"
+                note: "Test note"
+                created_at: "2026-10-20T09:30:00Z"
+        "400":
+          $ref: "#/components/responses/TransactionInvalid"
+        "404":
+          $ref: "#/components/responses/TransactionReferenceNotFound"
+
+  /api/v1/transactions/{transaction_id}:
+    parameters:
+      - $ref: "#/components/parameters/TransactionId"
+    patch:
+      tags: [Transactions]
+      summary: Correct a recorded transaction
+      description: |
+        US-08, AC-21. Send only the fields that change. Every balance affected by this entry
+        follows the new values on the next read — nothing stored has to be corrected, because
+        no balance is stored (ADR-0002, sad.md §6 flow 4).
+
+        Set `note` to `null` to clear it.
+
+        **A transaction can never become a transfer** (AC-24). This request body carries exactly
+        one account and forbids unknown properties, so naming a second account — for example
+        `destination_account_id` — is refused with `transaction.kind_change_not_allowed`. The
+        way through is to remove this entry and record it again as a transfer (sad.md §6 flow 9).
+      operationId: editTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EditTransactionRequest" }
+            example:
+              amount: "38.0000"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transaction" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000e1"
+                account_id: "01937a1e-0000-7000-8000-000000000001"
+                category_id: "01937a1e-0000-7000-8000-0000000000c1"
+                amount: "38.0000"
+                occurred_on: "2026-10-19"
+                note: "Test note"
+                created_at: "2026-10-20T09:30:00Z"
+        "400":
+          description: |
+            The change is refused. `transaction.kind_change_not_allowed` is AC-24 — the entry is
+            unchanged, no unit of work is committed, and no transfer is created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                amount_not_positive:
+                  summary: AC-02 — the amount must be above zero
+                  value:
+                    code: "transaction.amount_not_positive"
+                    message: "The amount must be above zero."
+                note_too_long:
+                  summary: The note is longer than 500 characters
+                  value:
+                    code: "transaction.note_too_long"
+                    message: "A note may be at most 500 characters."
+                kind_change:
+                  summary: AC-24 — naming a second account would make this a transfer
+                  value:
+                    code: "transaction.kind_change_not_allowed"
+                    message: "A transaction and a transfer are different kinds of entry. Remove this entry and record it again as a transfer."
+                    details:
+                      rejected_property: "destination_account_id"
+        "404":
+          description: |
+            AC-25 — the entry, or an account or category it now names, is not part of this
+            ledger. Nothing is created or changed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                entry_missing:
+                  summary: The entry is unknown
+                  value:
+                    code: "transaction.not_found"
+                    message: "No transaction in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+                account_missing:
+                  summary: The named account is unknown
+                  value:
+                    code: "transaction.account_not_found"
+                    message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
+                category_missing:
+                  summary: The named category is unknown
+                  value:
+                    code: "transaction.category_not_found"
+                    message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000cafe."
+
+    delete:
+      tags: [Transactions]
+      summary: Remove a recorded transaction
+      description: |
+        US-08, AC-22. A hard delete: the entry disappears from history, and every balance it
+        affected returns to what it would have been had the entry never existed. There is no
+        reversing entry, no `deleted_at` and no audit table (ADR-0003) — a wrong delete is
+        unrecoverable outside the nightly `pg_dump` (sad.md §7, §11).
+      operationId: removeTransaction
+      responses:
+        "204":
+          description: Removed.
+        "404":
+          $ref: "#/components/responses/TransactionNotFound"
+
+  # ───────────────────────────── Transfers ─────────────────────────────
+  /api/v1/transfers:
+    post:
+      tags: [Transfers]
+      summary: Record a transfer between two of the owner's own accounts
+      description: |
+        US-02, AC-04, AC-05, AC-06. The source account falls and the destination rises by the
+        same amount, so the total across all accounts is unchanged (AC-15).
+
+        A transfer is **one row** carrying one amount, so a half-applied transfer is not
+        representable rather than merely prevented (ADR-0001, sad.md §6 flow 2). If the commit
+        fails, neither account changed.
+
+        A transfer carries no category and no note — it is not spending or earning, and the
+        breakdown never reads this table (AC-20).
+      operationId: recordTransfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordTransferRequest" }
+            example:
+              source_account_id: "01937a1e-0000-7000-8000-000000000001"
+              destination_account_id: "01937a1e-0000-7000-8000-000000000002"
+              amount: "200.0000"
+              occurred_on: "2026-10-19"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transfer" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000f1"
+                source_account_id: "01937a1e-0000-7000-8000-000000000001"
+                destination_account_id: "01937a1e-0000-7000-8000-000000000002"
+                amount: "200.0000"
+                occurred_on: "2026-10-19"
+                created_at: "2026-10-20T09:40:00Z"
+        "400":
+          $ref: "#/components/responses/TransferInvalid"
+        "404":
+          $ref: "#/components/responses/TransferAccountNotFound"
+        "500":
+          $ref: "#/components/responses/TransferNotRecorded"
+
+  /api/v1/transfers/{transfer_id}:
+    parameters:
+      - $ref: "#/components/parameters/TransferId"
+    patch:
+      tags: [Transfers]
+      summary: Correct a recorded transfer
+      description: |
+        US-08, AC-21, AC-23. Send only the fields that change.
+
+        **A transfer carries no category** (AC-23). This request body has no `category_id` and
+        forbids unknown properties, so trying to give the transfer a category is refused with
+        `transfer.category_not_allowed`. The column it would need does not exist
+        (data-model.md, `transfers`).
+      operationId: editTransfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EditTransferRequest" }
+            example:
+              amount: "180.0000"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transfer" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000f1"
+                source_account_id: "01937a1e-0000-7000-8000-000000000001"
+                destination_account_id: "01937a1e-0000-7000-8000-000000000002"
+                amount: "180.0000"
+                occurred_on: "2026-10-19"
+                created_at: "2026-10-20T09:40:00Z"
+        "400":
+          description: |
+            The change is refused and the entry is unchanged.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                category_not_allowed:
+                  summary: AC-23 — transfers carry no category
+                  value:
+                    code: "transfer.category_not_allowed"
+                    message: "Transfers carry no category."
+                    details:
+                      rejected_property: "category_id"
+                same_account:
+                  summary: AC-05 — a transfer needs two different accounts
+                  value:
+                    code: "transfer.same_account"
+                    message: "A transfer needs two different accounts."
+                amount_not_positive:
+                  summary: The amount must be above zero
+                  value:
+                    code: "transfer.amount_not_positive"
+                    message: "The amount must be above zero."
+        "404":
+          description: |
+            AC-25 — the transfer, or an account it now names, is not part of this ledger.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                entry_missing:
+                  summary: The transfer is unknown
+                  value:
+                    code: "transfer.not_found"
+                    message: "No transfer in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+                source_missing:
+                  summary: The source account is unknown
+                  value:
+                    code: "transfer.source_account_not_found"
+                    message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
+                destination_missing:
+                  summary: The destination account is unknown
+                  value:
+                    code: "transfer.destination_account_not_found"
+                    message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000cafe."
+        "500":
+          $ref: "#/components/responses/TransferNotRecorded"
+
+    delete:
+      tags: [Transfers]
+      summary: Remove a recorded transfer
+      description: |
+        US-08, AC-22. A hard delete (ADR-0003). Both account balances return to what they would
+        have been had the transfer never existed, and the total across all accounts is unchanged
+        either way (AC-15).
+      operationId: removeTransfer
+      responses:
+        "204":
+          description: Removed.
+        "404":
+          $ref: "#/components/responses/TransferNotFound"
+
+  # ───────────────────────────── Reporting ─────────────────────────────
+  /api/v1/history:
+    get:
+      tags: [Reporting]
+      summary: List recorded movements, filtered by period, account and category
+      description: |
+        US-06, AC-16, AC-17. Every filter is optional — a request with none of them asks for the
+        whole history (sad.md §6 flow 8).
+
+        Each row is marked `kind: transaction` or `kind: transfer`, and every transaction shows
+        its note (AC-16).
+
+        **A category filter excludes transfers.** A transfer carries no category, so it can never
+        match the filter; returning it anyway would mean the result did not all match what the
+        owner asked for. Confirmed at the api-forge gate — sad.md §6 flow 8 flagged it and the
+        PRD does not state it.
+
+        A period that recorded nothing returns an empty `items` array with `200`, not an error
+        (AC-17).
+
+        Paging is by opaque cursor over `(occurred_on, id)`. History is a `UNION ALL` of two
+        tables (ADR-0001), so a page boundary cannot be a bare id — pass `next_cursor` or
+        `prev_cursor` back unread. Page size was settled at this gate: default 50, maximum 200.
+      operationId: getHistory
+      parameters:
+        - in: query
+          name: from
+          required: false
+          description: First calendar day of the period, inclusive.
+          schema: { type: string, format: date }
+          example: "2026-10-01"
+        - in: query
+          name: to
+          required: false
+          description: Last calendar day of the period, inclusive.
+          schema: { type: string, format: date }
+          example: "2026-10-31"
+        - in: query
+          name: account_id
+          required: false
+          description: |
+            Keep only movements touching this account. For a transfer that means either side.
+          schema: { type: string, format: uuid }
+        - in: query
+          name: category_id
+          required: false
+          description: |
+            Keep only transactions filed under this category. **Setting this excludes every
+            transfer**, because a transfer carries no category.
+          schema: { type: string, format: uuid }
+        - $ref: "#/components/parameters/After"
+        - $ref: "#/components/parameters/Before"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: |
+            OK. An empty `items` array is a normal answer, not a failure (AC-17).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HistoryPage" }
+              examples:
+                mixed_page:
+                  summary: A page holding one transaction and one transfer
+                  value:
+                    items:
+                      - kind: "transaction"
+                        id: "01937a1e-0000-7000-8000-0000000000e1"
+                        occurred_on: "2026-10-19"
+                        amount: "42.5000"
+                        account_id: "01937a1e-0000-7000-8000-000000000001"
+                        account_name: "Test Account"
+                        category_id: "01937a1e-0000-7000-8000-0000000000c1"
+                        category_name: "Test Groceries"
+                        category_kind: "Expense"
+                        note: "Test note"
+                        created_at: "2026-10-20T09:30:00Z"
+                      - kind: "transfer"
+                        id: "01937a1e-0000-7000-8000-0000000000f1"
+                        occurred_on: "2026-10-19"
+                        amount: "200.0000"
+                        source_account_id: "01937a1e-0000-7000-8000-000000000001"
+                        source_account_name: "Test Account"
+                        destination_account_id: "01937a1e-0000-7000-8000-000000000002"
+                        destination_account_name: "Test Savings"
+                        created_at: "2026-10-20T09:40:00Z"
+                    has_next: true
+                    has_prev: false
+                    next_cursor: "MjAyNi0xMC0xOXwwMTkzN2ExZS0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwZjE"
+                    prev_cursor: null
+                empty_period:
+                  summary: AC-17 — nothing was recorded in the period asked for
+                  value:
+                    items: []
+                    has_next: false
+                    has_prev: false
+                    next_cursor: null
+                    prev_cursor: null
+        "400":
+          description: |
+            A filter is unusable — `from` is after `to`, `limit` is outside 1..200, or a cursor
+            is not one this server minted.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "history.invalid_filter"
+                message: "'from' must not be after 'to'."
+                details:
+                  from: "2026-10-31"
+                  to: "2026-10-01"
+
+  /api/v1/reports/breakdown:
+    get:
+      tags: [Reporting]
+      summary: Total a period by group and by category in one request
+      description: |
+        US-07, AC-18, AC-19, AC-20. One answer carries totals per group **and** totals per
+        category, with spending and earning kept apart (AC-18).
+
+        Every category that belongs to no group is reported under the **Default group** bucket,
+        whose `category_group_id` is `null`. That bucket is produced by this report — the owner
+        cannot rename it, delete it, or file a transaction under it (sad.md §12). Adding the
+        group totals together with the Default group total gives the period total, on the
+        spending side and the earning side alike (AC-19).
+
+        **No transfer is counted as spending or as earning** (AC-20). The query reads
+        `transactions` and never touches `transfers`, so this holds structurally rather than by
+        a filter that could be forgotten (ADR-0001, sad.md §6 flow 3).
+
+        Group totals follow the **current** category-to-group mapping, resolved at query time.
+        Moving a category between groups changes group figures at once and can never change that
+        category's own figure for a closed period (AC-13, ADR-0002).
+      operationId: getBreakdown
+      parameters:
+        - in: query
+          name: from
+          required: true
+          description: First calendar day of the period, inclusive.
+          schema: { type: string, format: date }
+          example: "2026-10-01"
+        - in: query
+          name: to
+          required: true
+          description: Last calendar day of the period, inclusive.
+          schema: { type: string, format: date }
+          example: "2026-10-31"
+        - in: query
+          name: account_id
+          required: false
+          description: Total only the transactions recorded on this account (PRD §1).
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Breakdown" }
+              example:
+                period:
+                  from: "2026-10-01"
+                  to: "2026-10-31"
+                account_id: null
+                expense:
+                  total: "612.5000"
+                  groups:
+                    - category_group_id: "01937a1e-0000-7000-8000-00000000a001"
+                      name: "Test Utilities"
+                      total: "412.5000"
+                      categories:
+                        - category_id: "01937a1e-0000-7000-8000-0000000000c1"
+                          name: "Test Electricity"
+                          total: "250.0000"
+                        - category_id: "01937a1e-0000-7000-8000-0000000000c2"
+                          name: "Test Water"
+                          total: "162.5000"
+                    - category_group_id: null
+                      name: "Default group"
+                      total: "200.0000"
+                      categories:
+                        - category_id: "01937a1e-0000-7000-8000-0000000000c3"
+                          name: "Test Groceries"
+                          total: "200.0000"
+                income:
+                  total: "3000.0000"
+                  groups:
+                    - category_group_id: null
+                      name: "Default group"
+                      total: "3000.0000"
+                      categories:
+                        - category_id: "01937a1e-0000-7000-8000-0000000000c9"
+                          name: "Test Salary"
+                          total: "3000.0000"
+        "400":
+          description: The period is unusable — `from` is after `to`, or a date is not a calendar day.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "breakdown.invalid_period"
+                message: "'from' must not be after 'to'."
+                details:
+                  from: "2026-10-31"
+                  to: "2026-10-01"
+        "404":
+          description: AC-25 — the named account is not part of this ledger.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "account.not_found"
+                message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+components:
+  # No `securitySchemes` block. PRD §3 and sad.md §8: one owner, no sign-in, nothing to
+  # authenticate against. See .claude/rules/openapi.md §1.
+
+  parameters:
+    AccountId:
+      in: path
+      name: account_id
+      required: true
+      schema: { type: string, format: uuid }
+    CategoryId:
+      in: path
+      name: category_id
+      required: true
+      schema: { type: string, format: uuid }
+    TransactionId:
+      in: path
+      name: transaction_id
+      required: true
+      schema: { type: string, format: uuid }
+    TransferId:
+      in: path
+      name: transfer_id
+      required: true
+      schema: { type: string, format: uuid }
+    After:
+      in: query
+      name: after
+      required: false
+      description: |
+        Opaque cursor — the page starts after the movement it points at. Pass back a
+        `next_cursor` from a previous page; never build one by hand.
+      schema: { type: string, maxLength: 200 }
+    Before:
+      in: query
+      name: before
+      required: false
+      description: |
+        Opaque cursor — the page ends before the movement it points at. Pass back a
+        `prev_cursor` from a previous page.
+      schema: { type: string, maxLength: 200 }
+    Limit:
+      in: query
+      name: limit
+      required: false
+      description: |
+        How many movements one page holds. Settled at the api-forge gate: the PRD §6 budget is
+        p95 ≤ 400 ms per page over ~20 000 movements, and ~550 movements a month means the
+        default pulls a month in about eleven requests.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+
+  responses:
+    AccountNotFound:
+      description: AC-25 — no account in this ledger has that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "account.not_found"
+            message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+    CategoryNotFound:
+      description: AC-25 — no category in this ledger has that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "category.not_found"
+            message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+    TransactionNotFound:
+      description: AC-25 — no transaction in this ledger has that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "transaction.not_found"
+            message: "No transaction in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+    TransferNotFound:
+      description: AC-25 — no transfer in this ledger has that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "transfer.not_found"
+            message: "No transfer in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+    TransactionInvalid:
+      description: |
+        The recording is blocked and nothing is created. `transaction.amount_not_positive` is
+        AC-02 (sad.md §6 flow 1, second alt-branch).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            amount_not_positive:
+              summary: AC-02 — the amount must be above zero
+              value:
+                code: "transaction.amount_not_positive"
+                message: "The amount must be above zero."
+            note_too_long:
+              summary: The note is longer than 500 characters
+              value:
+                code: "transaction.note_too_long"
+                message: "A note may be at most 500 characters."
+
+    TransactionReferenceNotFound:
+      description: |
+        AC-03, AC-25 — the named account or category is not in the ledger. Nothing is created,
+        not even the unknown category (sad.md §6 flow 1, first alt-branch).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            account_missing:
+              summary: The named account is unknown
+              value:
+                code: "transaction.account_not_found"
+                message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+            category_missing:
+              summary: AC-03 — the named category is unknown
+              value:
+                code: "transaction.category_not_found"
+                message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
+                details:
+                  category_id: "01937a1e-0000-7000-8000-00000000beef"
+
+    TransferInvalid:
+      description: |
+        The recording is blocked and nothing is recorded. `transfer.same_account` is AC-05
+        (sad.md §6 flow 2, first alt-branch).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            same_account:
+              summary: AC-05 — a transfer needs two different accounts
+              value:
+                code: "transfer.same_account"
+                message: "A transfer needs two different accounts."
+            amount_not_positive:
+              summary: The amount must be above zero
+              value:
+                code: "transfer.amount_not_positive"
+                message: "The amount must be above zero."
+
+    TransferAccountNotFound:
+      description: AC-25 — the source or the destination account is not part of this ledger.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            source_missing:
+              summary: The source account is unknown
+              value:
+                code: "transfer.source_account_not_found"
+                message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+            destination_missing:
+              summary: The destination account is unknown
+              value:
+                code: "transfer.destination_account_not_found"
+                message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
+
+    TransferNotRecorded:
+      description: |
+        AC-06 — the recording could not be completed, so **neither account changed**. A transfer
+        is never applied to one side only: it is one row in one database transaction, which
+        rolled back (sad.md §6 flow 2, inner alt-branch).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "transfer.not_recorded"
+            message: "The transfer could not be recorded. Neither account changed."
+
+  schemas:
+    # ── Shared primitives ──────────────────────────────────────────────
+    Error:
+      type: object
+      description: |
+        The unified error envelope. `code` is the neutral `module.error_name` convention — a
+        naming rule, not a language artifact.
+
+        NOTE: this flat envelope was chosen at the api-forge gate and **contradicts**
+        `sad.md` §8 and `CLAUDE.md` §API, which both name RFC 9457 Problem Details. The conflict
+        is unresolved — see `api-sync-report.md` → Deferrals.
+      required: [code, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          pattern: "^[a-z_]+\\.[a-z_]+$"
+          example: "transaction.category_not_found"
+        message:
+          type: string
+          description: |
+            Wording is taken from the PRD acceptance criterion the refusal implements, not
+            invented (sad.md §8, Error handling).
+        details:
+          type: object
+          description: Optional structured context — field errors, the conflicting id, counts.
+
+    MoneyAmount:
+      type: string
+      description: |
+        A positive money amount, as a decimal string. Maps to `NUMERIC(19,4)` and to C#
+        `decimal` — never `double` or `float` (`CLAUDE.md`). It crosses the wire as a string
+        because a JSON number is parsed as an IEEE double by most clients, which loses the
+        fourth decimal place.
+
+        **Must be above zero.** AC-02 is a domain invariant enforced in the entity, not a
+        database `CHECK` (data-model.md decision 6), so a zero or negative value is refused with
+        `*.amount_not_positive` rather than by this pattern.
+      pattern: "^\\d{1,15}(\\.\\d{1,4})?$"
+      example: "42.5000"
+
+    SignedMoneyAmount:
+      type: string
+      description: |
+        A money amount that may be negative — a computed balance or total. Same
+        `NUMERIC(19,4)` precision as `MoneyAmount`.
+      pattern: "^-?\\d{1,15}(\\.\\d{1,4})?$"
+      example: "-40.5000"
+
+    CategoryKind:
+      type: string
+      description: |
+        Which side of the ledger a category belongs to. The values are the strings stored in
+        `categories.kind` — enums are stored as strings, never as int (`CLAUDE.md`).
+      enum: [Expense, Income]
+      example: "Expense"
+
+    # ── Accounts ───────────────────────────────────────────────────────
+    Account:
+      type: object
+      description: A place where the owner's money sits. Not a bank identifier — a label the owner chooses.
+      required: [id, name, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        created_at: { type: string, format: date-time }
+
+    CreateAccountRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Unique across accounts (data-model.md decision 4).
+
+    RenameAccountRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+
+    AccountBalance:
+      type: object
+      description: |
+        One account and what it holds right now. `balance` is computed from the movements at
+        read time and is never stored (ADR-0002), so it may be negative.
+      required: [account_id, name, balance]
+      additionalProperties: false
+      properties:
+        account_id: { type: string, format: uuid }
+        name: { type: string, maxLength: 100 }
+        balance: { $ref: "#/components/schemas/SignedMoneyAmount" }
+
+    AccountBalances:
+      type: object
+      description: |
+        Not paginated — sad.md §6 flow 7 reads every account in one query, and `accounts` holds
+        a handful of rows.
+      required: [accounts, total]
+      additionalProperties: false
+      properties:
+        accounts:
+          type: array
+          items: { $ref: "#/components/schemas/AccountBalance" }
+        total:
+          allOf:
+            - $ref: "#/components/schemas/SignedMoneyAmount"
+          description: |
+            The per-account figures added together. AC-15 — a transfer between the owner's own
+            accounts leaves this unchanged.
+
+    # ── Categories ─────────────────────────────────────────────────────
+    Category:
+      type: object
+      description: |
+        A label the owner files a transaction under. Belongs to at most one group; a
+        `category_group_id` of `null` means the breakdown reports it under the Default group.
+      required: [id, name, kind, category_group_id, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        kind: { $ref: "#/components/schemas/CategoryKind" }
+        category_group_id: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+
+    CreateCategoryRequest:
+      type: object
+      required: [name, kind]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Unique per `kind` — "Gifts" may exist once as spending and once as earning.
+        kind: { $ref: "#/components/schemas/CategoryKind" }
+        category_group_id:
+          type: [string, "null"]
+          format: uuid
+          description: |
+            Optional. Omit it, or send `null`, to leave the category ungrouped (AC-11).
+
+            **Unreachable today:** no operation in this contract creates a category group, so
+            there is no id to put here. See `api-sync-report.md` → Verdict FAIL.
+
+    SetCategoryGroupRequest:
+      type: object
+      required: [category_group_id]
+      additionalProperties: false
+      properties:
+        category_group_id:
+          type: [string, "null"]
+          format: uuid
+          description: |
+            The group to move the category into, or `null` to take it out of every group
+            (AC-13).
+
+    # ── Transactions ───────────────────────────────────────────────────
+    Transaction:
+      type: object
+      description: |
+        A single income or expense recorded on exactly one account, with an amount, a calendar
+        day, a category and an optional free-text note. Not a transfer.
+      required: [id, account_id, category_id, amount, occurred_on, note, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        account_id: { type: string, format: uuid }
+        category_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        occurred_on:
+          type: string
+          format: date
+          description: |
+            The calendar day the owner files the entry under — no time and no timezone, so an
+            entry cannot slide across a month boundary (data-model.md decision 1).
+        note:
+          type: [string, "null"]
+          maxLength: 500
+          description: |
+            Optional free text. Stored and returned as plain text, never interpreted
+            (PRD §6.1).
+        created_at: { type: string, format: date-time }
+
+    RecordTransactionRequest:
+      type: object
+      required: [account_id, category_id, amount, occurred_on]
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          description: |
+            Exactly one account. A movement touching two is a transfer — use
+            `POST /api/v1/transfers`.
+        category_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        occurred_on: { type: string, format: date }
+        note: { type: [string, "null"], maxLength: 500 }
+
+    EditTransactionRequest:
+      type: object
+      description: |
+        Send only what changes. `null` on `note` clears it.
+
+        There is deliberately **no second-account property**: AC-24 refuses to turn a
+        transaction into a transfer, and `additionalProperties: false` is what makes the refusal
+        structural. Sending `destination_account_id` is a `400`
+        `transaction.kind_change_not_allowed`.
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        account_id: { type: string, format: uuid }
+        category_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        occurred_on: { type: string, format: date }
+        note: { type: [string, "null"], maxLength: 500 }
+
+    # ── Transfers ──────────────────────────────────────────────────────
+    Transfer:
+      type: object
+      description: |
+        Moves money between two different accounts of the owner: one falls and the other rises
+        by the same amount. Carries no category and no note, and leaves the owner's total
+        unchanged.
+      required: [id, source_account_id, destination_account_id, amount, occurred_on, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        source_account_id: { type: string, format: uuid }
+        destination_account_id: { type: string, format: uuid }
+        amount:
+          allOf:
+            - $ref: "#/components/schemas/MoneyAmount"
+          description: One amount for both sides, so AC-04 and AC-15 hold by construction.
+        occurred_on: { type: string, format: date }
+        created_at: { type: string, format: date-time }
+
+    RecordTransferRequest:
+      type: object
+      required: [source_account_id, destination_account_id, amount, occurred_on]
+      additionalProperties: false
+      properties:
+        source_account_id:
+          type: string
+          format: uuid
+          description: Must differ from `destination_account_id` (AC-05).
+        destination_account_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        occurred_on: { type: string, format: date }
+
+    EditTransferRequest:
+      type: object
+      description: |
+        Send only what changes.
+
+        There is deliberately **no `category_id` property**: AC-23 refuses to give a transfer a
+        category, and the column it would need does not exist. Sending `category_id` is a `400`
+        `transfer.category_not_allowed`.
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        source_account_id: { type: string, format: uuid }
+        destination_account_id: { type: string, format: uuid }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        occurred_on: { type: string, format: date }
+
+    # ── History ────────────────────────────────────────────────────────
+    HistoryTransaction:
+      type: object
+      description: |
+        A transaction as it appears in history. Account and category names are joined in so a
+        client does not need a second request per row.
+      required:
+        [kind, id, occurred_on, amount, account_id, account_name, category_id, category_name, category_kind, note, created_at]
+      additionalProperties: false
+      properties:
+        kind: { type: string, const: "transaction" }
+        id: { type: string, format: uuid }
+        occurred_on: { type: string, format: date }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        account_id: { type: string, format: uuid }
+        account_name: { type: string, maxLength: 100 }
+        category_id: { type: string, format: uuid }
+        category_name: { type: string, maxLength: 100 }
+        category_kind:
+          allOf:
+            - $ref: "#/components/schemas/CategoryKind"
+          description: |
+            Says whether this row lowered or raised the balance. `amount` is always positive;
+            direction comes from here (data-model.md decision 3).
+        note: { type: [string, "null"], maxLength: 500 }
+        created_at: { type: string, format: date-time }
+
+    HistoryTransfer:
+      type: object
+      description: |
+        A transfer as it appears in history. No category and no note — the fields do not exist
+        on the entity.
+      required:
+        [kind, id, occurred_on, amount, source_account_id, source_account_name, destination_account_id, destination_account_name, created_at]
+      additionalProperties: false
+      properties:
+        kind: { type: string, const: "transfer" }
+        id: { type: string, format: uuid }
+        occurred_on: { type: string, format: date }
+        amount: { $ref: "#/components/schemas/MoneyAmount" }
+        source_account_id: { type: string, format: uuid }
+        source_account_name: { type: string, maxLength: 100 }
+        destination_account_id: { type: string, format: uuid }
+        destination_account_name: { type: string, maxLength: 100 }
+        created_at: { type: string, format: date-time }
+
+    HistoryItem:
+      description: |
+        One recorded movement, marked as a transaction or a transfer (AC-16). Switch on `kind`.
+      oneOf:
+        - $ref: "#/components/schemas/HistoryTransaction"
+        - $ref: "#/components/schemas/HistoryTransfer"
+      discriminator:
+        propertyName: kind
+        mapping:
+          transaction: "#/components/schemas/HistoryTransaction"
+          transfer: "#/components/schemas/HistoryTransfer"
+
+    HistoryPage:
+      type: object
+      description: |
+        One page of history, newest first, ordered by `(occurred_on, id)`. `id` is a time-ordered
+        UUID v7 (ADR-0005), which is what makes it a stable tiebreaker inside one day across
+        both tables.
+      required: [items, has_next, has_prev, next_cursor, prev_cursor]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/HistoryItem" }
+        has_next: { type: boolean }
+        has_prev: { type: boolean }
+        next_cursor:
+          type: [string, "null"]
+          maxLength: 200
+          description: Pass back as `after` to read the next page. `null` on the last page.
+        prev_cursor:
+          type: [string, "null"]
+          maxLength: 200
+          description: Pass back as `before` to read the previous page. `null` on the first page.
+
+    # ── Breakdown ──────────────────────────────────────────────────────
+    BreakdownCategory:
+      type: object
+      description: |
+        One category's total for the period. AC-13 — this figure for a closed period does not
+        change when the category is moved between groups.
+      required: [category_id, name, total]
+      additionalProperties: false
+      properties:
+        category_id: { type: string, format: uuid }
+        name: { type: string, maxLength: 100 }
+        total: { $ref: "#/components/schemas/MoneyAmount" }
+
+    BreakdownGroup:
+      type: object
+      description: |
+        One group's total for the period, with the categories that make it up. A
+        `category_group_id` of `null` is the **Default group** — every category that belongs to
+        no group. It is produced by this report, not created by the owner (sad.md §12).
+      required: [category_group_id, name, total, categories]
+      additionalProperties: false
+      properties:
+        category_group_id: { type: [string, "null"], format: uuid }
+        name:
+          type: string
+          maxLength: 100
+          description: The group's name, or the literal `Default group` when `category_group_id` is `null`.
+        total: { $ref: "#/components/schemas/MoneyAmount" }
+        categories:
+          type: array
+          items: { $ref: "#/components/schemas/BreakdownCategory" }
+
+    BreakdownSide:
+      type: object
+      description: |
+        One side of the ledger — spending or earning — kept apart from the other (AC-18). AC-19:
+        the `total` of every entry in `groups`, Default group included, sums to `total` here.
+      required: [total, groups]
+      additionalProperties: false
+      properties:
+        total: { $ref: "#/components/schemas/MoneyAmount" }
+        groups:
+          type: array
+          items: { $ref: "#/components/schemas/BreakdownGroup" }
+
+    BreakdownPeriod:
+      type: object
+      required: [from, to]
+      additionalProperties: false
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+
+    Breakdown:
+      type: object
+      description: |
+        The answer the owner's previous tool could never give: group totals and category totals
+        in a single request (PRD §1, US-07). No transfer is counted on either side (AC-20).
+      required: [period, account_id, expense, income]
+      additionalProperties: false
+      properties:
+        period: { $ref: "#/components/schemas/BreakdownPeriod" }
+        account_id:
+          type: [string, "null"]
+          format: uuid
+          description: The account filter that produced this answer, or `null` for every account.
+        expense:
+          allOf:
+            - $ref: "#/components/schemas/BreakdownSide"
+          description: Spending — categories whose `kind` is `Expense`.
+        income:
+          allOf:
+            - $ref: "#/components/schemas/BreakdownSide"
+          description: Earning — categories whose `kind` is `Income`.

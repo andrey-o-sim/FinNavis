@@ -50,3 +50,5 @@ settings.local.json
 
 # Worktrees an agent may create while working on a task.
 .worktrees/
+# Per-developer SDLC plugin settings (sdlc.local.md and friends).
+.claude/*.local.md
