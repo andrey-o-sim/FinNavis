@@ -2,7 +2,7 @@
 status: Approved
 owner: "Andrey Simonenko"
 reviewers: ["Andrey Simonenko"]
-updated_at: "2026-10-16"
+updated_at: "2026-10-20"
 feature_size: M
 stage: "04-05"
 ticket: "none"
@@ -117,7 +117,7 @@ serves exactly one person. It talks to nothing outside itself except its own dat
 
 | Actor or system | Type | Interaction |
 |---|---|---|
-| Owner | Person | Records transactions and transfers; manages accounts and categories; reads balances, history and the period breakdown |
+| Owner | Person | Records transactions and transfers; manages accounts, categories and category groups; reads balances, history and the period breakdown |
 | PostgreSQL 18 | System (separate process, self-hosted alongside the API) | Stores the whole ledger |
 
 **No third-party system is involved, and that is a decision, not an omission.** There is no bank
@@ -221,10 +221,30 @@ Application layer and REST convention.
 These are conventions rather than architecture, so neither is an ADR. Both are recorded in
 `CLAUDE.md`, which is where the repo keeps its day-to-day rules.
 
-The feature introduces **five aggregates and four repository ports**. `CategoryGroup` has no
-repository of its own: US-04 treats creating a category, putting it in a group and moving it between
-groups as one job, so `ICategoryRepository` serves all of it. A port is added when a use case needs
-one, never because a table exists (CLAUDE.md).
+The feature introduces **five aggregates and five repository ports**. `CategoryGroup` has a
+repository of its own: US-09 makes the group lifecycle a job in its own right — the owner creates,
+lists, renames and removes groups without touching the categories underneath — so a use case needs
+the port directly. That is the test CLAUDE.md sets: a port is added when a use case needs one, never
+because a table exists. (This replaces the earlier reading, where US-04 treated grouping as part of
+managing a category and `ICategoryRepository` served all of it. US-09 and US-10 were added by the
+PRD amendment of 2026-10-20.)
+
+**A group belongs to one side of the ledger, exactly as a category does** (AC-26, AC-30, and
+`CONTEXT.md`, which is canonical). `CategoryGroup` therefore carries `CategoryKind`. Placing a
+category into a group on the other side is refused by the `CategoryGroup` entity as a domain
+invariant — not by a database constraint, per the repo's "DB as dumb storage" rule.
+
+**Removing a group does not remove the categories inside it** (AC-29). The group row goes; every
+category it held keeps all of its recorded history and only loses its link to a group. The breakdown
+then reports those categories under the Default group. Note what this does *not* mean: the Default
+group is produced by the breakdown and is never a row of its own (`CONTEXT.md`), so nothing is
+reassigned to it — the link is simply cleared, and a category with no group falls there by
+definition. Clearing it is the use case's job in the Application layer, not a database cascade.
+
+This is also why removing a group is allowed while removing an account (AC-09) or a category (AC-12)
+that has recorded history is refused. Those two are named directly by recorded movements, so
+removing one would orphan real money. A group is named by no movement — it only arranges categories
+for reporting, and the categories keep their own history either way.
 
 The **read path is separate from the write path** (ADR-0004). Writes go through the repository ports
 and return domain entities. Reads go through `ILedgerQueries`, declared in
@@ -236,14 +256,16 @@ and only result rows travel back.
 ```
 src/FinNavis.Domain/
 ├── Entities/        Account, Category, CategoryGroup, Transaction, Transfer
+│                    Category and CategoryGroup both carry CategoryKind
 ├── ValueObjects/    Money, DateRange
 ├── Enums/           CategoryKind (Expense | Income)
-└── Abstractions/    IAccountRepository, ICategoryRepository,
+└── Abstractions/    IAccountRepository, ICategoryRepository, ICategoryGroupRepository,
                      ITransactionRepository, ITransferRepository, IClock
 
 src/FinNavis.Application/
 ├── Accounts/         Create, Rename, Delete, GetBalances
-├── Categories/       Create, Rename, MoveToGroup, Delete
+├── Categories/       Create, List, Rename, MoveToGroup, Delete
+├── CategoryGroups/   Create, List, Rename, Delete
 ├── Transactions/     Record, Edit, Remove
 ├── Transfers/        Record, Edit, Remove
 ├── Reporting/        GetHistory, GetBreakdown
@@ -252,7 +274,7 @@ src/FinNavis.Application/
 
 src/FinNavis.Infrastructure/
 ├── Persistence/      FinNavisDbContext, Configurations/, Migrations/
-├── Repositories/     EF Core adapters for the four repository ports
+├── Repositories/     EF Core adapters for the five repository ports
 └── Queries/          EF Core adapter for ILedgerQueries
 
 src/FinNavis.Presentation/
@@ -262,7 +284,8 @@ src/FinNavis.Presentation/
 │   │   ├── Rename/        endpoint + its own request and response records
 │   │   ├── Delete/
 │   │   └── GetBalances/
-│   ├── Categories/        Create, Rename, MoveToGroup, Delete
+│   ├── Categories/        Create, List, Rename, MoveToGroup, Delete
+│   ├── CategoryGroups/    Create, List, Rename, Delete
 │   ├── Transactions/      Record, Edit, Remove
 │   ├── Transfers/         Record, Edit, Remove
 │   └── Reporting/         GetHistory, GetBreakdown
@@ -289,7 +312,7 @@ C4Container
     Container_Boundary(api, "FinNavis API — one ASP.NET Core process") {
         Container(pres, "Presentation", "ASP.NET Core Minimal APIs", "Maps HTTP to use cases, owns request and response contracts, is the composition root")
         Container(app, "Application", "C# use cases", "Orchestrates domain objects; declares IUnitOfWork and ILedgerQueries")
-        Container(dom, "Domain", "C# entities and rules", "Account, Category, CategoryGroup, Transaction, Transfer; declares the four repository ports")
+        Container(dom, "Domain", "C# entities and rules", "Account, Category, CategoryGroup, Transaction, Transfer; declares the five repository ports")
         Container(inf, "Infrastructure", "EF Core 10 + Npgsql", "Adapters for every port, DbContext, entity configurations, migrations")
     }
 
@@ -317,13 +340,28 @@ C4Container
 <!-- 📌 Приклад: «methodist → web-app: складає чорновик → web-app → content-api: зберегти». -->
 
 Participants are the §5 rings. Messages are semantic — HTTP verbs, paths and status codes arrive at
-the `api-forge` stage, not here. §6 is now complete: **nine flows cover all eight §4 user stories and
-all 25 §5 acceptance criteria.** Flows 1 to 4 were seeded by `/sdlc-architecture-design`; flows 5 to
+the `api-forge` stage, not here. Flows 1 to 4 were seeded by `/sdlc-architecture-design`; flows 5 to
 9 were added by `/sdlc-complete-sequence-diagrams` and appended rather than interleaved, so the
 blocks above keep the numbers the earlier commits gave them.
 
 Reading order by user story: US-01 flow 1 · US-02 flow 2 · US-03 flow 5 · US-04 flow 6 ·
 US-05 flow 7 · US-06 flow 8 · US-07 flow 3 · US-08 flows 4 and 9.
+
+**§6 is incomplete as of 2026-10-20.** The nine flows below cover US-01 to US-08 and AC-01 to AC-25.
+The PRD amendment of that date added US-09, US-10 and AC-26 to AC-36, and none of them is drawn yet:
+
+| Not yet drawn | Acceptance criteria |
+|---|---|
+| Group lifecycle — create, list, rename, remove | AC-26, AC-27, AC-28, AC-29 |
+| A group and a category must share a side | AC-30 |
+| Group name taken on that side | AC-31 |
+| Naming a group that is not in the ledger | AC-32 |
+| List categories, optionally narrowed to one group | AC-33 |
+| Rename a category that already has history | AC-34 |
+| Account name taken; category name taken on that side | AC-35, AC-36 |
+
+`/sdlc-complete-sequence-diagrams core-ledger` appends them and replaces this note with the closed
+coverage statement. Until it runs, treat the list above as the gap.
 
 **Critical flow 1: record an expense** (US-01 — AC-01, AC-02, AC-03)
 
@@ -768,7 +806,8 @@ dump is still lost — is carried in §11.
 | ID strategy | UUID v7, generated in the Application layer with `Guid.CreateVersion7()`, stored as PostgreSQL `uuid` | ADR-0005 |
 | External reference | Every transaction carries a nullable `external_ref` with a unique index. Unused and always null in this feature; csv-import and message capture fill it later | ADR-0006 |
 | Money | `decimal`, single currency, no currency code stored | CLAUDE.md, PRD §3 |
-| Time | `DateTimeOffset`, stored UTC. An `IClock` port in `Domain/Abstractions` keeps date rules testable without the machine clock | CLAUDE.md, ARCHITECTURE.md |
+| Time (audit timestamps) | `DateTimeOffset`, stored UTC — `created_at` and anything else the system records about itself. An `IClock` port in `Domain/Abstractions` keeps date rules testable without the machine clock | CLAUDE.md, ARCHITECTURE.md |
+| Time (the date an entry is filed under) | A calendar day with no time and no timezone, so a late-evening entry cannot slide across a period boundary. This is a different type from the row above on purpose, and it is what every §10 period scenario rests on | `data-model.md` decision 1 |
 | Validation | Shape only in Presentation; use-case checks in Application; invariants inside Domain entities | here |
 | Concurrency | None. One owner and one client, so no optimistic concurrency token in v1 | → §11 |
 | Filter dimensions | Period, account and category only. Payee, merchant and free tags are deliberately excluded — the optional note covers the need to find an entry by eye (PRD §8, closed at this stage) | here → §11 |
@@ -892,8 +931,8 @@ alerts, no metrics stack, one replica.
 | Paging history across a `UNION ALL` of two tables (ADR-0001) is awkward, and the ≤ 400 ms per-page target depends on getting it right | Medium | Decided at `/sdlc-api-forge`, which owns the endpoint contract. Both tables are keyed by time-ordered UUID v7 (ADR-0005), so a merged keyset page over date and id is workable; at ~20 000 rows offset paging would also meet the bar | Andrey |
 | The breakdown has no cache and no rollup (ADR-0002), so its index is load-bearing — losing it turns the query into a sequential scan | Medium | `EXPLAIN` assertion inside the latency test (§10), so the regression shows up as a failing test | Andrey |
 | No audit trail — a wrong edit or delete is unrecoverable (ADR-0003) | Medium | Nightly `pg_dump` to a backed-up host folder (§7). Anything recorded or deleted after the last dump is still lost | Andrey |
-| Open question: what is the maximum length of a transaction note? Default now: no limit enforced | Open question | Resolve before `/sdlc-generate-data-model`; carried from PRD §8. PRD §6.1 names an unbounded note as a storage-bloat abuse case | Andrey |
-| Open question: how are stored UTC timestamps reconciled with the owner's local calendar month, so a late-evening purchase near a boundary lands in the right period? Default now: undecided | Open question | Resolve before `/sdlc-generate-data-model`; carried from PRD §8. It affects every period boundary in §10's QG-3 scenarios | Andrey |
+| Open question: should a group that holds no categories appear in the period breakdown with a total of zero, or be left out of it entirely? Default now: left out — a group with no categories has nothing to total | Open question | Resolve before `/sdlc-api-forge`; carried from PRD §8. It touches AC-19, which requires group totals plus the Default group to equal the period total — a zero row neither helps nor breaks that | Andrey |
+| Open question: when a group is removed and its categories lose their group link (AC-29), should the owner be told how many categories were affected? Default now: no — the removal is confirmed, and the owner reads the new grouping back with AC-33 | Open question | Resolve before `/sdlc-api-forge`; carried from PRD §8. It is a response-shape question, so `/sdlc-api-forge` is the right gate | Andrey |
 | Open question: `SPEC.md` Non-goals says "no authentication, one owner" while its draft requirements list Google OAuth and a secured public API | Open question | Resolve when the OAuth feature is scoped; carried from PRD §8 | Andrey |
 | Open question: `SPEC.md` draft requirements now ask to store a currency rate per expense, while its own Non-goals say "no multi-currency, single currency for now" — and §8 here stores `decimal` with no currency code | Open question | Resolve when a currency feature is scoped. It is a data-model change, not an addition: money would need a currency and a stored rate, which touches the `transactions` table and every total in the breakdown. Decide before it ships, not after history exists | Andrey |
 | Open question: `SPEC.md` draft requirements now ask for an expense marker usable as a filter, which is the extra filter dimension §8 closed as "no" during this pass | Open question | Resolve before `/sdlc-generate-data-model`, or before csv-import is scoped — a bank statement's payee field is when the need becomes concrete. Adding it later is an additive migration plus a new filter, not a rewrite | Andrey |
@@ -916,6 +955,15 @@ alerts, no metrics stack, one replica.
   `external_ref`. See ADR-0006.
 - Is a filter dimension outside period / account / category needed soon? → no. See §8.
 
+**Open questions closed after this pass** (they were open rows here until the dates given):
+
+- What is the maximum length of a transaction note? → **500 characters** (`data-model.md` decision
+  2, 2026-10-18). This also closes the storage-bloat abuse case in PRD §6.1, which no longer calls
+  the note unbounded.
+- How are stored timestamps reconciled with the owner's local calendar month? → the date an entry is
+  filed under is a **calendar day with no time and no timezone** (`data-model.md` decision 1,
+  2026-10-18), so it cannot slide across a month boundary. Recorded in the §8 Time rows.
+
 ## 12. Glossary
 
 <!-- 🎯 Навіщо: ⭐ СЛОВНИК ДОМЕНУ, який припиняє суперечки через рік («checkpoint —      -->
@@ -932,8 +980,8 @@ it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
 | Account | A place where the owner's money sits, such as cash, a card or a savings account. A transaction is recorded on exactly one account; a transfer touches two. Not a Category — a category says what the money was for, an account says where it is |
 | Balance | How much money sits on one account right now, equal to the sum of every transaction and transfer recorded on it. Not a period total, which covers only a date range. In this design it is never stored — see ADR-0002 |
 | Category | A label the owner files a transaction under. Each belongs to either expenses or income, and every transaction names exactly one. Not a Category Group |
-| Category Group | An optional container holding related categories for reporting, for example utilities over electricity, water and gas. A category belongs to at most one group. A transaction never names a group |
-| Default group | The bucket a period breakdown reports every ungrouped category under, so group figures always add up to the period total. Produced by the breakdown, not created by the owner — it cannot be renamed, deleted or picked when filing a transaction |
+| Category Group | An optional container holding related categories for reporting, for example utilities over electricity, water and gas. A group belongs to one side of the ledger and holds only categories from that same side, so a spending "Gifts" and an earning "Gifts" are two separate groups. A category belongs to at most one group. A transaction never names a group |
+| Default group | The bucket a period breakdown reports every ungrouped category under, so group figures always add up to the period total. Produced by the breakdown, not created by the owner — it cannot be renamed, deleted or picked when filing a transaction, and no category is ever assigned to it. A category falls there by having no group at all, which is what AC-29 leaves behind when its group is removed |
 | Owner | The single person whose money this installation tracks, and the only actor in the product. Not a user account: there is no sign-in and no second person, so records carry no owner field |
 | Transaction | A single income or expense recorded on exactly one account, with an amount, a date, a category and an optional free-text note. Not a Transfer |
 | Transfer | Moves money between two different accounts of the owner: one falls and the other rises by the same amount. Carries no category and leaves the owner's total unchanged. Not a Transaction |
