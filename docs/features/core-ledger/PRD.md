@@ -2,7 +2,7 @@
 status: Approved
 owner: "Andrey Simonenko"
 reviewers: ["Tech Lead", "Security Lead"]
-updated_at: "2026-10-13"
+updated_at: "2026-10-20"
 feature_size: "M"
 stage: "03"
 ticket: "none"
@@ -54,6 +54,50 @@ checkbox that was already ticked.
 **Size re-check.** The size stayed **M** after the additions above. None of them introduces a new
 module, a new consumer, or a breaking change; they share one write model with what the idea-brief
 already carried, so no size signal crossed into L.
+
+**Amendment — 2026-10-20.** `/sdlc-api-forge` could not finish because `category_groups` existed in
+the data model with no operation behind it, which left AC-11 ("with or without a group") and AC-13
+("moves it to another group") half-unreachable: nothing could produce a group to name. This
+amendment is **append-only** — §1 to §3, US-01 to US-08 and AC-01 to AC-25 are unchanged, so every
+citation from `sad.md`, `data-model.md` and the six ADRs still resolves. Decisions taken here:
+
+- The owner keeps their category groups: creates them, lists them, renames them, removes them
+  (US-09). This is the gap that stopped the contract.
+- **A group belongs to one side of the ledger — spending or earning — exactly as a category does.**
+  Expenses and income do not cross anywhere in the model, and a group was the one place they still
+  could. This changes the schema: groups carry no side today, so `/sdlc-generate-data-model` has to
+  run again before a contract can be generated.
+- **Removing a group that still holds categories is allowed.** The categories keep every recorded
+  movement and are reported under the Default group from then on. This deliberately does *not*
+  follow AC-09 and AC-12, which block: those protect recorded money from being orphaned, and a
+  group holds no money — only a reporting arrangement over categories that keep their own history.
+- Renaming a category is in scope (US-10). This settles a disagreement found at the contract gate,
+  where `sad.md` §5 declared a `Categories/Rename` use case that no user story had asked for —
+  resolved in the SAD's favour, so that declaration now has a story behind it.
+- The owner can list their categories, optionally narrowed to one group (US-10). Without it a
+  category that has never been used appears in no breakdown and can never be named again.
+- **AC-35 and AC-36 state uniqueness rules the schema already enforces.** `data-model.md` flagged
+  its own decision 4 as *"an added rule"* that no acceptance criterion covered; these close it.
+  **AC-31 is different.** A group name is unique across every group today, with no notion of
+  sides, so AC-31 asking for uniqueness *per side* — mirroring categories, where a spending
+  "Gifts" and an earning "Gifts" may both exist — is a **second schema change, not documentation**.
+
+**What this amendment forces upstream.** The PRD itself is append-only, but artifacts behind it no
+longer match it. Listed here so none of them is discovered late:
+
+| Artifact | What no longer matches | Resolved by |
+|---|---|---|
+| `CONTEXT.md` | Category Group was defined with no side. **Updated in this same change**, because `sad.md` §12 makes the glossary canonical — *"if anything in this document contradicts it, `CONTEXT.md` wins"* | done here |
+| `sad.md` §5 | Gives `CategoryGroup` no repository of its own, reasoning that *"US-04 treats creating a category, putting it in a group and moving it between groups as one job"*. US-09 makes group lifecycle a job in its own right. The Application and Presentation trees also carry no group operations and no list operation | re-run §5 |
+| `sad.md` §6 | States *"nine flows cover all eight §4 user stories and all 25 §5 acceptance criteria"*. There are now ten stories and 36 criteria | `/sdlc-complete-sequence-diagrams` |
+| `sad.md` §12 | Repeats the old Category Group wording in its own glossary table | re-run §12 |
+| `data-model.md` | **Two** gaps. `category_groups` carries no side column, and its name is unique globally rather than per side. Separately, the category-to-group link has no cascade, so AC-29 needs a group's categories unlinked before the group row is removed — nothing describes that today | `/sdlc-generate-data-model` |
+
+**Size re-check after the amendment — not settled here.** The amendment adds two user stories,
+eleven criteria, roughly six operations on top of the fifteen already contracted, a schema change,
+and most likely a new repository port. The earlier **M** can no longer be asserted without testing
+it against the size signals. `/sdlc-classify-size core-ledger` re-runs them and writes the answer;
+until it does, `.size`, this document's frontmatter and `sad.md` all still read M.
 
 ## 2. Goals
 
@@ -126,6 +170,21 @@ already carried, so no size signal crossed into L.
 **As an** owner
 **I want** to change or remove an entry I recorded wrongly
 **So that** a typo at 11pm does not live in my ledger forever
+
+<!-- US-09 and US-10 were appended by the 2026-10-20 amendment (see §1). US-01 to US-08 above are
+     unchanged, so every citation from sad.md, data-model.md and the ADRs still resolves. -->
+
+### US-09: Keep my category groups
+
+**As an** owner
+**I want** to create category groups on one side of the ledger, see the ones I have, rename them, and remove ones I no longer use
+**So that** I can shape how my spending and my earning roll up, without touching the categories underneath
+
+### US-10: See and correct my category structure
+
+**As an** owner
+**I want** to list my categories, narrow that list to one group, and rename a category
+**So that** I can see what I actually have and fix a bad name without disturbing recorded history
 
 ## 5. Acceptance criteria
 
@@ -283,6 +342,76 @@ already carried, so no size signal crossed into L.
 **When** the owner tries to read or change it
 **Then** the system refuses, reports it as unknown, and creates nothing implicitly
 
+<!-- AC-26 to AC-36 were appended by the 2026-10-20 amendment (see §1). AC-01 to AC-25 above are
+     unchanged and keep their numbers, because sad.md §6, sad.md §10, data-model.md and the ADRs
+     all cite them by number. -->
+
+### AC-26 (US-09) — happy path
+
+**Given** the owner wants several categories to roll up together
+**When** the owner creates a group, naming the side of the ledger it belongs to
+**Then** the group becomes available to place categories of that same side in, and it holds no categories yet
+
+### AC-27 (US-09) — happy path
+
+**Given** the owner has created groups
+**When** the owner lists them
+**Then** every group is returned, each with its name and the side of the ledger it belongs to
+
+### AC-28 (US-09) — happy path
+
+**Given** a group holding categories that already have recorded history
+**When** the owner renames the group
+**Then** the breakdown reports that group under its new name, and the figure for every category in it is unchanged
+
+### AC-29 (US-09) — happy path
+
+**Given** a group that still holds categories
+**When** the owner removes the group
+**Then** the group is gone, every category it held keeps all of its recorded history, and from then on the breakdown reports those categories under the Default group
+
+### AC-30 (US-04) — domain invariant
+
+**Given** a group that belongs to one side of the ledger
+**When** the owner tries to place a category from the other side into it
+**Then** the system blocks it and tells the owner that a group and the categories inside it must be on the same side
+
+### AC-31 (US-09) — error
+
+**Given** a group on one side of the ledger already carries a name
+**When** the owner creates or renames another group on that same side with that same name
+**Then** the system blocks it and tells the owner the name is already taken, while that name stays free for a group on the other side
+
+### AC-32 (US-04) — cross-context
+
+**Given** the owner is creating a category, or moving one into a group
+**When** the named group is not in the ledger
+**Then** the system blocks the change, names the unknown group back to the owner, and does not create that group
+
+### AC-33 (US-10) — happy path
+
+**Given** the owner has categories, some placed in a group and some not
+**When** the owner lists them, either all of them or only those sitting in one named group
+**Then** each category is returned with its name, the side of the ledger it belongs to, and the group it currently sits in, if any
+
+### AC-34 (US-10) — happy path
+
+**Given** a category that already has recorded history
+**When** the owner renames it
+**Then** the system accepts the new name, every recorded movement, balance and breakdown continues to refer to the same category under its new name, and its figure for a closed period is unchanged
+
+### AC-35 (US-03) — error
+
+**Given** an account already carries a name
+**When** the owner creates or renames another account with that same name
+**Then** the system blocks it and tells the owner the name is already taken
+
+### AC-36 (US-04) — error
+
+**Given** a category on one side of the ledger already carries a name
+**When** the owner creates or renames another category on that same side with that same name
+**Then** the system blocks it and tells the owner the name is already taken, while that name stays free for a category on the other side
+
 ## 6. Non-functional requirements
 
 | Aspect | Target | Measurement |
@@ -313,8 +442,8 @@ already carried, so no size signal crossed into L.
     tracked in §8; the owner keeps the installation off public networks until the sign-in feature ships.
   - A note used to smuggle content a future client might render: the note is stored and returned as
     plain text and is never interpreted.
-  - An unbounded note used to bloat storage: this feature enforces no length limit; whether to cap it,
-    and at what value, is an open question in §8.
+  - An unbounded note used to bloat storage: a note is capped at 500 characters, which closes this
+    off. The bound was settled by `data-model.md` decision 2 and the question is marked closed in §8.
   - A repeated identical request creating a second movement: out of scope here — de-duplication is
     its own feature (idea-brief §5).
 - **Security review:** Required — the feature holds confidential personal financial data with no
@@ -335,9 +464,14 @@ already carried, so no size signal crossed into L.
 
 ## 8. Open questions
 
-- [ ] What is the maximum length of a transaction note? Default now: no limit enforced. — owner: Andrey, due: before `/sdlc-generate-data-model`
-- [ ] How are stored timestamps reconciled with the owner's local calendar month, so a late-evening purchase near a boundary lands in the right period? Default now: undecided. — owner: Andrey, due: before `/sdlc-generate-data-model` (carried from idea-brief §15)
-- [ ] Should an entry carry a client-supplied identifier from day one, so later de-duplication, import and message capture need no backfill? Default now: no. — owner: Andrey, due: before `/sdlc-architecture-design` (carried from idea-brief §15)
+- [x] What is the maximum length of a transaction note? → **Closed** at 500 characters by `data-model.md` decision 2 (2026-10-18), which also answers the storage-bloat abuse case in §6.1.
+- [x] How are stored timestamps reconciled with the owner's local calendar month, so a late-evening purchase near a boundary lands in the right period? → **Closed** by `data-model.md` decision 1 (2026-10-18): the date an entry is filed under is a calendar day with no time and no timezone, so it cannot slide across a month boundary.
+- [x] Should an entry carry a client-supplied identifier from day one, so later de-duplication, import and message capture need no backfill? → **Closed** as yes by ADR-0006 (2026-10-17): a nullable outside reference ships now, unused, so a later import feature needs no migration against a table holding real history.
 - [ ] The ledger has no authentication, so anyone who reaches the installation has full access, and §5 therefore carries no acceptance criterion of the authorization type. Default now: accepted; the installation stays off public networks. — owner: Andrey, due: when the OAuth feature is scoped
 - [ ] `SPEC.md` Non-goals says "no authentication, one owner" while its draft requirements list Google OAuth and a secured public API. Settled here as "one owner now, OAuth later", but the two sections still read as contradictory. — owner: Andrey, due: when the OAuth feature is scoped (carried from idea-brief §15)
-- [ ] Is a dimension outside period / account / category — payee, merchant, free tag — needed soon? Default now: no; the optional note partly covers the need. — owner: Andrey, due: before `/sdlc-architecture-design` (carried from idea-brief §15)
+- [x] Is a dimension outside period / account / category — payee, merchant, free tag — needed soon? → **Closed** as no by `sad.md` §8 and §11 (2026-10-16): the optional note covers finding an entry by eye. `sad.md` §11 carries the counter-pressure from `SPEC.md` as a separate live question, to be settled before csv-import is scoped.
+
+<!-- Added by the 2026-10-20 amendment (§1). -->
+
+- [ ] Should a group that currently holds no categories appear in the period breakdown with a total of zero, or be left out of it entirely? Default now: left out — a group with no categories has nothing to total. It matters because AC-19 requires group totals plus the Default group to equal the period total, and a zero row neither helps nor breaks that. — owner: Andrey, due: before `/sdlc-api-forge`
+- [ ] When a group is removed and its categories fall to the Default group (AC-29), should the owner be told how many categories were affected? Default now: no — the removal is confirmed and the owner reads the new grouping back with AC-33. — owner: Andrey, due: before `/sdlc-api-forge`
