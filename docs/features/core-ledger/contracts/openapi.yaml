@@ -5,10 +5,10 @@
 # Conventions and the five FinNavis deviations live in .claude/rules/openapi.md.
 # Every field's origin is tabulated in ./api-sync-report.md.
 #
-# THIS CONTRACT IS NOT FINAL. api-sync-report.md carries **Verdict: FAIL** — there is no
-# operation that creates a category group, so AC-11 ("with a group") and AC-13 ("move it to
-# another group") cannot be reached through this API. Fix PRD.md §4, then re-run
-# `/sdlc-api-forge core-ledger --reconcile`.
+# Run 2 (--reconcile, 2026-10-20): api-sync-report.md carries **Verdict: PASS (with deferrals)**.
+# Run 1's FAIL is closed — category groups now have four operations behind PRD US-09, and
+# renameCategory / listCategories behind US-10. Two deferrals remain, neither blocking: no error
+# registry exists yet (src/ is a skeleton), and four shape-validation responses have no §6 branch.
 openapi: 3.1.0
 
 info:
@@ -89,8 +89,9 @@ paths:
                 message: "An account name must be between 1 and 100 characters."
         "409":
           description: |
-            Another account already has this name. `accounts.name` is UNIQUE (data-model.md
-            decision 4). No acceptance criterion covers a duplicate name — see the sync report.
+            AC-35 — another account already carries this name. `accounts.name` is UNIQUE
+            (data-model.md decision 4). Unlike a category or a group, an account name is unique
+            on its own, because an account has no side of the ledger.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -268,8 +269,9 @@ paths:
                 message: "A category name must be between 1 and 100 characters."
         "404":
           description: |
-            The named group is not in the ledger. AC-25 — nothing is created implicitly, not
-            even the group (sad.md §6 flow 6, create branch).
+            AC-32 — the named group is not in the ledger. The change is blocked, the unknown
+            group is named back, and that group is not created implicitly (sad.md §6 flow 12,
+            first branch).
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -278,19 +280,121 @@ paths:
                 message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
         "409":
           description: |
-            Another category of the same `kind` already has this name. `categories` is UNIQUE on
-            (`name`, `kind`), so "Gifts" may exist once as spending and once as earning
-            (data-model.md decision 4). No acceptance criterion covers this — see the sync report.
+            Either the name is taken on this side of the ledger (AC-36), or the named group is
+            on the other side (AC-30).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                duplicate_name:
+                  summary: AC-36 — the name is taken on this side
+                  value:
+                    code: "category.duplicate_name"
+                    message: "An expense category named 'Test Groceries' already exists."
+                group_kind_mismatch:
+                  summary: AC-30 — the group is on the other side
+                  value:
+                    code: "category.group_kind_mismatch"
+                    message: "An expense category cannot sit in an income category group."
+                    details:
+                      category_kind: "Expense"
+                      category_group_kind: "Income"
+
+    get:
+      tags: [Categories]
+      summary: List the categories, optionally narrowed to one group
+      description: |
+        US-10, AC-33. Returns every category with its name, its side of the ledger, and the
+        group it currently sits in, if any.
+
+        Pass `category_group_id` to narrow the list to one group. Without this operation a
+        category that has never been used appears in no breakdown and can never be named
+        again (sad.md §6 flow 11).
+      operationId: listCategories
+      parameters:
+        - $ref: "#/components/parameters/CategoryGroupIdFilter"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Categories" }
+              example:
+                items:
+                  - id: "01937a1e-0000-7000-8000-0000000000c1"
+                    name: "Test Groceries"
+                    kind: "Expense"
+                    category_group_id: "01937a1e-0000-7000-8000-00000000a001"
+                    created_at: "2026-10-20T09:20:00Z"
+                  - id: "01937a1e-0000-7000-8000-0000000000c2"
+                    name: "Test Salary"
+                    kind: "Income"
+                    category_group_id: null
+                    created_at: "2026-10-20T09:21:00Z"
+        "404":
+          description: |
+            AC-25 — the `category_group_id` filter names a group that is not in the ledger.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category_group.not_found"
+                message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+  /api/v1/categories/{category_id}:
+    parameters:
+      - $ref: "#/components/parameters/CategoryId"
+    patch:
+      tags: [Categories]
+      summary: Rename a category
+      description: |
+        US-10, AC-34. Renames the category and nothing else — `kind` and the group link are
+        untouched.
+
+        A transaction names its category by id, so every recorded movement, balance and
+        breakdown follows the new name with no row rewritten: the figure for a closed period
+        is unchanged (sad.md §6 flow 11).
+      operationId: renameCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RenameCategoryRequest" }
+            example:
+              name: "Test Food"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+              example:
+                id: "01937a1e-0000-7000-8000-0000000000c1"
+                name: "Test Food"
+                kind: "Expense"
+                category_group_id: "01937a1e-0000-7000-8000-00000000a001"
+                created_at: "2026-10-20T09:20:00Z"
+        "400":
+          description: The name is empty or longer than 100 characters
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category.name_invalid"
+                message: "A category name must be between 1 and 100 characters."
+        "404":
+          $ref: "#/components/responses/CategoryNotFound"
+        "409":
+          description: |
+            AC-36 — another category on the same side of the ledger already carries this name.
+            `categories` is UNIQUE on (`name`, `kind`), so the name stays free for a category
+            on the other side (data-model.md decision 4).
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
                 code: "category.duplicate_name"
-                message: "An expense category named 'Test Groceries' already exists."
-
-  /api/v1/categories/{category_id}:
-    parameters:
-      - $ref: "#/components/parameters/CategoryId"
+                message: "An expense category named 'Test Food' already exists."
     delete:
       tags: [Categories]
       summary: Delete a category
@@ -353,8 +457,9 @@ paths:
                 created_at: "2026-10-20T09:20:00Z"
         "404":
           description: |
-            AC-25 — either the category or the target group is not part of this ledger. Nothing
-            is created implicitly.
+            AC-25, AC-32 — either the category or the target group is not part of this ledger.
+            The change is blocked and nothing is created implicitly (sad.md §6 flow 12, first
+            branch).
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -365,10 +470,149 @@ paths:
                     code: "category.not_found"
                     message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
                 group_missing:
-                  summary: The target group is unknown
+                  summary: AC-32 — the target group is unknown
                   value:
                     code: "category.group_not_found"
                     message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
+        "409":
+          $ref: "#/components/responses/CategoryGroupKindMismatch"
+
+  # ──────────────────────────── Category groups ────────────────────────────
+  /api/v1/category-groups:
+    post:
+      tags: [Category groups]
+      summary: Create a category group
+      description: |
+        US-09, AC-26. A group belongs to **one side of the ledger**, spending or earning,
+        exactly as a category does (`CONTEXT.md`). It can then hold categories of that same
+        side only — AC-30.
+
+        The group is created empty. The **Default group** is not created here and never can
+        be: the breakdown produces it for categories that belong to no group, so it cannot be
+        created, renamed or deleted (sad.md §12).
+      operationId: createCategoryGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategoryGroupRequest" }
+            example:
+              name: "Test Utilities"
+              kind: "Expense"
+      responses:
+        "201":
+          description: Created, holding no categories yet
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CategoryGroup" }
+              example:
+                id: "01937a1e-0000-7000-8000-00000000a001"
+                name: "Test Utilities"
+                kind: "Expense"
+                created_at: "2026-10-20T09:15:00Z"
+        "400":
+          description: The name is empty or longer than 100 characters, or `kind` is not a known value
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category_group.name_invalid"
+                message: "A category group name must be between 1 and 100 characters."
+        "409":
+          $ref: "#/components/responses/CategoryGroupDuplicateName"
+
+    get:
+      tags: [Category groups]
+      summary: List the category groups
+      description: |
+        US-09, AC-27. Returns every group with its name and the side of the ledger it belongs
+        to, groups holding no categories included.
+      operationId: listCategoryGroups
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CategoryGroups" }
+              example:
+                items:
+                  - id: "01937a1e-0000-7000-8000-00000000a001"
+                    name: "Test Utilities"
+                    kind: "Expense"
+                    created_at: "2026-10-20T09:15:00Z"
+                  - id: "01937a1e-0000-7000-8000-00000000a002"
+                    name: "Test Side work"
+                    kind: "Income"
+                    created_at: "2026-10-20T09:16:00Z"
+
+  /api/v1/category-groups/{category_group_id}:
+    parameters:
+      - $ref: "#/components/parameters/CategoryGroupId"
+    patch:
+      tags: [Category groups]
+      summary: Rename a category group
+      description: |
+        US-09, AC-28. Renames the group and nothing else — its side cannot change, because the
+        categories inside it are bound to that side (AC-30).
+
+        The breakdown reports the group under its new name from the next read onwards, and the
+        figure for every category in it is unchanged: no category row and no transaction row is
+        touched (sad.md §6 flow 10).
+      operationId: renameCategoryGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RenameCategoryGroupRequest" }
+            example:
+              name: "Test Home bills"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CategoryGroup" }
+              example:
+                id: "01937a1e-0000-7000-8000-00000000a001"
+                name: "Test Home bills"
+                kind: "Expense"
+                created_at: "2026-10-20T09:15:00Z"
+        "400":
+          description: The name is empty or longer than 100 characters
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "category_group.name_invalid"
+                message: "A category group name must be between 1 and 100 characters."
+        "404":
+          $ref: "#/components/responses/CategoryGroupNotFound"
+        "409":
+          $ref: "#/components/responses/CategoryGroupDuplicateName"
+
+    delete:
+      tags: [Category groups]
+      summary: Remove a category group, keeping its categories
+      description: |
+        US-09, AC-29. **Removing a group never removes a category.** Every category the group
+        held keeps all of its recorded history and only loses its group link, so the breakdown
+        reports it under the Default group from then on.
+
+        This deliberately does not follow AC-09 and AC-12, which refuse to delete an account or
+        a category that recorded history names. Those two are named directly by movements; a
+        group is named by none — it only arranges categories for reporting.
+
+        The link clearing and the removal happen in one transaction, in the Application layer:
+        the foreign key is `NO ACTION`, not `ON DELETE SET NULL` (data-model.md decision 8).
+        **Nothing is assigned to the Default group** — it is produced by the breakdown and is
+        never a row.
+      operationId: deleteCategoryGroup
+      responses:
+        "204":
+          description: |
+            The group is gone. Every category it held is intact and now sits in no group.
+        "404":
+          $ref: "#/components/responses/CategoryGroupNotFound"
 
   # ───────────────────────────── Transactions ─────────────────────────────
   /api/v1/transactions:
@@ -891,6 +1135,19 @@ components:
       name: category_id
       required: true
       schema: { type: string, format: uuid }
+    CategoryGroupId:
+      in: path
+      name: category_group_id
+      required: true
+      schema: { type: string, format: uuid }
+    CategoryGroupIdFilter:
+      in: query
+      name: category_group_id
+      required: false
+      description: |
+        Narrow the list to the categories sitting in this group (AC-33). Omit it to list every
+        category, grouped and ungrouped alike.
+      schema: { type: string, format: uuid }
     TransactionId:
       in: path
       name: transaction_id
@@ -949,6 +1206,43 @@ components:
           example:
             code: "category.not_found"
             message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+    CategoryGroupNotFound:
+      description: AC-25 — no category group in this ledger has that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "category_group.not_found"
+            message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+
+    CategoryGroupDuplicateName:
+      description: |
+        AC-31 — a group on that same side of the ledger already carries this name.
+        `category_groups` is UNIQUE on (`name`, `kind`), so the name stays free for a group on
+        the other side: a spending "Gifts" and an earning "Gifts" are two separate groups
+        (data-model.md decision 4).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "category_group.duplicate_name"
+            message: "An expense category group named 'Test Utilities' already exists."
+
+    CategoryGroupKindMismatch:
+      description: |
+        AC-30 — the named group is on the other side of the ledger. A group and the categories
+        inside it must be on the same side. Refused by the domain entity before anything is
+        written, not by a database constraint (data-model.md decision 7).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "category.group_kind_mismatch"
+            message: "An expense category cannot sit in an income category group."
+            details:
+              category_kind: "Expense"
+              category_group_kind: "Income"
 
     TransactionNotFound:
       description: AC-25 — no transaction in this ledger has that id.
@@ -1205,8 +1499,33 @@ components:
           description: |
             Optional. Omit it, or send `null`, to leave the category ungrouped (AC-11).
 
-            **Unreachable today:** no operation in this contract creates a category group, so
-            there is no id to put here. See `api-sync-report.md` → Verdict FAIL.
+            The group must be on the same side of the ledger as the category — AC-30. Create
+            one with `POST /api/v1/category-groups`, or find an existing id with
+            `GET /api/v1/category-groups`.
+
+    RenameCategoryRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: |
+            Unique per `kind` (AC-36). `kind` and the group link are not changed by a rename.
+
+    Categories:
+      type: object
+      description: |
+        Not paginated — `categories` holds a handful of rows, the same reasoning as
+        `AccountBalances` (sad.md §6 flow 11, data-model.md `categories`).
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Category" }
 
     SetCategoryGroupRequest:
       type: object
@@ -1218,7 +1537,66 @@ components:
           format: uuid
           description: |
             The group to move the category into, or `null` to take it out of every group
-            (AC-13).
+            (AC-13). The group must be on the same side of the ledger as the category — AC-30.
+
+    # ── Category groups ────────────────────────────────────────────────
+    CategoryGroup:
+      type: object
+      description: |
+        An optional container holding related categories for reporting. A group belongs to one
+        side of the ledger and holds only categories from that same side (`CONTEXT.md`).
+
+        Not the **Default group** — that bucket is produced by the breakdown for categories
+        belonging to no group, and is never a row here (sad.md §12).
+      required: [id, name, kind, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        kind: { $ref: "#/components/schemas/CategoryKind" }
+        created_at: { type: string, format: date-time }
+
+    CreateCategoryGroupRequest:
+      type: object
+      required: [name, kind]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: |
+            Unique per `kind` (AC-31) — a spending "Gifts" and an earning "Gifts" may both
+            exist.
+        kind:
+          allOf:
+            - $ref: "#/components/schemas/CategoryKind"
+          description: |
+            The side of the ledger this group belongs to (AC-26). It cannot be changed later:
+            the categories inside are bound to it (AC-30).
+
+    RenameCategoryGroupRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Unique per `kind` (AC-31). The group's side is not changed by a rename.
+
+    CategoryGroups:
+      type: object
+      description: |
+        Not paginated — `category_groups` holds a handful of rows, the same reasoning as
+        `AccountBalances` (sad.md §6 flow 10).
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CategoryGroup" }
 
     # ── Transactions ───────────────────────────────────────────────────
     Transaction:
