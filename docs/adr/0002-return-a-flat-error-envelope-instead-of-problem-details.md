@@ -102,12 +102,25 @@ it.
 
 **Negative**
 - A non-standard error shape. Anyone who later integrates against this API has to read our document
-  instead of recognising `application/problem+json` on sight. That cost is real and lands entirely
-  on a future that PRD §3 currently rules out.
+  instead of recognising `application/problem+json` on sight. Generic tooling that understands
+  Problem Details — some HTTP clients, some log pipelines — sees an ordinary JSON body and shows
+  nothing special. That cost is real and lands entirely on a future that PRD §3 currently rules out.
+- **Reversing this is a breaking change to every error response.** If a second consumer ever
+  appears and the standard shape becomes worth having, switching needs a contract version bump and
+  a CHANGELOG line, not a quiet edit. Cheap today, when the only consumer is a PWA that does not
+  exist; not cheap once something parses these bodies.
 - An Approved document (`sad.md` §8) is amended after approval. The amendment is recorded in §8 and
   in §9's table so the change is visible rather than silent.
 - If the OAuth feature ever exposes this API publicly, this is one more thing to change alongside
   the auth work — not a blocker, but it is on that feature's list.
+- **The framework fights this decision.** ASP.NET Core returns `application/problem+json` by
+  default — for routing 404s, model-binding failures, `Results.ValidationProblem` and anything
+  under `AddProblemDetails`. That default has to be turned off explicitly and every failure routed
+  through the one envelope. Miss it and the API answers with two different error shapes depending
+  on how deep into the pipeline a request got, and a client that switches on `code` breaks on
+  exactly the requests that never reached a handler. This is the real recurring cost of the
+  decision, not the non-standard shape. Recorded in `CLAUDE.md` §API and
+  `.claude/rules/openapi.md` §5 so it is not rediscovered during implementation.
 
 **Neutral**
 - The HTTP status code keeps its meaning. The envelope says *which* refusal; the status says which

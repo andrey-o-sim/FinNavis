@@ -150,11 +150,18 @@ get broken most often.
   validation only. One `code` in a contract equals one constant in the error registry, returning the
   same string. See `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` and
   `.claude/rules/openapi.md`.
+- **ASP.NET Core produces `application/problem+json` by default** — for routing 404s, model-binding
+  failures, `Results.ValidationProblem` and anything under `AddProblemDetails`. Turn that default
+  off and route every failure through the one envelope. Otherwise the API answers with two error
+  shapes depending on how far into the pipeline the request got.
+- **The contract of a feature lives in `docs/features/<slug>/contracts/openapi.yaml`**, and the
+  conventions in `.claude/rules/openapi.md`. Handlers follow the contract, never the other way round.
 - **A batch operation that finished is a success, even when it could not process every item.** The
   response body carries the counts plus one entry per skipped item with its reason. An item the
   operation deliberately skipped is a normal outcome, not a fault, so it does not turn the response
   into an error. The error envelope is for refusals that stop the whole operation.
-- OpenAPI document is generated at `/openapi/v1.json` in Development.
+- OpenAPI document is generated at `/openapi/v1.json` in Development. **That generated document is
+  not the contract** — it is produced from the code, and it is diffed against the contract.
 
 ### Tests
 

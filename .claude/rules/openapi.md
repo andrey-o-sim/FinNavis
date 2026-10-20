@@ -6,7 +6,8 @@
 ## Where the contract lives
 
 - `docs/features/<slug>/contracts/openapi.yaml` is the source of truth for the HTTP surface. Handlers, clients, mocks and contract tests follow it — never the other way round.
-- The contract is **derived** (`data-model.md` + `sad.md` §6 sequences + `PRD.md` AC) by `/sdlc-api-forge <slug>`. After a hand edit or an upstream change, run `/sdlc-api-forge <slug> --reconcile` so `api-sync-report.md` stays true.
+- The contract is **derived** (`data-model.md` + `sad.md` §6 sequences + `PRD.md` AC) by `/finnavis-api-forge <slug>` (the repo-tuned skill; `/sdlc-api-forge` is the generic one). After a hand edit or an upstream change, run it with `--reconcile` so `api-sync-report.md` stays true.
+- **The contract is not the served document.** ASP.NET Core generates its own OpenAPI document at `/openapi/v1.json` in Development (`CLAUDE.md` §API). That one is produced *from* the code; this one states what the code *must* produce. `implement-tasks` diffs them.
 - `info.version` bumps only with an explicit CHANGELOG line, never silently.
 
 ## Hard rules
@@ -49,8 +50,11 @@ no token to require and no scheme to declare.
 - `sad.md` §8: "Authentication: None. One owner, no sign-in. Network isolation is the only control."
 - `sad.md` §11 carries this as the top High risk, owned by the later OAuth feature.
 
-A contract therefore declares `security: []` at the root and no `401` / `403` responses. When the
-OAuth feature ships, that feature flips this rule back and every contract is re-run with
+A contract therefore declares `security: []` at the root and no `401` / `403` responses. The
+baseline's `404` is plain "not found" here, not existence-hiding — there is nobody to hide from.
+`429` appears only when an acceptance criterion asks for a rate limit; none does today.
+
+When the OAuth feature ships, that feature flips this rule back and every contract is re-run with
 `--reconcile`.
 
 ### 2. Money crosses the wire as a `string`, never a JSON number
@@ -59,6 +63,9 @@ OAuth feature ships, that feature flips this rule back and every contract is re-
 double by most clients, which loses the fourth decimal place `NUMERIC(19,4)` stores. So every money
 field is `type: string` with a digits-and-dot `pattern`, and the consumer parses it into its own
 decimal type.
+
+Pattern for `NUMERIC(19,4)`: `^-?\d{1,15}(\.\d{1,4})?$`. The leading `-?` is for a signed figure
+such as a balance; an amount the owner enters is always positive and uses the pattern without it.
 
 ### 3. A cursor is an opaque `string`, not a bare UUID
 
@@ -99,3 +106,22 @@ one field that matters is a stable `code` the client switches on, and Problem De
 that field a non-standard extension member while adding `type`, `instance` and `title`, none of
 which this product has a use for. The ADR carries the full reasoning and the condition that would
 reopen it — a public API, which PRD §3 currently rules out.
+
+**One consequence carries into implementation and is easy to miss: ASP.NET Core returns
+`application/problem+json` by default.** It does so for routing 404s, model-binding failures,
+`Results.ValidationProblem`, and anything under `AddProblemDetails`. That default has to be turned
+off and every failure routed through the one envelope — otherwise the API answers with two
+different error shapes depending on how deep into the pipeline the request got, and a client that
+switches on `code` breaks on exactly the requests that never reached a handler.
+
+### 6. A batch operation that finished is a `200`, never an error
+
+`CLAUDE.md` §API: *"A batch operation that finished is a success, even when it could not process
+every item. The response body carries the counts plus one entry per skipped item with its reason."*
+
+So an import that set 12 rows aside is a `200` with `{imported, skipped, set_aside: [{row, reason}]}`
+— not a `207`, not a `4xx`, and not a `200` that hides the skipped rows. The error envelope only
+describes a refusal that **stopped** the whole operation.
+
+The reason belongs to a closed set the PRD names, not to free text. `csv-import/sad.md` §8 states
+the same rule and names its three set-aside reasons.

@@ -1,0 +1,218 @@
+# REFERENCE SPEC — not the document served at /openapi/v1.json. See .claude/rules/openapi.md.
+#
+# Copied to docs/features/<slug>/contracts/openapi.yaml, then DERIVED — never hand-written:
+#   fields + bounds   <- data-model.md  (every property traces to a column; copy maxLength/enum)
+#   error responses   <- sad.md §6 alt-branches (one response per branch)
+#   operations        <- PRD.md §4 user stories; shapes from §5 acceptance criteria
+#   refusal wording   <- PRD.md (§10 in csv-import), never invented here
+#
+# Replace every <...>. Keep the conventions below — they are fixed by CLAUDE.md,
+# .claude/rules/openapi.md and the ADRs, and are not re-decided per feature.
+openapi: 3.1.0
+
+info:
+  title: <Feature> API
+  version: 0.1.0
+  # One paragraph from PRD §1 — WHY this API exists, so a reader gets purpose, not just shape.
+  # Bump `version` only with an explicit CHANGELOG line, never silently.
+  description: |
+    <why this API exists — one paragraph from PRD §1>
+
+servers:
+  - url: http://localhost:5000
+    description: Local — the only place this runs. Self-hosted, single owner.
+
+# No sign-in and no second actor: PRD §3, sad.md §8, .claude/rules/openapi.md §1.
+# An empty list is the explicit statement. There is no `securitySchemes` block anywhere below,
+# and no 401 or 403 response in this file.
+security: []
+
+paths:
+  /api/v1/<resources>:
+    get:
+      summary: <list ...>
+      operationId: <listResources>
+      description: |
+        <what the owner sees, in one line — from the user story>
+
+        Endpoint folder: `Presentation/Endpoints/<Resources>/List/`
+      parameters:
+        # Cursor paging. The cursor is an OPAQUE STRING minted by the server, not a UUID —
+        # history is a UNION ALL over two tables ordered by (occurred_on, id), ADR-0001.
+        - in: query
+          name: after
+          description: opaque cursor from a previous page's `next_cursor`; pass it back unread
+          schema: { type: string }
+        - in: query
+          name: before
+          description: opaque cursor from a previous page's `prev_cursor`
+          schema: { type: string }
+        - in: query
+          name: limit
+          # minimum / maximum / default are justified by a PRD §6 latency budget, not picked round.
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/<Resource>Page" }
+
+    post:
+      summary: <create ...>
+      operationId: <createResource>
+      description: |
+        <what the owner does, in one line — from the user story>
+
+        Endpoint folder: `Presentation/Endpoints/<Resources>/Create/`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Create<Resource>Request" }
+            example:
+              # placeholder data only — never a real merchant, amount or account (CLAUDE.md Safety)
+              name: "Test <Resource>"
+              amount: "100.0000"
+      responses:
+        "201":
+          description: Created
+          headers:
+            Location:
+              schema: { type: string }
+              description: path of the created <resource>
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/<Resource>" }
+              example:
+                id: "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b"
+                name: "Test <Resource>"
+                created_at: "2026-10-20T08:30:00Z"
+        # One response per alt-branch in this flow's sad.md §6 block.
+        # 400 = the request is malformed. 404 = it does not exist. 409 = the world refuses it.
+        "409":
+          description: <name the invariant, e.g. a <resource> with this name already exists>
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "<module>.duplicate_<field>"
+                message: "<the refusal sentence the owner reads, lifted from the PRD>"
+
+  # A batch operation that finished is a 200 with counts, even when it skipped items.
+  # CLAUDE.md §API. The error envelope is only for a refusal that STOPPED the whole run.
+  /api/v1/<resources>/import:
+    post:
+      summary: <load a file>
+      operationId: <importResources>
+      description: |
+        <what the owner loads>
+
+        Endpoint folder: `Presentation/Endpoints/<Resources>/Import/`
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: The load finished. Some rows may have been set aside.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportResult" }
+        "400":
+          description: <the refusal that stopped the whole load — e.g. the shape is unknown>
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+components:
+  # No securitySchemes — there is nothing to authenticate against.
+
+  schemas:
+    # The flat error envelope, docs/adr/0002. NOT RFC 9457 Problem Details.
+    # Every `code` here must exist exactly once in the repo, spelled identically (drift point 2).
+    Error:
+      type: object
+      required: [code, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          pattern: "^[a-z_]+\\.[a-z_]+$"
+          description: machine-readable `module.error_name`; the only part a client branches on
+          example: "<module>.<error_name>"
+        message:
+          type: string
+          description: the refusal sentence the owner reads, taken from the PRD
+        details:
+          type: object
+          description: optional structured context — failing fields, a conflicting id, a count
+
+    # One schema per entity the API surfaces. Every property traces to a data-model.md column.
+    <Resource>:
+      type: object
+      required: [id, created_at]
+      additionalProperties: false
+      properties:
+        # UUID v7, minted in the Application layer — core-ledger ADR-0005.
+        id: { type: string, format: uuid }
+        # varchar(N) in the model -> maxLength: N here.
+        name: { type: string, maxLength: 100 }
+        # Money is a STRING. A JSON number is an IEEE double in most clients and loses the
+        # fourth decimal place NUMERIC(19,4) stores. .claude/rules/openapi.md §2.
+        amount:
+          type: string
+          pattern: "^-?\\d{1,15}(\\.\\d{1,4})?$"
+          example: "1234.5600"
+        # Enums are strings, never ints (CLAUDE.md).
+        kind: { type: string, enum: [<value_a>, <value_b>] }
+        # A nullable column — 3.1 style, never `nullable: true`.
+        note: { type: [string, "null"], maxLength: 500 }
+        created_at: { type: string, format: date-time }
+
+    # Request records are per-operation in C# even when two look identical (CLAUDE.md §API);
+    # in the contract they are one $ref'd schema. Both rules hold — see references/deriving-operations.md.
+    Create<Resource>Request:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 100 }
+
+    # Every list response is wrapped. Both cursors are present: `before` is unusable
+    # without `prev_cursor` (.claude/rules/openapi.md §3).
+    <Resource>Page:
+      type: object
+      required: [items, has_next, has_prev]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/<Resource>" }
+        has_next: { type: boolean }
+        has_prev: { type: boolean }
+        next_cursor: { type: [string, "null"] }
+        prev_cursor: { type: [string, "null"] }
+
+    ImportResult:
+      type: object
+      required: [imported, set_aside]
+      additionalProperties: false
+      properties:
+        imported: { type: integer, description: rows written to the ledger }
+        set_aside:
+          type: array
+          description: rows the run deliberately did not write — a normal outcome, not a fault
+          items:
+            type: object
+            required: [row, reason]
+            additionalProperties: false
+            properties:
+              row: { type: integer, description: 1-based line number in the file }
+              # A closed set the PRD names, never free text.
+              reason: { type: string, enum: [<reason_a>, <reason_b>, <reason_c>] }
