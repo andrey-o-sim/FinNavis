@@ -347,21 +347,34 @@ blocks above keep the numbers the earlier commits gave them.
 Reading order by user story: US-01 flow 1 · US-02 flow 2 · US-03 flow 5 · US-04 flow 6 ·
 US-05 flow 7 · US-06 flow 8 · US-07 flow 3 · US-08 flows 4 and 9.
 
-**§6 is incomplete as of 2026-10-20.** The nine flows below cover US-01 to US-08 and AC-01 to AC-25.
-The PRD amendment of that date added US-09, US-10 and AC-26 to AC-36, and none of them is drawn yet:
+**§6 is complete: thirteen flows cover all ten §4 user stories and all 36 §5 acceptance criteria.**
+Flows 10 to 13 were appended on 2026-10-20 for the PRD amendment of that date (US-09, US-10,
+AC-26 to AC-36), again appended rather than interleaved, so flows 1 to 9 keep their numbers.
 
-| Not yet drawn | Acceptance criteria |
+Coverage by user story: US-01 flow 1 · US-02 flow 2 · US-03 flows 5 and 13 · US-04 flows 6, 12
+and 13 · US-05 flow 7 · US-06 flow 8 · US-07 flow 3 · US-08 flows 4 and 9 · US-09 flows 10 and 13 ·
+US-10 flow 11.
+
+Coverage by acceptance criterion — every one is shown by a flow or by a named branch inside one:
+
+| Flow | Acceptance criteria |
 |---|---|
-| Group lifecycle — create, list, rename, remove | AC-26, AC-27, AC-28, AC-29 |
-| A group and a category must share a side | AC-30 |
-| Group name taken on that side | AC-31 |
-| Naming a group that is not in the ledger | AC-32 |
-| List categories, optionally narrowed to one group | AC-33 |
-| Rename a category that already has history | AC-34 |
-| Account name taken; category name taken on that side | AC-35, AC-36 |
+| 1 record an expense | AC-01, AC-02, AC-03 |
+| 2 record a transfer | AC-04, AC-05, AC-06 |
+| 3 period breakdown | AC-18, AC-19, AC-20 |
+| 4 correct an entry | AC-21, AC-22, AC-23, AC-25 |
+| 5 keep the accounts | AC-07, AC-08, AC-09, AC-10 |
+| 6 keep the categories and their groups | AC-11, AC-12, AC-13 |
+| 7 read the balances | AC-14, AC-15 |
+| 8 browse the history | AC-16, AC-17 |
+| 9 refuse to change an entry's kind | AC-24 |
+| 10 keep the category groups | AC-26, AC-27, AC-28, AC-29 |
+| 11 see and correct the category structure | AC-33, AC-34 |
+| 12 refuse a group that cannot hold this category | AC-30, AC-32 |
+| 13 refuse a name that is already taken | AC-31, AC-35, AC-36 |
 
-`/sdlc-complete-sequence-diagrams core-ledger` appends them and replaces this note with the closed
-coverage statement. Until it runs, treat the list above as the gap.
+No acceptance criterion is marked non-runtime. The one type that would have been — authorization —
+has no criterion at all, because the product has one owner and no sign-in (PRD §5 N/A note).
 
 **Critical flow 1: record an expense** (US-01 — AC-01, AC-02, AC-03)
 
@@ -572,7 +585,7 @@ sequenceDiagram
     Note over Owner,PG: Precondition: a group is optional, so a category may belong to one group or to none
     Owner->>Pres: create a category, move one between groups, or delete one
     Pres->>App: CreateCategory, MoveCategoryToGroup or DeleteCategory use case
-    Note over Pres,App: CategoryGroup has no repository of its own, so ICategoryRepository serves all three
+    Note over Pres,App: ICategoryRepository serves all three. The group lifecycle itself is flow 10, through ICategoryGroupRepository
     alt create a category, with or without a group
         App->>Inf: load the named group, if one was named
         Inf->>PG: read one category group
@@ -710,6 +723,193 @@ sequenceDiagram
     Note over Owner,PG: the owner's way through is flow 4 to remove the entry, then flow 2 to record it as a transfer
 ```
 
+**Critical flow 10: keep the category groups** (US-09 — AC-26, AC-27, AC-28, AC-29)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: a group belongs to one side of the ledger, spending or earning, exactly as a category does
+    Owner->>Pres: create a group, list the groups, rename one, or remove one
+    Pres->>App: CreateCategoryGroup, ListCategoryGroups, RenameCategoryGroup or DeleteCategoryGroup use case
+    Note over Pres,App: the group lifecycle is a job of its own, so ICategoryGroupRepository serves it
+    alt create a group on one side of the ledger
+        App->>Dom: build the CategoryGroup with the named side and check the rules
+        Dom-->>App: a valid CategoryGroup
+        App->>Inf: add the CategoryGroup and commit the unit of work
+        Inf->>PG: insert one row
+        Note over Inf,PG: persists CategoryGroup with its side (informs data-model indexes)
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the new CategoryGroup, holding no categories yet
+        Pres-->>Owner: categories on that same side can now be placed in it
+    else list the groups
+        App->>Inf: ask ICategoryGroupRepository for every group
+        Inf->>PG: read all category groups
+        Note over Inf,PG: reads category_groups with no filter — a handful of rows, so no index is wanted
+        PG-->>Inf: rows
+        Inf-->>App: the groups
+        App-->>Pres: every group with its name and its side
+        Pres-->>Owner: the full list, groups holding no categories included
+    else rename a group that holds categories with recorded history
+        App->>Inf: load the group
+        Inf->>PG: read one category group
+        PG-->>Inf: row or nothing
+        Inf-->>App: the CategoryGroup, or not found
+        App->>Dom: apply the new name
+        Dom-->>App: a valid CategoryGroup, same identity
+        App->>Inf: commit the unit of work
+        Inf->>PG: update the name only
+        Note over Inf,PG: persists CategoryGroup — no category row and no transaction row is touched
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the renamed CategoryGroup
+        Pres-->>Owner: the breakdown reports it under the new name, and the figure for every category in it is unchanged
+    else remove a group that still holds categories
+        App->>Inf: load the group and the categories that point at it
+        Inf->>PG: read the group, then its categories
+        Note over Inf,PG: reads categories by group (informs data-model indexes)
+        PG-->>Inf: rows
+        Inf-->>App: the CategoryGroup and its categories
+        App->>Dom: clear the group link on each category
+        Dom-->>App: valid Categories, same identities, now in no group
+        App->>Inf: remove the CategoryGroup and commit the unit of work
+        Inf->>PG: clear the group link on those categories, then delete the group row, in one transaction
+        Note over Inf,PG: persists the link clearing and the removal together — no category is deleted, and no Default row is ever written
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: removed
+        Pres-->>Owner: the group is gone and every category it held keeps all of its recorded history
+    end
+    Note over Owner,PG: Postcondition: a category left with no group is reported under the Default group, which the breakdown produces and never stores
+```
+
+**Critical flow 11: see and correct the category structure** (US-10 — AC-33, AC-34)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: a category that has never been used appears in no breakdown, so listing is the only way to see it again
+    Owner->>Pres: list the categories, narrow the list to one group, or rename one
+    Pres->>App: ListCategories or RenameCategory use case
+    alt list every category
+        App->>Inf: ask ICategoryRepository for every category
+        Inf->>PG: read all categories with their group link
+        PG-->>Inf: rows
+        Inf-->>App: the categories
+        App-->>Pres: each with its name, its side, and the group it sits in, if any
+        Pres-->>Owner: the whole structure, used and unused categories alike
+    else list only the categories sitting in one named group
+        App->>Inf: load the named group, then its categories
+        Inf->>PG: read one category group, then categories by that group
+        Note over Inf,PG: reads categories by group (informs data-model indexes)
+        PG-->>Inf: rows
+        Inf-->>App: the group and its categories
+        App-->>Pres: only the categories in that group
+        Pres-->>Owner: the narrowed list
+    else rename a category that already has recorded history
+        App->>Inf: load the category
+        Inf->>PG: read one row
+        PG-->>Inf: row or nothing
+        Inf-->>App: the Category, or not found
+        App->>Dom: apply the new name
+        Dom-->>App: a valid Category, same identity
+        App->>Inf: commit the unit of work
+        Inf->>PG: update the name only
+        Note over Inf,PG: persists Category — a transaction names its category by identity, so no movement row is rewritten
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the renamed Category
+        Pres-->>Owner: every movement, balance and breakdown follows the new name, and the figure for a closed period is unchanged
+    end
+    Note over Owner,PG: Postcondition: renaming touches one row, the same property that makes re-grouping free in flow 6
+```
+
+**Critical flow 12: refuse a group that cannot hold this category** (US-04 — AC-30, AC-32)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: these are flow 6's create and move paths, taken when the named group cannot hold the category
+    Owner->>Pres: create a category in a group, or move one into a group
+    Pres->>App: CreateCategory or MoveCategoryToGroup use case
+    App->>Inf: load the named group
+    Inf->>PG: read one category group
+    PG-->>Inf: row or nothing
+    Inf-->>App: the CategoryGroup, or nothing
+    alt the named group is not in the ledger
+        App-->>Pres: refuse and name the unknown group back to the owner
+        Pres-->>Owner: the change is blocked, and that group is not created implicitly
+    else the group is on the other side of the ledger
+        App->>Dom: place the category in the group
+        Dom-->>App: rejected by the rule, because a group and the categories inside it must be on the same side
+        App-->>Pres: refuse and say that a group and its categories must be on the same side
+        Pres-->>Owner: the category keeps whatever group it had, and no unit of work is committed
+    else the group exists and is on the same side
+        Note over App,Inf: the flow continues in flow 6, which draws the create and move paths in full
+    end
+    Note over Owner,PG: Postcondition: a refusal writes nothing, so the side rule can never be left half-applied
+```
+
+**Critical flow 13, cross-cutting: refuse a name that is already taken** (US-03, US-04, US-09 — AC-31, AC-35, AC-36)
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant Pres as Presentation
+    participant App as Application
+    participant Dom as Domain
+    participant Inf as Infrastructure
+    participant PG as PostgreSQL
+
+    Note over Owner,PG: Precondition: three creates and three renames share one check, so it is drawn once rather than repeated in each flow
+    Owner->>Pres: create or rename an account, a category, or a category group
+    Pres->>App: the matching Create or Rename use case
+    App->>Inf: ask whether that name is already taken in its own scope
+    Inf->>PG: one existence query, scoped exactly as the unique index is scoped
+    Note over Inf,PG: reads accounts by name, categories by name and side, or category_groups by name and side (informs data-model indexes)
+    PG-->>Inf: yes or no
+    Inf-->>App: the answer
+    alt an account already carries that name
+        App-->>Pres: refuse and say the name is already taken
+        Pres-->>Owner: nothing is created and nothing is renamed
+    else a category on that same side already carries that name
+        App-->>Pres: refuse and say the name is already taken
+        Pres-->>Owner: the same name stays free for a category on the other side
+    else a group on that same side already carries that name
+        App-->>Pres: refuse and say the name is already taken
+        Pres-->>Owner: the same name stays free for a group on the other side
+    else the name is free
+        App->>Dom: build or rename the entity and check the rules
+        Dom-->>App: a valid entity
+        App->>Inf: commit the unit of work
+        Inf->>PG: insert or update one row
+        Note over Inf,PG: the unique index is the last guard, so a race fails at the database instead of creating a duplicate
+        PG-->>Inf: committed
+        Inf-->>App: done
+        App-->>Pres: the created or renamed entity
+        Pres-->>Owner: accepted
+    end
+    Note over Owner,PG: Postcondition: an account name is unique on its own; a category or group name is unique per side of the ledger
+```
+
 ### Notes flagged while completing §6
 
 Flagged for the next stages. Nothing here is decided — no ADR is written from this list.
@@ -734,6 +934,32 @@ Flagged for the next stages. Nothing here is decided — no ADR is written from 
   for filtering by category and for transfers to be marked in the result, and those two pull in
   opposite directions. The flow resolves it by filtering transfers out whenever a category filter is
   given. The PRD does not say this, so confirm it at `/sdlc-api-forge`.
+
+**Added 2026-10-20, with flows 10 to 13:**
+
+- **One line inside flow 6 was edited, not appended.** It said `CategoryGroup` has no repository of
+  its own — true when flow 6 was drawn, false after the §5 revision gave the group
+  `ICategoryGroupRepository`. The flow's logic is unchanged; only that note was corrected. Recorded
+  here because this stage is otherwise append-only, so a reader seeing a changed line in an old
+  flow should find the reason.
+- **AC-31, AC-35 and AC-36 are one check drawn once.** Flow 13 is cross-cutting rather than tied to
+  a single user story: an account, a category and a group all refuse a name that is already taken,
+  and the only difference is the scope the uniqueness is measured in. Drawing it three times inside
+  flows 5, 6 and 10 would have repeated the same five steps.
+- **Flow 10's removal branch is the one place a reader may expect a write that is not there.** AC-29
+  clears each category's group link and deletes the group row in one transaction. Nothing is
+  assigned to the Default group, because the Default group is produced by the breakdown and is
+  never stored (§12). An implementer who creates a real `Default` row has misread it.
+- **Index hints for `/sdlc-generate-data-model` from the new flows.** Categories by group — used by
+  flow 10's removal branch and flow 11's narrowed list, on top of flow 3's breakdown join. Plus
+  three name-scoped existence checks in flow 13: accounts by name, categories by name and side,
+  category_groups by name and side. All four are already covered by indexes the unique constraints
+  back, so the data-model revision of 2026-10-20 added no new index.
+- **Still no asynchronous flow.** Flows 10 to 13 are request and response like the first nine, so
+  none carries an idempotency key, a retry note or a dead-letter branch.
+- **Two open questions belong to the API stage, not here.** Whether a group holding no categories
+  appears in the breakdown with a zero total, and whether removing a group reports how many
+  categories were affected. Both are response-shape questions; §11 carries them with owner and due.
 
 ## 7. Deployment view
 
