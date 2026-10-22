@@ -235,6 +235,12 @@ file by file.
 | 9 | `.claude/skills/finnavis-api-forge/references/error-catalog.md` | nine examples and the derivation table |
 | 10 | `.claude/skills/finnavis-api-forge/templates/openapi.yaml` | the `Error` schema example |
 | 11 | `docs/adr/0002` | a pointer at the top, so a reader does not take its Context as current |
+| 12 | `.claude/skills/finnavis-api-forge/SKILL.md` | the "already decided" table and the Definition of Done both named the old spelling |
+
+Row 12 was **missed in the first pass** and caught by the `csv-import` reconcile on the same day.
+It mattered more than its size suggests: that table and that checklist are what a **first** run on a
+new feature reads, so a contract written next week would have been derived in snake_case while every
+other file said PascalCase.
 
 Both contracts are re-run with `--reconcile` afterwards, so each `api-sync-report.md` records the
 change instead of drifting silently against its contract.

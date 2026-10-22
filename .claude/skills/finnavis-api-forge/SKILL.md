@@ -121,7 +121,7 @@ committed document. Each row names where it is written down.
 | Topic | Decided | Source |
 |---|---|---|
 | Authentication | None. `security: []` at the root, no `securitySchemes`, **no `401` and no `403` anywhere** | `PRD.md` §3, `sad.md` §8, rules §1 |
-| Error shape | Flat `{code, message, details?}`, `code` = `module.error_name` | `docs/adr/0002`, `CLAUDE.md` §API |
+| Error shape | Flat `{code, message, details?}`, `code` = `Module.ErrorName` in PascalCase | `docs/adr/0002` (envelope), `docs/adr/0003` (spelling), `CLAUDE.md` §API |
 | Money on the wire | `type: string`, pattern `^-?\d{1,15}(\.\d{1,4})?$` — never a JSON number | rules §2 |
 | List paging | Cursor, opaque `string`, wrapper with `prev_cursor` and `next_cursor` | rules §3, ADR-0001 |
 | Batch outcome | A batch that finished is a `200` with counts and per-item reasons | `CLAUDE.md` §API, rules §6 |
@@ -262,7 +262,7 @@ Each line is also the anti-pattern it rules out — the failure mode is named af
   field, and no field quietly dropped when it left the model*.
 - Every error response traces to a §6 `alt`-branch, an acceptance criterion or a named constraint —
   *the PRD's blind spot is the authorization and concurrency branches it never lists*.
-- Error codes are `module.error_name`, each one appearing exactly once — *two codes for one refusal
+- Error codes are `Module.ErrorName` in PascalCase, each one appearing exactly once — *two codes for one refusal
   is how a frontend `switch` goes stale*.
 - `security: []`, no `securitySchemes`, no `401`, no `403` — *there is no second actor, so a status
   that denies one is a lie in the contract* (`sad.md` §8).

@@ -1,14 +1,26 @@
-# Derived by sdlc:api-forge (scenario A) — NOT hand-written.
+# REFERENCE SPEC — not the document served at /openapi/v1.json. See .claude/rules/openapi.md.
+#
+# Derived by finnavis-api-forge (scenario A) — NOT hand-written.
 #   fields + constraints  <- data-model.md (every property traces to a column; maxLength/pattern/enum copied)
 #   error responses       <- sad.md §6 sequence alt-branches (one response per branch)
 #   endpoint list + shape <- PRD.md §4 user stories / §5 acceptance criteria
-# Conventions and the five FinNavis deviations live in .claude/rules/openapi.md.
+# Conventions and the seven FinNavis deviations live in .claude/rules/openapi.md.
 # Every field's origin is tabulated in ./api-sync-report.md.
 #
 # Run 2 (--reconcile, 2026-10-20): api-sync-report.md carries **Verdict: PASS (with deferrals)**.
 # Run 1's FAIL is closed — category groups now have four operations behind PRD US-09, and
 # renameCategory / listCategories behind US-10. Two deferrals remain, neither blocking: no error
 # registry exists yet (src/ is a skeleton), and four shape-validation responses have no §6 branch.
+#
+# Run 3 (--reconcile, 2026-10-22): three changes, all recorded in api-sync-report.md.
+#   1. docs/adr/0003 — every code is now Module.ErrorName in PascalCase. The 28 codes were
+#      re-spelled by hand in the previous commit; this run verified all 28 against the ADR mapping
+#      and fixed the one straggler left in prose (the MoneyAmount description).
+#   2. Category.GroupNotFound is merged into CategoryGroup.NotFound. One refusal, one code —
+#      27 codes now. .claude/rules/openapi.md forbids two codes for one refusal.
+#   3. Every operation now names its Presentation/Endpoints/<Resource>/<Operation>/ folder, taken
+#      from sad.md §5. The lint checklist asks for it and run 2 had none.
+#   info.version stays 0.1.0 — nothing has shipped against it, so there is no consumer to break.
 openapi: 3.1.0
 
 info:
@@ -61,6 +73,8 @@ paths:
       description: |
         US-03, AC-07. A new account starts with a balance of zero, because no movement names it
         yet and no balance is stored anywhere (ADR-0002).
+
+        Endpoint folder: `Presentation/Endpoints/Accounts/Create/`
       operationId: createAccount
       requestBody:
         required: true
@@ -115,6 +129,8 @@ paths:
         Omit `account_id` to read every account. The list is not paginated: sad.md §6 flow 7
         reads every account in one query, and data-model.md records that `accounts` holds a
         handful of rows.
+
+        Endpoint folder: `Presentation/Endpoints/Accounts/GetBalances/`
       operationId: getAccountBalances
       parameters:
         - in: query
@@ -158,6 +174,8 @@ paths:
         US-03, AC-08. Every recorded movement points at the account by identity, never by name,
         so history, balances and the breakdown keep referring to the same account under its new
         name and no other row is touched (sad.md §6 flow 5).
+
+        Endpoint folder: `Presentation/Endpoints/Accounts/Rename/`
       operationId: renameAccount
       requestBody:
         required: true
@@ -202,6 +220,8 @@ paths:
         US-03, AC-09, AC-10. The deletion is refused while any transaction or transfer names
         the account, so no recorded movement is ever left pointing at an account the ledger no
         longer has (sad.md §6 flow 5, postcondition). There is no cascade and no soft delete.
+
+        Endpoint folder: `Presentation/Endpoints/Accounts/Delete/`
       operationId: deleteAccount
       responses:
         "204":
@@ -237,6 +257,8 @@ paths:
         A category belongs to either expenses or income, and the `kind` cannot be changed after
         creation: the breakdown keeps the two sides apart (AC-18) and moving a category across
         would silently rewrite closed periods.
+
+        Endpoint folder: `Presentation/Endpoints/Categories/Create/`
       operationId: createCategory
       requestBody:
         required: true
@@ -268,16 +290,7 @@ paths:
                 code: "Category.NameInvalid"
                 message: "A category name must be between 1 and 100 characters."
         "404":
-          description: |
-            AC-32 — the named group is not in the ledger. The change is blocked, the unknown
-            group is named back, and that group is not created implicitly (sad.md §6 flow 12,
-            first branch).
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-              example:
-                code: "Category.GroupNotFound"
-                message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+          $ref: "#/components/responses/CategoryGroupNotFound"
         "409":
           description: |
             Either the name is taken on this side of the ledger (AC-36), or the named group is
@@ -310,6 +323,8 @@ paths:
         Pass `category_group_id` to narrow the list to one group. Without this operation a
         category that has never been used appears in no breakdown and can never be named
         again (sad.md §6 flow 11).
+
+        Endpoint folder: `Presentation/Endpoints/Categories/List/`
       operationId: listCategories
       parameters:
         - $ref: "#/components/parameters/CategoryGroupIdFilter"
@@ -332,14 +347,7 @@ paths:
                     category_group_id: null
                     created_at: "2026-10-20T09:21:00Z"
         "404":
-          description: |
-            AC-25 — the `category_group_id` filter names a group that is not in the ledger.
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-              example:
-                code: "CategoryGroup.NotFound"
-                message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
+          $ref: "#/components/responses/CategoryGroupNotFound"
 
   /api/v1/categories/{category_id}:
     parameters:
@@ -354,6 +362,8 @@ paths:
         A transaction names its category by id, so every recorded movement, balance and
         breakdown follows the new name with no row rewritten: the figure for a closed period
         is unchanged (sad.md §6 flow 11).
+
+        Endpoint folder: `Presentation/Endpoints/Categories/Rename/`
       operationId: renameCategory
       requestBody:
         required: true
@@ -402,6 +412,8 @@ paths:
         US-04, AC-12. Refused while any transaction names the category. The check runs before
         the delete and there is no `ON DELETE CASCADE` — a cascade would silently do the
         opposite of what AC-12 asks for (data-model.md, `categories`).
+
+        Endpoint folder: `Presentation/Endpoints/Categories/Delete/`
       operationId: deleteCategory
       responses:
         "204":
@@ -435,6 +447,8 @@ paths:
         group, so no transaction row is rewritten: the figure for this category in a closed
         period is unchanged, and group figures follow the new placement from the next read
         onwards (ADR-0002, sad.md §6 flow 6).
+
+        Endpoint folder: `Presentation/Endpoints/Categories/MoveToGroup/`
       operationId: setCategoryGroup
       requestBody:
         required: true
@@ -460,6 +474,11 @@ paths:
             AC-25, AC-32 — either the category or the target group is not part of this ledger.
             The change is blocked and nothing is created implicitly (sad.md §6 flow 12, first
             branch).
+
+            This is the one operation that can refuse two different things with a `404`, so it
+            is written out here instead of pointing at
+            `#/components/responses/CategoryGroupNotFound`. The two are told apart by the
+            **module**: `Category` for the entry being moved, `CategoryGroup` for the target.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -472,7 +491,7 @@ paths:
                 group_missing:
                   summary: AC-32 — the target group is unknown
                   value:
-                    code: "Category.GroupNotFound"
+                    code: "CategoryGroup.NotFound"
                     message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
         "409":
           $ref: "#/components/responses/CategoryGroupKindMismatch"
@@ -490,6 +509,8 @@ paths:
         The group is created empty. The **Default group** is not created here and never can
         be: the breakdown produces it for categories that belong to no group, so it cannot be
         created, renamed or deleted (sad.md §12).
+
+        Endpoint folder: `Presentation/Endpoints/CategoryGroups/Create/`
       operationId: createCategoryGroup
       requestBody:
         required: true
@@ -527,6 +548,8 @@ paths:
       description: |
         US-09, AC-27. Returns every group with its name and the side of the ledger it belongs
         to, groups holding no categories included.
+
+        Endpoint folder: `Presentation/Endpoints/CategoryGroups/List/`
       operationId: listCategoryGroups
       responses:
         "200":
@@ -558,6 +581,8 @@ paths:
         The breakdown reports the group under its new name from the next read onwards, and the
         figure for every category in it is unchanged: no category row and no transaction row is
         touched (sad.md §6 flow 10).
+
+        Endpoint folder: `Presentation/Endpoints/CategoryGroups/Rename/`
       operationId: renameCategoryGroup
       requestBody:
         required: true
@@ -606,6 +631,8 @@ paths:
         the foreign key is `NO ACTION`, not `ON DELETE SET NULL` (data-model.md decision 8).
         **Nothing is assigned to the Default group** — it is produced by the breakdown and is
         never a row.
+
+        Endpoint folder: `Presentation/Endpoints/CategoryGroups/Delete/`
       operationId: deleteCategoryGroup
       responses:
         "204":
@@ -629,6 +656,8 @@ paths:
 
         `occurred_on` is a calendar day with no time and no timezone, so a late-evening purchase
         near a month boundary cannot slide into the next period (data-model.md decision 1).
+
+        Endpoint folder: `Presentation/Endpoints/Transactions/Record/`
       operationId: recordTransaction
       requestBody:
         required: true
@@ -679,6 +708,8 @@ paths:
         one account and forbids unknown properties, so naming a second account — for example
         `destination_account_id` — is refused with `Transaction.KindChangeNotAllowed`. The
         way through is to remove this entry and record it again as a transfer (sad.md §6 flow 9).
+
+        Endpoint folder: `Presentation/Endpoints/Transactions/Edit/`
       operationId: editTransaction
       requestBody:
         required: true
@@ -758,6 +789,8 @@ paths:
         affected returns to what it would have been had the entry never existed. There is no
         reversing entry, no `deleted_at` and no audit table (ADR-0003) — a wrong delete is
         unrecoverable outside the nightly `pg_dump` (sad.md §7, §11).
+
+        Endpoint folder: `Presentation/Endpoints/Transactions/Remove/`
       operationId: removeTransaction
       responses:
         "204":
@@ -780,6 +813,8 @@ paths:
 
         A transfer carries no category and no note — it is not spending or earning, and the
         breakdown never reads this table (AC-20).
+
+        Endpoint folder: `Presentation/Endpoints/Transfers/Record/`
       operationId: recordTransfer
       requestBody:
         required: true
@@ -824,6 +859,8 @@ paths:
         forbids unknown properties, so trying to give the transfer a category is refused with
         `Transfer.CategoryNotAllowed`. The column it would need does not exist
         (data-model.md, `transfers`).
+
+        Endpoint folder: `Presentation/Endpoints/Transfers/Edit/`
       operationId: editTransfer
       requestBody:
         required: true
@@ -901,6 +938,8 @@ paths:
         US-08, AC-22. A hard delete (ADR-0003). Both account balances return to what they would
         have been had the transfer never existed, and the total across all accounts is unchanged
         either way (AC-15).
+
+        Endpoint folder: `Presentation/Endpoints/Transfers/Remove/`
       operationId: removeTransfer
       responses:
         "204":
@@ -931,6 +970,8 @@ paths:
         Paging is by opaque cursor over `(occurred_on, id)`. History is a `UNION ALL` of two
         tables (ADR-0001), so a page boundary cannot be a bare id — pass `next_cursor` or
         `prev_cursor` back unread. Page size was settled at this gate: default 50, maximum 200.
+
+        Endpoint folder: `Presentation/Endpoints/Reporting/GetHistory/`
       operationId: getHistory
       parameters:
         - in: query
@@ -1040,6 +1081,8 @@ paths:
         Group totals follow the **current** category-to-group mapping, resolved at query time.
         Moving a category between groups changes group figures at once and can never change that
         category's own figure for a closed period (AC-13, ADR-0002).
+
+        Endpoint folder: `Presentation/Endpoints/Reporting/GetBreakdown/`
       operationId: getBreakdown
       parameters:
         - in: query
@@ -1208,7 +1251,15 @@ components:
             message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
     CategoryGroupNotFound:
-      description: AC-25 — no category group in this ledger has that id.
+      description: |
+        AC-25, AC-32 — no category group in this ledger has that id. The change is blocked, the
+        unknown group is named back, and that group is **not** created implicitly (sad.md §6
+        flow 12, first branch).
+
+        One response for all five sites that can name an unknown group: `createCategory`,
+        `setCategoryGroup`, `listCategories`, `renameCategoryGroup` and `deleteCategoryGroup`.
+        A second code `Category.GroupNotFound` carried the same message until run 3 of
+        `--reconcile` merged it here — one refusal, one code (`.claude/rules/openapi.md`).
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -1366,8 +1417,12 @@ components:
         (Accepted, 2026-10-22), which supersedes the spelling clause of ADR-0002 and nothing else.
         It is the one PascalCase value in this API: every JSON key, including the keys inside
         `details`, stays snake_case. The code maps to one constant in the registry — the class is
-        the module, the member is the name, so `CategoryErrors.GroupNotFound` returns
-        `"Category.GroupNotFound"`.
+        the module, the member is the name, so `CategoryGroupErrors.NotFound` returns
+        `"CategoryGroup.NotFound"`.
+
+        **One code per refusal.** Two codes that carry the same message describe one refusal and
+        make a client's `switch` go stale, so they are merged. The module names the aggregate
+        that was **not found**, not the aggregate the request was operating on.
       required: [code, message]
       additionalProperties: false
       properties:
@@ -1394,7 +1449,7 @@ components:
 
         **Must be above zero.** AC-02 is a domain invariant enforced in the entity, not a
         database `CHECK` (data-model.md decision 6), so a zero or negative value is refused with
-        `*.amount_not_positive` rather than by this pattern.
+        `Transaction.AmountNotPositive` or `Transfer.AmountNotPositive` rather than by this pattern.
       pattern: "^\\d{1,15}(\\.\\d{1,4})?$"
       example: "42.5000"
 
