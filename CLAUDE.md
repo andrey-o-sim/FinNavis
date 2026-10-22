@@ -144,11 +144,15 @@ get broken most often.
   operation owns its own shape, so changing one response can never silently change another endpoint.
 - Never return Domain entities from an endpoint.
 - **Every error response is the flat envelope `{code, message, details?}`** — not RFC 9457 Problem
-  Details. `code` is `module.error_name` in snake_case (`transaction.category_not_found`,
-  `account.has_recorded_history`) and is what a client switches on; `message` is the refusal wording
+  Details. `code` is `Module.ErrorName` in PascalCase (`Transaction.CategoryNotFound`,
+  `Account.HasRecordedHistory`) and is what a client switches on; `message` is the refusal wording
   from the PRD acceptance criteria, not invented; `details` is optional and carries field-level
   validation only. One `code` in a contract equals one constant in the error registry, returning the
-  same string. See `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` and
+  same string — the class is the module and the member is the name, so `CategoryErrors.GroupNotFound`
+  is `"Category.GroupNotFound"`. **The code is the one PascalCase value in a snake_case body:** JSON
+  keys, including every key inside `details`, stay snake_case. See
+  `docs/adr/0003-spell-an-error-code-in-pascalcase.md` for the spelling,
+  `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` for the envelope, and
   `.claude/rules/openapi.md`.
 - **ASP.NET Core produces `application/problem+json` by default** — for routing 404s, model-binding
   failures, `Results.ValidationProblem` and anything under `AddProblemDetails`. Turn that default

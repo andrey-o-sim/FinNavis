@@ -1,0 +1,1092 @@
+# REFERENCE SPEC — not the document served at /openapi/v1.json. See .claude/rules/openapi.md.
+#
+# Derived by finnavis-api-forge (scenario A) — NOT hand-written.
+#   fields + bounds   <- data-model.md (every property traces to a column; maxLength/enum copied)
+#   error responses   <- sad.md §6 alt-branches (one response per branch)
+#   operations        <- PRD.md §4 user stories; shapes from §5 acceptance criteria
+#   refusal wording   <- PRD.md §10, never invented here (three exceptions, named in the report)
+# Conventions and the six FinNavis deviations live in .claude/rules/openapi.md.
+# Every field's origin is tabulated in ./api-sync-report.md.
+#
+# Run 1 (2026-10-21): api-sync-report.md carries **Verdict: PASS (with deferrals)**.
+# Six operations, one per sad.md §5 endpoint folder. Six deferrals, none blocking: no error
+# registry exists yet (src/ is a skeleton), five shape-validation responses have no §6 branch,
+# three refusals have no PRD §10 wording, the file-size ceiling is still PRD §8 open, and the
+# served document cannot be diffed until implement-tasks.
+#
+# Run 2 (--reconcile, 2026-10-21): **this file is unchanged.** PRD.md, sad.md and data-model.md
+# did not move; what moved was the report format the skill asks for. Section A of
+# api-sync-report.md was re-derived as one tree per operation. Verdict holds at
+# PASS (with deferrals), and info.version stays 0.1.0 — nothing shipped against it.
+openapi: 3.1.0
+
+info:
+  title: FinNavis csv-import API
+  version: 0.1.0
+  description: |
+    Load a file the owner hands over into the ledger `core-ledger` owns.
+
+    The owner records spending as it happens, up to 30 rows a month. The rest he cannot record
+    that way, so at month end he reads a bank statement and re-types that batch by hand. He also
+    has three years of history in a tracker he wants to leave, and that tracker exports but
+    cannot import. This API closes both (PRD §1).
+
+    Two jobs run over one write path and differ in three policies (ADR-0005): a **statement
+    load**, where the rules for a shape of file are confirmed once and nothing the ledger lacks
+    is created; and the one-time **history migration**, where the file's own names are the truth
+    and missing accounts and categories are created.
+
+    Every movement a load records remembers the load that brought it, so a load can be read back
+    and undone as a whole, and handing the same file over again records nothing twice.
+
+    **The uploaded file is never stored** (ADR-0001). A shape new to the system is therefore two
+    uploads: `POST /api/v1/mapping-profiles/inspect` to see which categories the file carries,
+    then `POST /api/v1/import-runs/statement` to load it. The confirm step in between carries no
+    file — it passes back the `shape_key` that inspect returned.
+
+    **No authentication.** There is one owner, no sign-in and no second actor, so this API
+    declares no security scheme. Keep the installation off public networks until the OAuth
+    feature ships (PRD §6.1 · sad.md §8, §11).
+
+servers:
+  - url: http://localhost:5080
+    description: Local development
+  - url: https://finnavis.home.arpa
+    description: The owner's self-hosted installation (hostname is the owner's own)
+
+# Deviation from the api-forge default of `BearerAuth` global — see .claude/rules/openapi.md §1.
+# PRD §6.1 and sad.md §8 both state there is no sign-in, so there is no token to require, and no
+# 401 or 403 appears anywhere in this file.
+security: []
+
+tags:
+  - name: Mapping profiles
+    description: The rules remembered for one shape of file (US-01, US-05)
+  - name: Import runs
+    description: One load of one file, taken as a whole (US-02, US-03, US-04, US-06, US-07)
+
+paths:
+  # ───────────────────────── Mapping profiles ─────────────────────────
+  /api/v1/mapping-profiles/inspect:
+    post:
+      tags: [Mapping profiles]
+      summary: Read a statement and report the categories it carries
+      description: |
+        US-01, AC-01, AC-03. Reads the file and records nothing. It answers two things: the
+        `shape_key` that identifies this shape of file (ADR-0009), and every category the file's
+        own rows carry — which is what the owner needs before they can say what each one means.
+
+        **Nothing is kept between this call and the load** (ADR-0001). The file is handed over
+        again when it is loaded; that is the price the owner pays once per bank for having no
+        file store and no bank statement on disk.
+
+        A `mapping_profile_id` in the answer means this shape was confirmed before and the file
+        can be loaded straight away. `null` means the rules are not confirmed yet —
+        `POST /api/v1/mapping-profiles` is the next call.
+
+        This operation is for a **statement**. The history migration has no confirmation step,
+        because the export already names accounts and categories in the owner's own words
+        (sad.md §6 flow 4).
+
+        Endpoint folder: `Presentation/Endpoints/MappingProfiles/Inspect/`
+      operationId: inspectFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/InspectFileRequest" }
+            example:
+              file: "<the bytes of test-statement.csv>"
+      responses:
+        "200":
+          description: |
+            The file could be read. Nothing was recorded and no rule was remembered.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FileInspection" }
+              examples:
+                shape_is_new:
+                  summary: A shape never handed over before — the rules are not confirmed yet
+                  value:
+                    shape_key: "date|description|category|amount"
+                    mapping_profile_id: null
+                    source_categories: ["TEST GROCERIES", "TEST TRANSPORT", "TEST TRANSFER"]
+                shape_already_confirmed:
+                  summary: AC-01 — the next file of a confirmed shape needs no confirmation
+                  value:
+                    shape_key: "date|description|category|amount"
+                    mapping_profile_id: "01937a1e-0000-7000-8000-00000000b001"
+                    source_categories: ["TEST GROCERIES", "TEST TRANSPORT", "TEST TRANSFER"]
+        "400":
+          $ref: "#/components/responses/FileUnusable"
+
+  /api/v1/mapping-profiles:
+    post:
+      tags: [Mapping profiles]
+      summary: Confirm what each of a shape's categories means
+      description: |
+        US-01, AC-01, AC-02, AC-04. Remembers the rules for one shape of file, so the next file
+        of that shape needs no confirmation.
+
+        **This call carries no file.** It passes back the `shape_key` that
+        `POST /api/v1/mapping-profiles/inspect` returned — settled at the api-forge gate, see
+        `api-sync-report.md`. ADR-0001 keeps nothing between the two calls, and the shape key is
+        the readable normalised header row (data-model.md decision 2), not an upload id.
+
+        A rule has **two** targets, not three (data-model.md decision 1): one of the owner's
+        categories, or a move between the owner's own accounts. A category the owner does not
+        want to file simply gets no rule — its rows are set aside with reason `NoRuleCovers`
+        (AC-08, AC-14).
+
+        **Re-confirming a shape replaces its rules wholesale** and answers `200` instead of
+        `201`. Nothing already recorded changes: no recorded movement points at a rule, so AC-04
+        holds by construction (sad.md §5, data-model.md `mapping_profile_rules`).
+
+        Endpoint folder: `Presentation/Endpoints/MappingProfiles/Confirm/`
+      operationId: confirmMappingProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConfirmMappingProfileRequest" }
+            example:
+              shape_key: "date|description|category|amount"
+              rules:
+                - source_category: "TEST GROCERIES"
+                  target: "Category"
+                  target_category_id: "01937a1e-0000-7000-8000-0000000000c1"
+                - source_category: "TEST TRANSFER"
+                  target: "TransferBetweenOwnAccounts"
+                  target_category_id: null
+      responses:
+        "201":
+          description: |
+            AC-01 — the rules are remembered for this shape, which was new.
+          headers:
+            Location:
+              schema: { type: string }
+              description: Path of the profile that was created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MappingProfile" }
+              example:
+                id: "01937a1e-0000-7000-8000-00000000b001"
+                shape_key: "date|description|category|amount"
+                rules:
+                  - source_category: "TEST GROCERIES"
+                    target: "Category"
+                    target_category_id: "01937a1e-0000-7000-8000-0000000000c1"
+                  - source_category: "TEST TRANSFER"
+                    target: "TransferBetweenOwnAccounts"
+                    target_category_id: null
+                created_at: "2026-10-21T09:15:00Z"
+        "200":
+          description: |
+            AC-04 — this shape was confirmed before, so its rules were replaced. Rows recorded
+            under the old rules keep the category they were given; only later loads follow the
+            new rules.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MappingProfile" }
+              example:
+                id: "01937a1e-0000-7000-8000-00000000b001"
+                shape_key: "date|description|category|amount"
+                rules:
+                  - source_category: "TEST GROCERIES"
+                    target: "Category"
+                    target_category_id: "01937a1e-0000-7000-8000-0000000000c2"
+                created_at: "2026-10-21T09:15:00Z"
+        "400":
+          description: |
+            A rule is not usable as written. `target_category_id` must be set exactly when
+            `target` is `Category`, and must be absent otherwise — a domain invariant refused in
+            the `MappingRule` entity, never by a database `CHECK` (data-model.md decision 12).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                category_missing_on_rule:
+                  summary: A `Category` rule that names no category
+                  value:
+                    code: "MappingProfile.InvalidRule"
+                    message: "A rule that files a row under a category must name that category."
+                    details:
+                      source_category: "TEST GROCERIES"
+                      target: "Category"
+                category_set_on_transfer:
+                  summary: A transfer rule that names a category
+                  value:
+                    code: "MappingProfile.InvalidRule"
+                    message: "A rule for a move between your own accounts records no category."
+                    details:
+                      source_category: "TEST TRANSFER"
+                      target: "TransferBetweenOwnAccounts"
+        "404":
+          description: |
+            AC-02 — a rule points at a category that is not in the ledger. No rule is remembered
+            and no category is created (sad.md §6 flow 1, second alt-branch).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "MappingProfile.CategoryNotFound"
+                message: "There is no category with that name, so a rule cannot point at it."
+                details:
+                  source_category: "TEST GROCERIES"
+                  target_category_id: "01937a1e-0000-7000-8000-00000000dead"
+        "409":
+          description: |
+            Two rules in this request name the same category of the file.
+            `mapping_profile_rules` is UNIQUE on (`mapping_profile_id`, `source_category`), so
+            two rules can never disagree about one file category (data-model.md § Indexes).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "MappingProfile.DuplicateSourceCategory"
+                message: "This file category is named by two rules, so it is not clear which one applies."
+                details:
+                  source_category: "TEST GROCERIES"
+
+  # ───────────────────────────── Import runs ─────────────────────────────
+  /api/v1/import-runs/statement:
+    post:
+      tags: [Import runs]
+      summary: Load a monthly statement onto one account
+      description: |
+        US-02, US-05, US-07 — AC-05, AC-06, AC-07, AC-08, AC-09, AC-15, AC-20, AC-21, AC-22.
+
+        **The owner names the account, not the file.** A statement covers one account
+        (`CONTEXT.md`), so `account_id` is part of the request and no column in the file is read
+        for it (sad.md §6, the note above flow 1).
+
+        Every row a rule covers is recorded on that account with the category the rule gives. A
+        row the ledger already holds is **counted as already there**, never recorded twice — the
+        match is an exact one on the file's own row identifier first, then a date-and-amount
+        window second (ADR-0002), always against a snapshot taken before this run wrote anything
+        (ADR-0003). That holds whether the earlier movement came from a previous load or was
+        typed by hand on the day (AC-21).
+
+        **A finished load is a `200`, even when it set rows aside** (`CLAUDE.md` §API). The
+        answer carries the counts plus one entry per set-aside row with its reason, and every
+        such row is a normal outcome rather than a fault: a move between the owner's own accounts
+        (AC-06), another currency (AC-07), or no rule covering it (AC-08). A set-aside row
+        changes no balance and is never recorded on its own (AC-14). The error envelope below
+        only describes a refusal that **stopped** the whole load.
+
+        The whole run commits once (ADR-0004), so a failure part-way leaves the ledger exactly as
+        it was (AC-22).
+
+        Endpoint folder: `Presentation/Endpoints/ImportRuns/LoadStatement/`
+      operationId: loadStatement
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/LoadStatementRequest" }
+            example:
+              file: "<the bytes of test-statement.csv>"
+              account_id: "01937a1e-0000-7000-8000-000000000001"
+      responses:
+        "200":
+          description: |
+            The load finished and is recorded as one run. Some rows may have been set aside.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportRunResult" }
+              examples:
+                rows_recorded_and_set_aside:
+                  summary: AC-05, AC-08 — covered rows recorded, the uncovered category named back
+                  value:
+                    import_run_id: "01937a1e-0000-7000-8000-00000000d001"
+                    kind: "Statement"
+                    status: "Completed"
+                    file_name: "test-statement.csv"
+                    account_id: "01937a1e-0000-7000-8000-000000000001"
+                    recorded_row_count: 24
+                    already_present_row_count: 0
+                    created_at: "2026-10-21T09:30:00Z"
+                    set_aside:
+                      - row_number: 7
+                        reason: "NoRuleCovers"
+                        source_category: "TEST TRANSPORT"
+                        raw_line: "2026-10-07,TEST SHOP 1,TEST TRANSPORT,12.5000"
+                      - row_number: 11
+                        reason: "TransferBetweenOwnAccounts"
+                        source_category: "TEST TRANSFER"
+                        raw_line: "2026-10-11,TEST TRANSFER OUT,TEST TRANSFER,200.0000"
+                      - row_number: 19
+                        reason: "ForeignCurrency"
+                        source_category: "TEST GROCERIES"
+                        raw_line: "2026-10-19,TEST SHOP 2,TEST GROCERIES,30.0000 XTS"
+                same_file_again:
+                  summary: AC-20 — the same file handed over again records nothing twice
+                  value:
+                    import_run_id: "01937a1e-0000-7000-8000-00000000d002"
+                    kind: "Statement"
+                    status: "Completed"
+                    file_name: "test-statement.csv"
+                    account_id: "01937a1e-0000-7000-8000-000000000001"
+                    recorded_row_count: 0
+                    already_present_row_count: 24
+                    created_at: "2026-10-21T09:40:00Z"
+                    set_aside: []
+        "400":
+          $ref: "#/components/responses/FileUnusable"
+        "404":
+          description: |
+            AC-09 — the named account is not in the ledger. This refuses the **whole load**
+            rather than one row: every row of a statement lands on the one account the owner
+            named, so if that account does not exist there is nothing to load onto (sad.md §6
+            flow 2, first alt-branch).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "Import.AccountNotFound"
+                message: "You do not have an account with that name, so there was nothing to load this file onto. Nothing was recorded and no account was created."
+                details:
+                  account_id: "01937a1e-0000-7000-8000-00000000dead"
+        "409":
+          description: |
+            No rules exist for this shape of file, so there is nothing to file its rows under
+            (sad.md §6 flow 2, first alt-branch, second half). Inspect the file and confirm its
+            rules first.
+
+            **The wording here was drafted at the api-forge gate** — PRD §10 carries no row for
+            this refusal. See `api-sync-report.md`, Deferrals.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                code: "Import.MappingProfileNotConfirmed"
+                message: "The rules for this shape of file have not been confirmed, so nothing was recorded."
+                details:
+                  shape_key: "date|description|category|amount"
+        "500":
+          $ref: "#/components/responses/ImportNotRecorded"
+
+  /api/v1/import-runs/history-migration:
+    post:
+      tags: [Import runs]
+      summary: Move the old tracker's export into the ledger
+      description: |
+        US-03 — AC-03, AC-10, AC-11, AC-12, AC-22. The one-time move of three years of history.
+
+        **No confirmation step and no mapping profile.** The export names accounts and categories
+        in the owner's own words, so the file's own names are the truth: every account and
+        category the file names that the ledger lacks is **created** (AC-10). That is the
+        opposite of a statement load, which creates nothing and refuses instead (AC-09) —
+        ADR-0005 keeps the two entry points honestly different so one wrong field can never make
+        a statement load create an account.
+
+        A row naming two of the owner's own accounts is recorded as a **transfer**, so the
+        owner's total is unchanged (AC-11). The export names both sides; a statement names only
+        one, which is why the same case is set aside there (AC-06).
+
+        Every write is an insert, so a month the owner already filled in by hand gains the loaded
+        rows and loses nothing (AC-12).
+
+        This is the PRD §6 budget: ~1500 rows across several accounts, p95 ≤ 60 s.
+
+        Endpoint folder: `Presentation/Endpoints/ImportRuns/MigrateHistory/`
+      operationId: migrateHistory
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/MigrateHistoryRequest" }
+            example:
+              file: "<the bytes of test-export.csv>"
+      responses:
+        "200":
+          description: |
+            The move finished and is recorded as one run. `account_id` is always `null` — an
+            export names an account per row instead (data-model.md decision 8).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportRunResult" }
+              example:
+                import_run_id: "01937a1e-0000-7000-8000-00000000d003"
+                kind: "HistoryMigration"
+                status: "Completed"
+                file_name: "test-export.csv"
+                account_id: null
+                recorded_row_count: 1487
+                already_present_row_count: 11
+                created_at: "2026-10-21T10:00:00Z"
+                set_aside:
+                  - row_number: 912
+                    reason: "ForeignCurrency"
+                    source_category: "TEST TRAVEL"
+                    raw_line: "2024-05-02,TEST SHOP 3,TEST TRAVEL,55.0000 XTS,Test Account"
+        "400":
+          $ref: "#/components/responses/FileUnusable"
+        "500":
+          $ref: "#/components/responses/ImportNotRecorded"
+
+  /api/v1/import-runs/{import_run_id}:
+    parameters:
+      - $ref: "#/components/parameters/ImportRunId"
+    get:
+      tags: [Import runs]
+      summary: Read what a load did
+      description: |
+        US-04 — AC-13, AC-14. How many rows were recorded, how many were already in the ledger,
+        every set-aside row with its reason, and whether the run has been undone.
+
+        **The set-aside rows are paged**, ordered by `row_number` — their 1-based ordinal in the
+        file, which is also the column the database orders by (data-model.md
+        `import_set_aside_rows`). Settled at the api-forge gate: a history migration can set many
+        rows aside and each one carries the file's own line, so the load answers with the whole
+        list once and this read hands it back a page at a time. The cursor is opaque; pass
+        `next_cursor` or `prev_cursor` back unread.
+
+        **A run report is a record of one event, not a live view** (`CONTEXT.md` *Import run*).
+        A row it lists as set aside keeps being listed even after a later load recorded it
+        (sad.md §11, accepted).
+
+        `recorded_row_count` keeps its value after an undo. It is a stored column, not a count of
+        surviving links, so the report cannot start saying zero once undo has deleted them
+        (data-model.md decision 6).
+
+        Endpoint folder: `Presentation/Endpoints/ImportRuns/Get/`
+      operationId: getImportRun
+      parameters:
+        - $ref: "#/components/parameters/After"
+        - $ref: "#/components/parameters/Before"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportRunReport" }
+              examples:
+                completed_run:
+                  summary: AC-13 — what the load did
+                  value:
+                    import_run_id: "01937a1e-0000-7000-8000-00000000d001"
+                    kind: "Statement"
+                    status: "Completed"
+                    file_name: "test-statement.csv"
+                    account_id: "01937a1e-0000-7000-8000-000000000001"
+                    recorded_row_count: 24
+                    already_present_row_count: 0
+                    created_at: "2026-10-21T09:30:00Z"
+                    set_aside:
+                      items:
+                        - row_number: 7
+                          reason: "NoRuleCovers"
+                          source_category: "TEST TRANSPORT"
+                          raw_line: "2026-10-07,TEST SHOP 1,TEST TRANSPORT,12.5000"
+                      has_next: false
+                      has_prev: false
+                      next_cursor: null
+                      prev_cursor: null
+                undone_run:
+                  summary: AC-16, AC-19 — the run was undone, and keeps saying what it had done
+                  value:
+                    import_run_id: "01937a1e-0000-7000-8000-00000000d001"
+                    kind: "Statement"
+                    status: "Undone"
+                    file_name: "test-statement.csv"
+                    account_id: "01937a1e-0000-7000-8000-000000000001"
+                    recorded_row_count: 24
+                    already_present_row_count: 0
+                    created_at: "2026-10-21T09:30:00Z"
+                    set_aside:
+                      items: []
+                      has_next: false
+                      has_prev: false
+                      next_cursor: null
+                      prev_cursor: null
+        "400":
+          $ref: "#/components/responses/ImportInvalidPaging"
+        "404":
+          $ref: "#/components/responses/ImportRunNotFound"
+
+  /api/v1/import-runs/{import_run_id}/undo:
+    parameters:
+      - $ref: "#/components/parameters/ImportRunId"
+    post:
+      tags: [Import runs]
+      summary: Undo a load as a whole
+      description: |
+        US-06 — AC-16, AC-17, AC-18, AC-19. Every row the load recorded is deleted and every
+        balance returns to what it would have been had the load never happened.
+
+        A load that created accounts and categories loses those too, **except any that a movement
+        from outside the load now names** (AC-17). That check is a query at undo time, not a
+        guess (sad.md §6 flow 6).
+
+        These are real deletes, not reversing entries — inherited from `core-ledger` ADR-0003,
+        which keeps no audit trail. The run row survives with `status: Undone`: it is the only
+        trace in the product that a load happened and was reversed, and it is what lets the same
+        file be handed over again and recorded afresh (AC-19).
+
+        **A row the owner changed by hand after the load blocks the undo** (AC-18). It is caught
+        by the content fingerprint stored when the load wrote the row (ADR-0008). A row the owner
+        **deleted** by hand blocks nothing — there is nothing left to remove.
+
+        There is no request body and no `Idempotency-Key`: the run id in the path is the whole
+        request, and a second undo of the same run is refused with `Import.AlreadyUndone`.
+
+        Endpoint folder: `Presentation/Endpoints/ImportRuns/Undo/`
+      operationId: undoImportRun
+      responses:
+        "200":
+          description: |
+            AC-16 — the run is undone. The answer is the run report, now carrying
+            `status: Undone`; the counts are the stored ones and still describe what the load had
+            done (data-model.md decision 6).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportRunReport" }
+              example:
+                import_run_id: "01937a1e-0000-7000-8000-00000000d001"
+                kind: "Statement"
+                status: "Undone"
+                file_name: "test-statement.csv"
+                account_id: "01937a1e-0000-7000-8000-000000000001"
+                recorded_row_count: 24
+                already_present_row_count: 0
+                created_at: "2026-10-21T09:30:00Z"
+                set_aside:
+                  items:
+                    - row_number: 7
+                      reason: "NoRuleCovers"
+                      source_category: "TEST TRANSPORT"
+                      raw_line: "2026-10-07,TEST SHOP 1,TEST TRANSPORT,12.5000"
+                  has_next: false
+                  has_prev: false
+                  next_cursor: null
+                  prev_cursor: null
+        "400":
+          $ref: "#/components/responses/ImportInvalidPaging"
+        "404":
+          $ref: "#/components/responses/ImportRunNotFound"
+        "409":
+          description: |
+            The undo is refused and nothing changes — no movement is deleted, no created account
+            or category is removed, and the run keeps its status (sad.md §6 flow 6, first two
+            alt-branches).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              examples:
+                changed_by_hand:
+                  summary: AC-18 — rows from this load were changed by hand afterwards
+                  value:
+                    code: "Import.MovementsChangedByHand"
+                    message: "Some rows from this load were changed by hand afterwards, so the load cannot be undone as a whole."
+                    details:
+                      transaction_ids:
+                        - "01937a1e-0000-7000-8000-0000000000e1"
+                        - "01937a1e-0000-7000-8000-0000000000e2"
+                      transfer_ids: []
+                already_undone:
+                  summary: The run was undone before
+                  value:
+                    code: "Import.AlreadyUndone"
+                    message: "This load was already undone, so there is nothing left to remove."
+
+components:
+  # No `securitySchemes` block. PRD §6.1 and sad.md §8: one owner, no sign-in, nothing to
+  # authenticate against. See .claude/rules/openapi.md §1.
+
+  parameters:
+    ImportRunId:
+      in: path
+      name: import_run_id
+      required: true
+      schema: { type: string, format: uuid }
+
+    After:
+      in: query
+      name: after
+      required: false
+      description: |
+        Opaque cursor over the run's set-aside rows — the page starts after the row it points at.
+        Pass back a `next_cursor` from a previous page; never build one by hand.
+      schema: { type: string, maxLength: 200 }
+
+    Before:
+      in: query
+      name: before
+      required: false
+      description: |
+        Opaque cursor over the run's set-aside rows — the page ends before the row it points at.
+        Pass back a `prev_cursor` from a previous page.
+      schema: { type: string, maxLength: 200 }
+
+    Limit:
+      in: query
+      name: limit
+      required: false
+      description: |
+        How many set-aside rows one page holds.
+
+        **PRD §6 sets no per-page budget** — its two numbers are for a whole load and a whole
+        undo — so this bound is a size budget rather than a latency one, and says so honestly. A
+        set-aside row carries `raw_line`, bounded at 2000 characters (data-model.md decision 10),
+        so the default page is at most ~100 KB and the maximum about ~400 KB. The numbers match
+        `core-ledger`'s history paging, so a client uses one rule for both.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+
+  responses:
+    FileUnusable:
+      description: |
+        The file was refused before anything was recorded.
+
+        `Import.MissingRequiredColumn` is AC-03. `Import.FileNotReadable` is the PRD §6.1
+        abuse case — a file that is not a statement. It is enforced while the file streams
+        (ADR-0006, sad.md §8 Validation) and against the stored bounds: a header row longer than
+        1000 characters or a line longer than 2000 characters is not a statement (data-model.md
+        decision 10). **The ceiling on how many rows a file may carry is still open** —
+        PRD §8, carried in `api-sync-report.md` Deferrals.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            missing_column_statement:
+              summary: AC-03 — a statement that does not say the date or the amount
+              value:
+                code: "Import.MissingRequiredColumn"
+                message: "This file does not say the date or the amount, so nothing can be recorded from it."
+                details:
+                  missing: ["amount"]
+            missing_column_export:
+              summary: AC-03 — an export must also say the account each row belongs to
+              value:
+                code: "Import.MissingRequiredColumn"
+                message: "This file does not say the date or the amount, or the account each row belongs to, so nothing can be recorded from it."
+                details:
+                  missing: ["account"]
+            not_readable:
+              summary: PRD §6.1 — the file is not a statement
+              value:
+                code: "Import.FileNotReadable"
+                message: "This file could not be read as a statement, so nothing was recorded."
+
+    ImportRunNotFound:
+      description: No import run has that id.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "Import.RunNotFound"
+            message: "No load in this installation has id 01937a1e-0000-7000-8000-00000000dead."
+
+    ImportInvalidPaging:
+      description: |
+        A paging parameter is unusable — `limit` is outside 1..200, or a cursor is not one this
+        server minted.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "Import.InvalidPaging"
+            message: "'limit' must be between 1 and 200."
+            details:
+              limit: 5000
+
+    ImportNotRecorded:
+      description: |
+        AC-22 — the load did not happen. **None of its rows is recorded and every balance is
+        unchanged**: the whole run commits in one database transaction, which rolled back
+        (ADR-0004, sad.md §6 flow 2, inner alt-branch). No run row survives either, which is why
+        there is no id to read back.
+
+        **The wording here was drafted at the api-forge gate** — PRD §10 carries no row for this
+        refusal, only AC-22's "the owner is told the load did not happen". See
+        `api-sync-report.md`, Deferrals.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            code: "Import.NotRecorded"
+            message: "The load did not happen. Nothing was recorded and every balance is unchanged."
+
+  schemas:
+    # ── Shared primitives ──────────────────────────────────────────────
+    Error:
+      type: object
+      description: |
+        The unified error envelope, settled by
+        `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` (Accepted,
+        2026-10-20, project-wide), which `sad.md` §8 and `CLAUDE.md` §API were both amended to
+        match.
+
+        `code` is `Module.ErrorName` in PascalCase — `docs/adr/0003-spell-an-error-code-in-pascalcase.md`
+        (Accepted, 2026-10-22), which supersedes the spelling clause of ADR-0002 and nothing else.
+        It is the one PascalCase value in this API: every JSON key, including the keys inside
+        `details`, stays snake_case. The code maps to one constant in the registry — the class is
+        the module, the member is the name, so `ImportErrors.AccountNotFound` returns
+        `"Import.AccountNotFound"`.
+
+        This envelope describes a refusal that **stopped** the whole operation. A load that
+        finished with rows set aside is a `200` carrying those rows, not an error
+        (`CLAUDE.md` §API).
+      required: [code, message]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          pattern: "^[A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*$"
+          example: "Import.AccountNotFound"
+        message:
+          type: string
+          description: |
+            The refusal sentence the owner reads, taken from PRD §10 and not invented. Three
+            refusals in this contract have no PRD §10 row and carry wording drafted at the
+            api-forge gate — they are named in `api-sync-report.md`.
+        details:
+          type: object
+          description: Optional structured context — the conflicting id, the missing columns, a list of changed rows.
+
+    ImportRunKind:
+      type: string
+      description: |
+        Which of the two jobs a run was (ADR-0005). The values are the strings stored in
+        `import_runs.kind` — enums are stored as strings, never as int (`CLAUDE.md`).
+      enum: [Statement, HistoryMigration]
+      example: "Statement"
+
+    ImportRunStatus:
+      type: string
+      description: |
+        The values stored in `import_runs.status`. **There is no `Failed`**: a load that fails
+        commits nothing, so it leaves no run row at all (data-model.md `import_runs`, AC-22).
+      enum: [Completed, Undone]
+      example: "Completed"
+
+    SetAsideReason:
+      type: string
+      description: |
+        Why a row was read and deliberately not recorded. **Three values, not four**
+        (data-model.md decision 9) — an unknown account is not one of them, because AC-09 refuses
+        the whole load instead of setting a row aside.
+
+        - `NoRuleCovers` — AC-08: no rule covers this row's category.
+        - `TransferBetweenOwnAccounts` — AC-06: a move between the owner's own accounts, which a
+          statement names only one side of.
+        - `ForeignCurrency` — AC-07: the row is in a currency the ledger does not keep.
+      enum: [NoRuleCovers, TransferBetweenOwnAccounts, ForeignCurrency]
+      example: "NoRuleCovers"
+
+    MappingRuleTarget:
+      type: string
+      description: |
+        What one of the file's own categories means in the ledger. **Two values, not three**
+        (data-model.md decision 1): a transaction names exactly one category and there is no
+        default category, so "record this with no category" cannot be stored. A file category the
+        owner does not want to file gets no rule at all, and its rows are set aside with
+        `NoRuleCovers`.
+      enum: [Category, TransferBetweenOwnAccounts]
+      example: "Category"
+
+    # ── Mapping profiles ───────────────────────────────────────────────
+    InspectFileRequest:
+      type: object
+      description: |
+        The file, handed over to be read. It is **not stored** (ADR-0001) — it is read, reported
+        on, and dropped.
+      required: [file]
+      additionalProperties: false
+      properties:
+        file:
+          type: string
+          format: binary
+          description: |
+            The statement, as the bank produced it. The part's filename is kept on the run when
+            this file is later loaded (`import_runs.file_name`, at most 255 characters).
+
+            **How large a file may be is still open** — PRD §8. ADR-0006 makes a ceiling
+            expressible; the value is unset, so no `maxLength` is stated here rather than one
+            being invented.
+
+    FileInspection:
+      type: object
+      description: |
+        What the file carries. Nothing was recorded and nothing was remembered — this is the read
+        half of ADR-0001's two uploads.
+      required: [shape_key, mapping_profile_id, source_categories]
+      additionalProperties: false
+      properties:
+        shape_key:
+          type: string
+          maxLength: 1000
+          description: |
+            The identity of this shape of file (ADR-0009): the file's column names, each trimmed
+            and lowercased, trailing empty columns dropped, joined with `|`, in the file's own
+            column order (data-model.md decision 2).
+
+            It is stored readable rather than hashed, so the owner can see why a file matched a
+            profile. Pass it back to `POST /api/v1/mapping-profiles`.
+
+            Two banks whose statements carry identical headers share one profile, and the system
+            cannot tell them apart (ADR-0009, sad.md §11 — accepted, bounded by the run report
+            and by undo).
+          example: "date|description|category|amount"
+        mapping_profile_id:
+          type: [string, "null"]
+          format: uuid
+          description: |
+            The profile already confirmed for this shape, or `null` when this shape is new. `null`
+            means the rules must be confirmed before the file can be loaded.
+        source_categories:
+          type: array
+          description: |
+            Every category the file's own rows carry, each as the file writes it (AC-01). Read
+            from the file, never stored on its own — what gets stored is one rule per category the
+            owner gives a meaning to (`mapping_profile_rules.source_category`).
+          items:
+            type: string
+            maxLength: 200
+
+    MappingRule:
+      type: object
+      description: |
+        What one of the file's own categories means in the ledger. **No recorded movement points
+        at a rule**, which is the whole of AC-04: changing a rule cannot change anything already
+        recorded, because nothing recorded knows a rule exists (sad.md §5).
+      required: [source_category, target, target_category_id]
+      additionalProperties: false
+      properties:
+        source_category:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: The file's own category text, as the file writes it. Unique within one profile.
+        target: { $ref: "#/components/schemas/MappingRuleTarget" }
+        target_category_id:
+          type: [string, "null"]
+          format: uuid
+          description: |
+            The owner's category this rule files the row under. Set exactly when `target` is
+            `Category`; `null` for `TransferBetweenOwnAccounts`, which records nothing. The pairing
+            is a domain invariant refused in the entity, not a database `CHECK` (data-model.md
+            decision 12).
+
+    ConfirmMappingProfileRequest:
+      type: object
+      description: |
+        The rules for one shape of file. **This request carries no file** — only the `shape_key`
+        that inspect returned (ADR-0001).
+      required: [shape_key, rules]
+      additionalProperties: false
+      properties:
+        shape_key:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: The value `POST /api/v1/mapping-profiles/inspect` returned for this file.
+        rules:
+          type: array
+          description: |
+            One rule per category the owner wants filed. A category left out is not a gap: its
+            rows are set aside and the category is named back (AC-01, AC-08). An empty list is
+            therefore legal and means every row of this shape is set aside.
+          items: { $ref: "#/components/schemas/MappingRule" }
+
+    MappingProfile:
+      type: object
+      description: |
+        The rules remembered for one shape of file, so the next file of that shape needs no
+        confirmation. A profile outlives every load that uses it.
+
+        **It has no name.** A name takes no part in the lookup and can only go stale (ADR-0009),
+        and the run report asks for counts and set-aside rows, never for the name of the profile
+        that was applied.
+      required: [id, shape_key, rules, created_at]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        shape_key: { type: string, maxLength: 1000 }
+        rules:
+          type: array
+          items: { $ref: "#/components/schemas/MappingRule" }
+        created_at: { type: string, format: date-time }
+
+    # ── Import runs ────────────────────────────────────────────────────
+    LoadStatementRequest:
+      type: object
+      description: |
+        The month's file, and the account it covers. A statement covers **one** account
+        (`CONTEXT.md`), so the owner names it here and no column in the file is read for it
+        (sad.md §6).
+      required: [file, account_id]
+      additionalProperties: false
+      properties:
+        file:
+          type: string
+          format: binary
+          description: |
+            The statement, as the bank produced it. The part's filename is kept on the run
+            (`import_runs.file_name`, at most 255 characters) and is stored and shown as plain
+            text, never interpreted (PRD §6.1).
+        account_id:
+          type: string
+          format: uuid
+          description: |
+            The account every row of this file lands on (AC-05). It must already exist — a
+            statement load creates nothing, and AC-09 refuses the whole load when it does not.
+
+    MigrateHistoryRequest:
+      type: object
+      description: |
+        The old tracker's export. **No account and no profile**: the export names accounts and
+        categories per row in the owner's own words, and creates the ones the ledger lacks
+        (AC-10).
+      required: [file]
+      additionalProperties: false
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The export, as the old tracker produced it.
+
+    SetAsideRow:
+      type: object
+      description: |
+        A row an import run read and deliberately did not record, kept with the reason, so the
+        owner can act on it later (`CONTEXT.md`). It is **not** a duplicate: a duplicate names a
+        movement already in the ledger and needs nothing; a set-aside row is not in the ledger at
+        all.
+
+        It changes no balance and is never recorded on its own (AC-14). Only a later load of the
+        same file can record it, and that load writes its own run (AC-15).
+
+        It carries no id. Nothing addresses a set-aside row — the owner acts on the file, not on
+        the row — so `row_number` is what locates the line.
+      required: [row_number, reason, source_category, raw_line]
+      additionalProperties: false
+      properties:
+        row_number:
+          type: integer
+          minimum: 1
+          description: The row's 1-based ordinal in the file, which is also the order of this list.
+        reason: { $ref: "#/components/schemas/SetAsideReason" }
+        source_category:
+          type: [string, "null"]
+          maxLength: 200
+          description: |
+            The file's own category text for this row. AC-08 names the uncovered category back,
+            and this is what it reads. `null` when the file named no category for the row.
+        raw_line:
+          type: string
+          maxLength: 2000
+          description: |
+            The file's own line, kept so the owner can act on it (AC-13, AC-14).
+
+            **This is raw bank text** — shop names the owner did not write. It is confidential
+            (sad.md §2), never interpreted, and never written to the logs (sad.md §7, §8).
+
+    SetAsideRowPage:
+      type: object
+      description: |
+        One page of a run's set-aside rows, ordered by `row_number`. The cursor is opaque — the
+        server mints it and the client passes it back unread (`.claude/rules/openapi.md` §3).
+      required: [items, has_next, has_prev, next_cursor, prev_cursor]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/SetAsideRow" }
+        has_next: { type: boolean }
+        has_prev: { type: boolean }
+        next_cursor:
+          type: [string, "null"]
+          maxLength: 200
+          description: Pass back as `after` to read the next page. `null` on the last page.
+        prev_cursor:
+          type: [string, "null"]
+          maxLength: 200
+          description: Pass back as `before` to read the previous page. `null` on the first page.
+
+    ImportRunResult:
+      type: object
+      description: |
+        What one load did, answered by the load itself. **A finished load is a success even when
+        it set rows aside** (`CLAUDE.md` §API), so `set_aside` is carried in full here — this is
+        the one answer that reports every skipped item. Read it again later with
+        `GET /api/v1/import-runs/{import_run_id}`, where the same rows come a page at a time.
+
+        There is deliberately no money field anywhere: a load reports counts and rows, and the
+        balances follow from the movements on the next read (`core-ledger` ADR-0002).
+      required:
+        [import_run_id, kind, status, file_name, account_id, recorded_row_count, already_present_row_count, created_at, set_aside]
+      additionalProperties: false
+      properties:
+        import_run_id:
+          type: string
+          format: uuid
+          description: UUID v7, minted in the Application layer (`core-ledger` ADR-0005), so it also orders runs by when they happened.
+        kind: { $ref: "#/components/schemas/ImportRunKind" }
+        status: { $ref: "#/components/schemas/ImportRunStatus" }
+        file_name:
+          type: string
+          maxLength: 255
+          description: The name the file came with (PRD §9). Stored and shown as plain text, never interpreted.
+        account_id:
+          type: [string, "null"]
+          format: uuid
+          description: |
+            The account a statement was loaded onto. Always `null` for a history migration, which
+            names an account per row instead — read it together with `kind` (data-model.md
+            decision 8).
+        recorded_row_count:
+          type: integer
+          minimum: 0
+          description: How many rows this load recorded (AC-13).
+        already_present_row_count:
+          type: integer
+          minimum: 0
+          description: |
+            How many rows named a movement the ledger already held, from an earlier load or typed
+            by hand (AC-13, AC-20, AC-21). Nothing was recorded for them a second time.
+        created_at:
+          type: string
+          format: date-time
+          description: The day the file was handed over (PRD §9).
+        set_aside:
+          type: array
+          description: |
+            Every row this load read and deliberately did not record, in file order. An empty
+            array means every row was either recorded or already there.
+          items: { $ref: "#/components/schemas/SetAsideRow" }
+
+    ImportRunReport:
+      type: object
+      description: |
+        What one load did, read back later (AC-13) or returned by the undo (AC-16). Same figures
+        as `ImportRunResult`, with the set-aside rows paged instead of carried whole — settled at
+        the api-forge gate, because a history migration can set many rows aside and each one
+        carries the file's own line.
+
+        The counts are stored columns, not derived, so an undone run keeps reporting what the load
+        had done rather than quietly reading zero (data-model.md decision 6).
+      required:
+        [import_run_id, kind, status, file_name, account_id, recorded_row_count, already_present_row_count, created_at, set_aside]
+      additionalProperties: false
+      properties:
+        import_run_id: { type: string, format: uuid }
+        kind: { $ref: "#/components/schemas/ImportRunKind" }
+        status: { $ref: "#/components/schemas/ImportRunStatus" }
+        file_name: { type: string, maxLength: 255 }
+        account_id:
+          type: [string, "null"]
+          format: uuid
+          description: |
+            `null` for a history migration, and also `null` when the account has been deleted
+            since — the foreign key is `ON DELETE SET NULL`, so deleting an account is never
+            blocked for ever by a run that names it (data-model.md decision 8).
+        recorded_row_count: { type: integer, minimum: 0 }
+        already_present_row_count: { type: integer, minimum: 0 }
+        created_at: { type: string, format: date-time }
+        set_aside: { $ref: "#/components/schemas/SetAsideRowPage" }

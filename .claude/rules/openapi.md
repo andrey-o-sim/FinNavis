@@ -13,7 +13,7 @@
 ## Hard rules
 
 - OpenAPI **3.1.0**. Nullability via `type: [string, null]`; `nullable: true` (3.0 style) is forbidden.
-- Every error response is the envelope `{code, message, details?}`. `code` is `module.error_name` in snake_case (`transaction.category_not_found`, `account.has_recorded_history`) — never free text like `{"error": "failed"}`.
+- Every error response is the envelope `{code, message, details?}`. `code` is `Module.ErrorName` in PascalCase (`Transaction.CategoryNotFound`, `Account.HasRecordedHistory`) — never free text like `{"error": "failed"}`. Pattern: `^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$`. The case is a FinNavis deviation from this baseline — see §7 below.
 - One error `code` in the contract = one definition in the repo's error registry (constants / enum / sentinel module — whatever the repo uses), returning the **same string** the contract advertises.
 - Shared types via `$ref` only; no inline duplicated schemas.
 - No `additionalProperties: true` on response shapes. Exception only by ADR (e.g. a polymorphic payload) and noted in the report.
@@ -125,3 +125,30 @@ describes a refusal that **stopped** the whole operation.
 
 The reason belongs to a closed set the PRD names, not to free text. `csv-import/sad.md` §8 states
 the same rule and names its three set-aside reasons.
+
+### 7. An error code is PascalCase — `Module.ErrorName`
+
+The baseline above spelled the code in snake_case (`transaction.category_not_found`). **Settled
+2026-10-22 by `docs/adr/0003-spell-an-error-code-in-pascalcase.md`** in favour of
+`Transaction.CategoryNotFound`. ADR-0003 supersedes the spelling clause of ADR-0002 and nothing
+else: the envelope, the status classes and the batch rule are unchanged.
+
+- Pattern: `^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$`.
+- The module is the aggregate in the singular, PascalCase: `Account`, `Transaction`, `Transfer`,
+  `Category`, `CategoryGroup`, `History`, `Breakdown`, `Import`, `MappingProfile`.
+- The derivation rules in the skill's `error-catalog.md` keep their meaning, only their rendering
+  changes: a UNIQUE constraint gives `<Entity>.Duplicate<Field>`, a foreign key gives
+  `<Entity>.<Ref>NotFound`.
+
+Why, in one line: the code is an identifier the owner never reads and a client only compares, so it
+is spelled like the constant it maps to — `CategoryErrors.GroupNotFound` returns
+`"Category.GroupNotFound"`, class for module, member for name, with no translation rule between the
+contract and the registry.
+
+**Two things this does not change.** JSON keys stay snake_case, including every key inside
+`details` — the code is the one PascalCase value in the body. And the dot is not parsed by anything;
+it is there so a person can see which aggregate refused.
+
+ADR-0003 records the honest cost: the combination of a dot with PascalCase matches no widely used
+API, so it is internal fit chosen over recognisability. The condition that reopens it is a public
+API, which `PRD.md` §3 rules out today.

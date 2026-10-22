@@ -96,7 +96,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "<module>.duplicate_<field>"
+                code: "<Module>.Duplicate<Field>"
                 message: "<the refusal sentence the owner reads, lifted from the PRD>"
 
   # A batch operation that finished is a 200 with counts, even when it skipped items.
@@ -143,9 +143,9 @@ components:
       properties:
         code:
           type: string
-          pattern: "^[a-z_]+\\.[a-z_]+$"
-          description: machine-readable `module.error_name`; the only part a client branches on
-          example: "<module>.<error_name>"
+          pattern: "^[A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*$"
+          description: machine-readable `Module.ErrorName`; the only part a client branches on
+          example: "<Module>.<ErrorName>"
         message:
           type: string
           description: the refusal sentence the owner reads, taken from the PRD

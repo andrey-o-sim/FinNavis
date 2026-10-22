@@ -14,6 +14,12 @@ ticket: "none"
 - **Deciders:** Andrey Simonenko
 - **Scope:** project-wide — every HTTP surface in this repository, not one feature
 
+> **One clause of this record is superseded.** `docs/adr/0003-spell-an-error-code-in-pascalcase.md`
+> (Accepted, 2026-10-22) changed the spelling of `code` from `module.error_name` in snake_case to
+> `Module.ErrorName` in PascalCase. The Context below still quotes the old spelling, because it
+> records what was true on 2026-10-20. **Everything else here stands**: the flat envelope, the
+> choice against Problem Details, the status classes, and the `application/problem+json` warning.
+
 ## Context
 
 Three committed files disagreed about the shape of an error response, and the disagreement blocked

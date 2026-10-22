@@ -171,28 +171,35 @@ proposal.** `implement-tasks` creates the registry from exactly this list, and t
 `--reconcile` checks it.
 
 ```
-account.duplicate_name              category.duplicate_name
-account.has_recorded_history        category.group_kind_mismatch     ← new
-account.name_invalid                category.group_not_found
-account.not_found                   category.has_recorded_history
-breakdown.invalid_period            category.name_invalid
-history.invalid_filter              category.not_found
+Account.DuplicateName              Category.DuplicateName
+Account.HasRecordedHistory        Category.GroupKindMismatch     ← new
+Account.NameInvalid                Category.GroupNotFound
+Account.NotFound                   Category.HasRecordedHistory
+Breakdown.InvalidPeriod            Category.NameInvalid
+History.InvalidFilter              Category.NotFound
 
-category_group.duplicate_name  ← new    transfer.amount_not_positive
-category_group.name_invalid    ← new    transfer.category_not_allowed
-category_group.not_found       ← new    transfer.destination_account_not_found
-                                        transfer.not_found
-transaction.account_not_found           transfer.not_recorded
-transaction.amount_not_positive         transfer.same_account
-transaction.category_not_found          transfer.source_account_not_found
-transaction.kind_change_not_allowed
-transaction.not_found
-transaction.note_too_long
+CategoryGroup.DuplicateName  ← new    Transfer.AmountNotPositive
+CategoryGroup.NameInvalid    ← new    Transfer.CategoryNotAllowed
+CategoryGroup.NotFound       ← new    Transfer.DestinationAccountNotFound
+                                        Transfer.NotFound
+Transaction.AccountNotFound           Transfer.NotRecorded
+Transaction.AmountNotPositive         Transfer.SameAccount
+Transaction.CategoryNotFound          Transfer.SourceAccountNotFound
+Transaction.KindChangeNotAllowed
+Transaction.NotFound
+Transaction.NoteTooLong
 ```
 
-All 28 follow the neutral `module.error_name` convention and match the `Error.code` pattern
-`^[a-z_]+\.[a-z_]+$`. Four are new in run 2, all from the PRD amendment: the three
-`category_group.*` codes (AC-26 to AC-31) and `category.group_kind_mismatch` (AC-30).
+All 28 follow the `Module.ErrorName` convention and match the `Error.code` pattern
+`^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$`. Four are new in run 2, all from the PRD amendment: the
+three `CategoryGroup.*` codes (AC-26 to AC-31) and `Category.GroupKindMismatch` (AC-30).
+
+**Re-spelled 2026-10-22 by `docs/adr/0003`**, which replaced the snake_case baseline with
+PascalCase across the repository. All 28 codes changed case; none changed meaning, status or
+operation. `docs/adr/0003` carries the full mapping and the one finding it surfaced here:
+`Category.GroupNotFound` and `CategoryGroup.NotFound` describe one refusal under two names, with an
+identical message. They are left distinct — merging them belongs to this feature's next
+`--reconcile`.
 
 **Four of them have no §6 branch behind them**, down from seven — see point 5. Every one of the 28
 now has an AC or a named schema constraint as its origin; the "no acceptance criterion covers this"
@@ -214,12 +221,12 @@ Every bound in the contract was copied from `data-model.md`, not chosen:
 | `created_at` `format: date-time` | `created_at` TIMESTAMPTZ | ✓ |
 | `category_group_id` `type: [string, "null"]` | `categories.category_group_id` UUID NULL | ✓ |
 | `account_id`, `category_id` required | both FK NOT NULL | ✓ |
-| `409 account.duplicate_name` | `accounts.name` UNIQUE (decision 4) | ✓ |
-| `409 category.duplicate_name` | `categories` UNIQUE (`name`, `kind`) (decision 4) | ✓ |
+| `409 Account.DuplicateName` | `accounts.name` UNIQUE (decision 4) | ✓ |
+| `409 Category.DuplicateName` | `categories` UNIQUE (`name`, `kind`) (decision 4) | ✓ |
 | `CategoryGroup.name` `maxLength: 100` | `category_groups.name` VARCHAR(100) | ✓ |
 | `CategoryGroup.kind` → `CategoryKind` enum | `category_groups.kind` VARCHAR(16), string-stored — **new in the 2026-10-20 revision** | ✓ |
-| `409 category_group.duplicate_name` | `category_groups` UNIQUE (`name`, `kind`) — **widened from UNIQUE (`name`) in the same revision** (AC-31) | ✓ |
-| `409 category.group_kind_mismatch` | **no constraint by design** — decision 7 keeps AC-30 a domain invariant rather than a composite FK | ✓ |
+| `409 CategoryGroup.DuplicateName` | `category_groups` UNIQUE (`name`, `kind`) — **widened from UNIQUE (`name`) in the same revision** (AC-31) | ✓ |
+| `409 Category.GroupKindMismatch` | **no constraint by design** — decision 7 keeps AC-30 a domain invariant rather than a composite FK | ✓ |
 
 **No `PRD §5 ↔ data-model` contradiction found**, so the "take the stricter value" rule did not fire.
 
@@ -231,7 +238,7 @@ Two alignments worth naming, both the same shape — a rule the schema deliberat
 - **A group and its categories share a side** (AC-30) is **not** a schema constraint either.
   `data-model.md` decision 7 considered a composite FK — `UNIQUE (id, kind)` on `category_groups`
   plus a two-column FK — and rejected it: a unique index no query reads, and a frozen `kind`. The
-  contract returns `409 category.group_kind_mismatch` with both sides in `details`.
+  contract returns `409 Category.GroupKindMismatch` with both sides in `details`.
 
 In both cases the constraint and the contract agree about *where* the rule lives, which is what this
 point checks. A reader who expects to find AC-30 in the DDL should not go looking — it is in the
@@ -247,17 +254,17 @@ now has four operations.
 | AC | operation → response |
 |---|---|
 | AC-01 | `recordTransaction` → 201 (note kept) |
-| AC-02 | `recordTransaction` → 400 `transaction.amount_not_positive` |
-| AC-03 | `recordTransaction` → 404 `transaction.category_not_found` |
+| AC-02 | `recordTransaction` → 400 `Transaction.AmountNotPositive` |
+| AC-03 | `recordTransaction` → 404 `Transaction.CategoryNotFound` |
 | AC-04 | `recordTransfer` → 201 · `getAccountBalances` → 200 |
-| AC-05 | `recordTransfer` → 400 `transfer.same_account` |
-| AC-06 | `recordTransfer` → 500 `transfer.not_recorded` |
+| AC-05 | `recordTransfer` → 400 `Transfer.SameAccount` |
+| AC-06 | `recordTransfer` → 500 `Transfer.NotRecorded` |
 | AC-07 | `createAccount` → 201 · `getAccountBalances` → 200 (`balance: "0.0000"`) |
 | AC-08 | `renameAccount` → 200 |
-| AC-09 | `deleteAccount` → 409 `account.has_recorded_history` |
+| AC-09 | `deleteAccount` → 409 `Account.HasRecordedHistory` |
 | AC-10 | `deleteAccount` → 204 |
 | AC-11 | `createCategory` → 201 — **now reachable in both directions**: `createCategoryGroup` produces the id |
-| AC-12 | `deleteCategory` → 409 `category.has_recorded_history` |
+| AC-12 | `deleteCategory` → 409 `Category.HasRecordedHistory` |
 | AC-13 | `setCategoryGroup` → 200 — **now reachable in both directions**, same reason |
 | AC-14 | `getAccountBalances` → 200 |
 | AC-15 | `getAccountBalances` → 200 (`total`) |
@@ -268,20 +275,20 @@ now has four operations.
 | AC-20 | `getBreakdown` → 200 (`transfers` never read) |
 | AC-21 | `editTransaction` → 200 · `editTransfer` → 200 |
 | AC-22 | `removeTransaction` → 204 · `removeTransfer` → 204 |
-| AC-23 | `editTransfer` → 400 `transfer.category_not_allowed` |
-| AC-24 | `editTransaction` → 400 `transaction.kind_change_not_allowed` |
+| AC-23 | `editTransfer` → 400 `Transfer.CategoryNotAllowed` |
+| AC-24 | `editTransaction` → 400 `Transaction.KindChangeNotAllowed` |
 | AC-25 | every 404 across all 21 operations |
 | AC-26 | `createCategoryGroup` → 201 (empty group, `kind` echoed) |
 | AC-27 | `listCategoryGroups` → 200 (`items[].name`, `items[].kind`) |
 | AC-28 | `renameCategoryGroup` → 200 |
 | AC-29 | `deleteCategoryGroup` → 204 |
-| AC-30 | `createCategory` → 409 `category.group_kind_mismatch` · `setCategoryGroup` → 409 (same) |
-| AC-31 | `createCategoryGroup` → 409 `category_group.duplicate_name` · `renameCategoryGroup` → 409 (same) |
-| AC-32 | `createCategory` → 404 `category.group_not_found` · `setCategoryGroup` → 404 (same) |
+| AC-30 | `createCategory` → 409 `Category.GroupKindMismatch` · `setCategoryGroup` → 409 (same) |
+| AC-31 | `createCategoryGroup` → 409 `CategoryGroup.DuplicateName` · `renameCategoryGroup` → 409 (same) |
+| AC-32 | `createCategory` → 404 `Category.GroupNotFound` · `setCategoryGroup` → 404 (same) |
 | AC-33 | `listCategories` → 200, with the optional `?category_group_id=` filter |
 | AC-34 | `renameCategory` → 200 |
-| AC-35 | `createAccount` → 409 `account.duplicate_name` · `renameAccount` → 409 (same) |
-| AC-36 | `createCategory` → 409 `category.duplicate_name` · `renameCategory` → 409 (same) |
+| AC-35 | `createAccount` → 409 `Account.DuplicateName` · `renameAccount` → 409 (same) |
+| AC-36 | `createCategory` → 409 `Category.DuplicateName` · `renameCategory` → 409 (same) |
 
 **The reverse direction now holds too.** Both run-1 findings are closed at the source, as run 1
 asked — no endpoint was invented to paper over a missing story:
@@ -339,20 +346,20 @@ closed by this run's upstream work:
 
 | response | run 1 | now |
 |---|---|---|
-| `409 account.duplicate_name` | no §6 branch, no AC | **closed** — AC-35, flow 13 first branch |
-| `409 category.duplicate_name` | no §6 branch, no AC | **closed** — AC-36, flow 13 second branch |
-| `409 category_group.duplicate_name` | did not exist | **covered on arrival** — AC-31, flow 13 third branch |
-| `404 transfer.source_account_not_found` / `.destination_account_not_found` | no §6 branch | **still open** — flow 2 loads both accounts but draws no not-found branch, where flow 1 does |
+| `409 Account.DuplicateName` | no §6 branch, no AC | **closed** — AC-35, flow 13 first branch |
+| `409 Category.DuplicateName` | no §6 branch, no AC | **closed** — AC-36, flow 13 second branch |
+| `409 CategoryGroup.DuplicateName` | did not exist | **covered on arrival** — AC-31, flow 13 third branch |
+| `404 Transfer.SourceAccountNotFound` / `.destination_account_not_found` | no §6 branch | **still open** — flow 2 loads both accounts but draws no not-found branch, where flow 1 does |
 
 Still open, all parameter-shape validation:
 
 | response | origin | gap |
 |---|---|---|
-| `400 account.name_invalid` / `category.name_invalid` / `category_group.name_invalid` | `VARCHAR(100)` on each `name` column | no §6 branch, no AC |
-| `400 transaction.note_too_long` | `data-model.md` decision 2 (VARCHAR(500)) | no §6 branch, no AC |
-| `400 transfer.amount_not_positive` | AC-02 is scoped to US-01 transactions; flow 2 shows only "check the rules" | AC-02 does not mention transfers |
-| `400 history.invalid_filter`, `400 breakdown.invalid_period` | parameter shape validation | no §6 branch, no AC |
-| `404 transfer.source_account_not_found` / `.destination_account_not_found` | flow 2 loads both accounts | no §6 branch |
+| `400 Account.NameInvalid` / `Category.NameInvalid` / `CategoryGroup.NameInvalid` | `VARCHAR(100)` on each `name` column | no §6 branch, no AC |
+| `400 Transaction.NoteTooLong` | `data-model.md` decision 2 (VARCHAR(500)) | no §6 branch, no AC |
+| `400 Transfer.AmountNotPositive` | AC-02 is scoped to US-01 transactions; flow 2 shows only "check the rules" | AC-02 does not mention transfers |
+| `400 History.InvalidFilter`, `400 Breakdown.InvalidPeriod` | parameter shape validation | no §6 branch, no AC |
+| `404 Transfer.SourceAccountNotFound` / `.destination_account_not_found` | flow 2 loads both accounts | no §6 branch |
 
 `data-model.md`'s old flag — *"No acceptance criterion covers a duplicate name, so this is an added
 rule"* — is now withdrawn in that document too: AC-31, AC-35 and AC-36 cover it, and decision 4

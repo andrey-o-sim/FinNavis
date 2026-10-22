@@ -85,7 +85,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.name_invalid"
+                code: "Account.NameInvalid"
                 message: "An account name must be between 1 and 100 characters."
         "409":
           description: |
@@ -96,7 +96,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.duplicate_name"
+                code: "Account.DuplicateName"
                 message: "An account named 'Test Account' already exists."
 
   /api/v1/accounts/balances:
@@ -145,7 +145,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.not_found"
+                code: "Account.NotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
   /api/v1/accounts/{account_id}:
@@ -182,7 +182,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.name_invalid"
+                code: "Account.NameInvalid"
                 message: "An account name must be between 1 and 100 characters."
         "404":
           $ref: "#/components/responses/AccountNotFound"
@@ -192,7 +192,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.duplicate_name"
+                code: "Account.DuplicateName"
                 message: "An account named 'Test Account (renamed)' already exists."
 
     delete:
@@ -217,7 +217,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.has_recorded_history"
+                code: "Account.HasRecordedHistory"
                 message: "Recorded history depends on this account, so it cannot be deleted."
                 details:
                   transaction_count: 42
@@ -265,7 +265,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category.name_invalid"
+                code: "Category.NameInvalid"
                 message: "A category name must be between 1 and 100 characters."
         "404":
           description: |
@@ -276,7 +276,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category.group_not_found"
+                code: "Category.GroupNotFound"
                 message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
         "409":
           description: |
@@ -289,12 +289,12 @@ paths:
                 duplicate_name:
                   summary: AC-36 — the name is taken on this side
                   value:
-                    code: "category.duplicate_name"
+                    code: "Category.DuplicateName"
                     message: "An expense category named 'Test Groceries' already exists."
                 group_kind_mismatch:
                   summary: AC-30 — the group is on the other side
                   value:
-                    code: "category.group_kind_mismatch"
+                    code: "Category.GroupKindMismatch"
                     message: "An expense category cannot sit in an income category group."
                     details:
                       category_kind: "Expense"
@@ -338,7 +338,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category_group.not_found"
+                code: "CategoryGroup.NotFound"
                 message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
   /api/v1/categories/{category_id}:
@@ -380,7 +380,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category.name_invalid"
+                code: "Category.NameInvalid"
                 message: "A category name must be between 1 and 100 characters."
         "404":
           $ref: "#/components/responses/CategoryNotFound"
@@ -393,7 +393,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category.duplicate_name"
+                code: "Category.DuplicateName"
                 message: "An expense category named 'Test Food' already exists."
     delete:
       tags: [Categories]
@@ -416,7 +416,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category.has_recorded_history"
+                code: "Category.HasRecordedHistory"
                 message: "Recorded history depends on this category, so it cannot be deleted."
                 details:
                   transaction_count: 17
@@ -467,12 +467,12 @@ paths:
                 category_missing:
                   summary: The category is unknown
                   value:
-                    code: "category.not_found"
+                    code: "Category.NotFound"
                     message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
                 group_missing:
                   summary: AC-32 — the target group is unknown
                   value:
-                    code: "category.group_not_found"
+                    code: "Category.GroupNotFound"
                     message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
         "409":
           $ref: "#/components/responses/CategoryGroupKindMismatch"
@@ -516,7 +516,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category_group.name_invalid"
+                code: "CategoryGroup.NameInvalid"
                 message: "A category group name must be between 1 and 100 characters."
         "409":
           $ref: "#/components/responses/CategoryGroupDuplicateName"
@@ -583,7 +583,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "category_group.name_invalid"
+                code: "CategoryGroup.NameInvalid"
                 message: "A category group name must be between 1 and 100 characters."
         "404":
           $ref: "#/components/responses/CategoryGroupNotFound"
@@ -677,7 +677,7 @@ paths:
 
         **A transaction can never become a transfer** (AC-24). This request body carries exactly
         one account and forbids unknown properties, so naming a second account — for example
-        `destination_account_id` — is refused with `transaction.kind_change_not_allowed`. The
+        `destination_account_id` — is refused with `Transaction.KindChangeNotAllowed`. The
         way through is to remove this entry and record it again as a transfer (sad.md §6 flow 9).
       operationId: editTransaction
       requestBody:
@@ -703,7 +703,7 @@ paths:
                 created_at: "2026-10-20T09:30:00Z"
         "400":
           description: |
-            The change is refused. `transaction.kind_change_not_allowed` is AC-24 — the entry is
+            The change is refused. `Transaction.KindChangeNotAllowed` is AC-24 — the entry is
             unchanged, no unit of work is committed, and no transfer is created.
           content:
             application/json:
@@ -712,17 +712,17 @@ paths:
                 amount_not_positive:
                   summary: AC-02 — the amount must be above zero
                   value:
-                    code: "transaction.amount_not_positive"
+                    code: "Transaction.AmountNotPositive"
                     message: "The amount must be above zero."
                 note_too_long:
                   summary: The note is longer than 500 characters
                   value:
-                    code: "transaction.note_too_long"
+                    code: "Transaction.NoteTooLong"
                     message: "A note may be at most 500 characters."
                 kind_change:
                   summary: AC-24 — naming a second account would make this a transfer
                   value:
-                    code: "transaction.kind_change_not_allowed"
+                    code: "Transaction.KindChangeNotAllowed"
                     message: "A transaction and a transfer are different kinds of entry. Remove this entry and record it again as a transfer."
                     details:
                       rejected_property: "destination_account_id"
@@ -737,17 +737,17 @@ paths:
                 entry_missing:
                   summary: The entry is unknown
                   value:
-                    code: "transaction.not_found"
+                    code: "Transaction.NotFound"
                     message: "No transaction in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
                 account_missing:
                   summary: The named account is unknown
                   value:
-                    code: "transaction.account_not_found"
+                    code: "Transaction.AccountNotFound"
                     message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
                 category_missing:
                   summary: The named category is unknown
                   value:
-                    code: "transaction.category_not_found"
+                    code: "Transaction.CategoryNotFound"
                     message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000cafe."
 
     delete:
@@ -822,7 +822,7 @@ paths:
 
         **A transfer carries no category** (AC-23). This request body has no `category_id` and
         forbids unknown properties, so trying to give the transfer a category is refused with
-        `transfer.category_not_allowed`. The column it would need does not exist
+        `Transfer.CategoryNotAllowed`. The column it would need does not exist
         (data-model.md, `transfers`).
       operationId: editTransfer
       requestBody:
@@ -855,19 +855,19 @@ paths:
                 category_not_allowed:
                   summary: AC-23 — transfers carry no category
                   value:
-                    code: "transfer.category_not_allowed"
+                    code: "Transfer.CategoryNotAllowed"
                     message: "Transfers carry no category."
                     details:
                       rejected_property: "category_id"
                 same_account:
                   summary: AC-05 — a transfer needs two different accounts
                   value:
-                    code: "transfer.same_account"
+                    code: "Transfer.SameAccount"
                     message: "A transfer needs two different accounts."
                 amount_not_positive:
                   summary: The amount must be above zero
                   value:
-                    code: "transfer.amount_not_positive"
+                    code: "Transfer.AmountNotPositive"
                     message: "The amount must be above zero."
         "404":
           description: |
@@ -879,17 +879,17 @@ paths:
                 entry_missing:
                   summary: The transfer is unknown
                   value:
-                    code: "transfer.not_found"
+                    code: "Transfer.NotFound"
                     message: "No transfer in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
                 source_missing:
                   summary: The source account is unknown
                   value:
-                    code: "transfer.source_account_not_found"
+                    code: "Transfer.SourceAccountNotFound"
                     message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
                 destination_missing:
                   summary: The destination account is unknown
                   value:
-                    code: "transfer.destination_account_not_found"
+                    code: "Transfer.DestinationAccountNotFound"
                     message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000cafe."
         "500":
           $ref: "#/components/responses/TransferNotRecorded"
@@ -1013,7 +1013,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "history.invalid_filter"
+                code: "History.InvalidFilter"
                 message: "'from' must not be after 'to'."
                 details:
                   from: "2026-10-31"
@@ -1106,7 +1106,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "breakdown.invalid_period"
+                code: "Breakdown.InvalidPeriod"
                 message: "'from' must not be after 'to'."
                 details:
                   from: "2026-10-31"
@@ -1117,7 +1117,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "account.not_found"
+                code: "Account.NotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
 components:
@@ -1195,7 +1195,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "account.not_found"
+            code: "Account.NotFound"
             message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
     CategoryNotFound:
@@ -1204,7 +1204,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "category.not_found"
+            code: "Category.NotFound"
             message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
     CategoryGroupNotFound:
@@ -1213,7 +1213,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "category_group.not_found"
+            code: "CategoryGroup.NotFound"
             message: "No category group in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
     CategoryGroupDuplicateName:
@@ -1226,7 +1226,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "category_group.duplicate_name"
+            code: "CategoryGroup.DuplicateName"
             message: "An expense category group named 'Test Utilities' already exists."
 
     CategoryGroupKindMismatch:
@@ -1238,7 +1238,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "category.group_kind_mismatch"
+            code: "Category.GroupKindMismatch"
             message: "An expense category cannot sit in an income category group."
             details:
               category_kind: "Expense"
@@ -1250,7 +1250,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "transaction.not_found"
+            code: "Transaction.NotFound"
             message: "No transaction in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
     TransferNotFound:
@@ -1259,12 +1259,12 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "transfer.not_found"
+            code: "Transfer.NotFound"
             message: "No transfer in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
 
     TransactionInvalid:
       description: |
-        The recording is blocked and nothing is created. `transaction.amount_not_positive` is
+        The recording is blocked and nothing is created. `Transaction.AmountNotPositive` is
         AC-02 (sad.md §6 flow 1, second alt-branch).
       content:
         application/json:
@@ -1273,12 +1273,12 @@ components:
             amount_not_positive:
               summary: AC-02 — the amount must be above zero
               value:
-                code: "transaction.amount_not_positive"
+                code: "Transaction.AmountNotPositive"
                 message: "The amount must be above zero."
             note_too_long:
               summary: The note is longer than 500 characters
               value:
-                code: "transaction.note_too_long"
+                code: "Transaction.NoteTooLong"
                 message: "A note may be at most 500 characters."
 
     TransactionReferenceNotFound:
@@ -1292,19 +1292,19 @@ components:
             account_missing:
               summary: The named account is unknown
               value:
-                code: "transaction.account_not_found"
+                code: "Transaction.AccountNotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
             category_missing:
               summary: AC-03 — the named category is unknown
               value:
-                code: "transaction.category_not_found"
+                code: "Transaction.CategoryNotFound"
                 message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
                 details:
                   category_id: "01937a1e-0000-7000-8000-00000000beef"
 
     TransferInvalid:
       description: |
-        The recording is blocked and nothing is recorded. `transfer.same_account` is AC-05
+        The recording is blocked and nothing is recorded. `Transfer.SameAccount` is AC-05
         (sad.md §6 flow 2, first alt-branch).
       content:
         application/json:
@@ -1313,12 +1313,12 @@ components:
             same_account:
               summary: AC-05 — a transfer needs two different accounts
               value:
-                code: "transfer.same_account"
+                code: "Transfer.SameAccount"
                 message: "A transfer needs two different accounts."
             amount_not_positive:
               summary: The amount must be above zero
               value:
-                code: "transfer.amount_not_positive"
+                code: "Transfer.AmountNotPositive"
                 message: "The amount must be above zero."
 
     TransferAccountNotFound:
@@ -1330,12 +1330,12 @@ components:
             source_missing:
               summary: The source account is unknown
               value:
-                code: "transfer.source_account_not_found"
+                code: "Transfer.SourceAccountNotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
             destination_missing:
               summary: The destination account is unknown
               value:
-                code: "transfer.destination_account_not_found"
+                code: "Transfer.DestinationAccountNotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
 
     TransferNotRecorded:
@@ -1347,7 +1347,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "transfer.not_recorded"
+            code: "Transfer.NotRecorded"
             message: "The transfer could not be recorded. Neither account changed."
 
   schemas:
@@ -1355,20 +1355,26 @@ components:
     Error:
       type: object
       description: |
-        The unified error envelope. `code` is the neutral `module.error_name` convention — a
-        naming rule, not a language artifact.
+        The unified error envelope.
 
         Settled by `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md`
         (Accepted, 2026-10-20, project-wide). It supersedes the `sad.md` §8 row that named RFC 9457
         Problem Details; `sad.md` §8 and `CLAUDE.md` §API were amended to match. This envelope is
         now the shape for every HTTP surface in the repository.
+
+        `code` is `Module.ErrorName` in PascalCase — `docs/adr/0003-spell-an-error-code-in-pascalcase.md`
+        (Accepted, 2026-10-22), which supersedes the spelling clause of ADR-0002 and nothing else.
+        It is the one PascalCase value in this API: every JSON key, including the keys inside
+        `details`, stays snake_case. The code maps to one constant in the registry — the class is
+        the module, the member is the name, so `CategoryErrors.GroupNotFound` returns
+        `"Category.GroupNotFound"`.
       required: [code, message]
       additionalProperties: false
       properties:
         code:
           type: string
-          pattern: "^[a-z_]+\\.[a-z_]+$"
-          example: "transaction.category_not_found"
+          pattern: "^[A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*$"
+          example: "Transaction.CategoryNotFound"
         message:
           type: string
           description: |
@@ -1649,7 +1655,7 @@ components:
         There is deliberately **no second-account property**: AC-24 refuses to turn a
         transaction into a transfer, and `additionalProperties: false` is what makes the refusal
         structural. Sending `destination_account_id` is a `400`
-        `transaction.kind_change_not_allowed`.
+        `Transaction.KindChangeNotAllowed`.
       minProperties: 1
       additionalProperties: false
       properties:
@@ -1699,7 +1705,7 @@ components:
 
         There is deliberately **no `category_id` property**: AC-23 refuses to give a transfer a
         category, and the column it would need does not exist. Sending `category_id` is a `400`
-        `transfer.category_not_allowed`.
+        `Transfer.CategoryNotAllowed`.
       minProperties: 1
       additionalProperties: false
       properties:

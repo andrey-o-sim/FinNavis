@@ -21,14 +21,78 @@ implementation.**
 
 ## Section A — field origins
 
-One row per `operation.field`. `confidence` is **high** when the origin is a typed column,
-**medium** when it is an acceptance criterion or a named convention, **low** when it is inferred.
+One **tree per operation**, inside a fenced block so the columns stay aligned. Not one row per
+dotted path: a path like `confirmMappingProfile.request.rules[]` hides the type, and the fields of
+that type then sit in unrelated rows further down. The tree puts the type on the node, so everything
+indented under `Rules[]  MappingRule[]` is visibly a `MappingRule`.
 
-| path | origin | confidence |
-|---|---|---|
-| `<createAccount.name>` | `data-model.md` → `accounts.name varchar(100) NOT NULL` | high |
-| `<getHistory.items[].amount>` | `data-model.md` → `transactions.amount NUMERIC(19,4)`; string on the wire per rules §2 | high |
-| `<getHistory.next_cursor>` | convention — opaque keyset cursor over `(occurred_on, id)`, rules §3 + ADR-0001 | medium |
+**Names are the C# records and properties** the operation folder will hold — `ShapeKey`, not
+`shape_key`. The wire keys stay snake_case in `openapi.yaml`; this section is read by whoever writes
+`Presentation/Endpoints/<Resource>/<Operation>/`, so it uses their names. The mapping is mechanical.
+
+**Types are the contract's**, not C#'s — `string` for money, never `decimal`. Drift point 3 checks
+the contract type against the column, so that is the type this column has to carry. `?` marks the
+3.1 union `type: [x, "null"]`.
+
+`conf` is **high** when the origin is a typed column, **med** when it is an acceptance criterion or
+a named convention, **low** when inferred (scenario B).
+
+A `$ref`'d schema is expanded **once**, under the first operation that carries it. Later uses name
+the type and point back: `← see confirmMappingProfile`.
+
+Column order on every leaf: **`name · type · conf · ← origin`**. The three left columns are padded
+to a fixed width so they line up down the whole block; only the origin runs free.
+
+**The origin stays on the row it belongs to.** When it does not fit, wrap it under itself, indented
+to the `←` column, keeping the tree guide (`│`) in front so the tail is visibly part of that node.
+Two things not to do instead:
+
+- **No footnote markers.** A superscript renders tiny and off-baseline in a monospace font, and it
+  makes a reviewer jump to the bottom of the block and back for every claim.
+- **No shortening.** An origin a reviewer cannot verify is worse than a long line.
+
+Keep a wrapped line at about 115 characters, so nothing scrolls sideways.
+
+### `<confirmMappingProfile>` — `POST /api/v1/<mapping-profiles>`
+
+```text
+request  CreateMappingProfileRequest
+├─ ShapeKey            string(1000)   high ← mapping_profiles.shape_key. Passed back from inspectFile
+│                                            unchanged; the normalisation is data-model.md decision 2
+└─ Rules[]             MappingRule[]  high ← mapping_profile_rules, one row per rule
+   ├─ SourceCategory   string(200)    high ← mapping_profile_rules.source_category
+   ├─ Target           enum(2)        high ← mapping_profile_rules.target VARCHAR(30) — two values,
+   │                                         data-model.md decision 1
+   └─ TargetCategoryId uuid?          high ← mapping_profile_rules.target_category_id
+
+response 201  MappingProfileResponse
+├─ Id                  uuid           high ← mapping_profiles.id, UUID v7 (ADR-0005)
+└─ CreatedAt           date-time      high ← mapping_profiles.created_at
+```
+
+### `<getHistory>` — `GET /api/v1/<history>`
+
+```text
+query
+├─ After               string?        med  ← opaque keyset cursor, rules §3 + ADR-0001
+├─ Before              string?        med  ← the same, backwards
+└─ Limit               int(1..200)    med  ← default 50, PRD §6 latency budget
+
+response 200  HistoryPage
+├─ Items[]             HistoryEntry[] high ← one recorded movement
+│  ├─ Id               uuid           high ← transactions.id / transfers.id
+│  ├─ Amount           string         high ← transactions.amount NUMERIC(19,4). A string on the wire,
+│  │                                         decimal in C# — rules §2; a JSON number would lose the
+│  │                                         fourth decimal
+│  └─ OccurredOn       date           high ← transactions.occurred_on
+├─ HasNext             bool           med  ← page wrapper, rules §3
+├─ HasPrev             bool           med  ← page wrapper, rules §3
+├─ NextCursor          string?        med  ← page wrapper, rules §3
+└─ PrevCursor          string?        med  ← page wrapper, rules §3
+```
+
+The `Amount` row is the one to copy the shape from: three lines, the tail indented to the `←`
+column with `│  │` in front, and nothing abbreviated.
 
 ---
 
@@ -80,7 +144,12 @@ flat envelope rather than `application/problem+json`>
 convention with its reason stated.">
 
 <Scenario B: one row per field whose origin is inferred and needs confirming when `data-model.md`
-arrives. This is declared incompleteness, not an error.>
+arrives. This is declared incompleteness, not an error. Name each field the way Section A does —
+`<Operation>.<Record>.<Property>` in C# names — so the two sections can be read side by side.>
+
+| field | inferred from | what would confirm it |
+|---|---|---|
+| `<confirmMappingProfile.CreateMappingProfileRequest.ShapeKey>` | PRD AC-01 wording | the column, once `data-model.md` lands |
 
 ---
 

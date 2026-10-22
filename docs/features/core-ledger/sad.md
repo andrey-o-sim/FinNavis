@@ -1028,7 +1028,7 @@ dump is still lost — is carried in §11.
 | Logging | Structured logs to stdout through `Microsoft.Extensions.Logging`. No PII scrubbing — every value is the owner's own data | §7 |
 | Authentication | None. One owner, no sign-in. Network isolation is the only control | PRD §3, §6.1 → §11 |
 | Authorization | None. There is no second actor to deny and no existence to hide (PRD §5 N/A note) | PRD §5 → §11 |
-| Error handling | A broken domain rule produces a sentinel domain error; Presentation maps it to the flat envelope `{code, message, details?}`, where `code` is `module.error_name` in snake_case. Refusal wording is taken from the PRD acceptance criteria, not invented | `docs/adr/0002-*` |
+| Error handling | A broken domain rule produces a sentinel domain error; Presentation maps it to the flat envelope `{code, message, details?}`, where `code` is `Module.ErrorName` in PascalCase — **amended 2026-10-22 by `docs/adr/0003`**, which says snake_case here was a baseline default rather than a decision and supersedes that clause of ADR-0002 and nothing else. Refusal wording is taken from the PRD acceptance criteria, not invented | `docs/adr/0002-*`, `docs/adr/0003-*` |
 | ID strategy | UUID v7, generated in the Application layer with `Guid.CreateVersion7()`, stored as PostgreSQL `uuid` | ADR-0005 |
 | External reference | Every transaction carries a nullable `external_ref` with a unique index. Unused and always null in this feature; csv-import and message capture fill it later | ADR-0006 |
 | Money | `decimal`, single currency, no currency code stored | CLAUDE.md, PRD §3 |

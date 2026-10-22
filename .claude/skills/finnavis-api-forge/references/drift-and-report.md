@@ -13,8 +13,15 @@ parked as a deferral with a named next step.
 
 ### 1. Operation ↔ data model *(core, forward)*
 
-Every schema property maps to a column in `data-model.md`. Evidence: the field-origins table, one
-row per `operation.field`, with `path | origin | confidence`.
+Every schema property maps to a column in `data-model.md`. Evidence: the Section A trees — one tree
+per operation, the type on each node, `name · type · conf · ← origin` on each leaf.
+
+The tree is what makes this point checkable. A flat `operation.field` path loses the type, so a
+nested array and the fields of its element type end up in unrelated rows and nobody can tell they
+belong together.
+
+The origin is read on the leaf itself, wrapped under itself when it is long — never moved to a
+footnote and never shortened. The template says why.
 
 ✗ looks like: a property with no column behind it, or a property whose type disagrees with the
 column (`integer` against `NUMERIC(19,4)`).
@@ -118,7 +125,7 @@ Follows [`../templates/api-sync-report.md`](../templates/api-sync-report.md):
 
 1. Header — verdict, date, run mode, sources read with ✓/✗, scenario, contract version.
 2. **Why `FAIL`** — only on a FAIL, before anything else, in two or three sentences.
-3. Section A — field origins, one row per `operation.field`.
+3. Section A — field origins, one tree per operation, C# names and contract types.
 4. Section B — the six points, each ✓ / ✓ (deferred: one line) / ✗ (one-line diagnostic) / N/A.
 5. Section C — `unresolved_origins`: empty in A, listed in B.
 6. Section D — Deferrals: what, why parked, next step.
