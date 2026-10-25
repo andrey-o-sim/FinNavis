@@ -54,6 +54,21 @@
       "Write(**/*secret*)"
     ]
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-local-config-in-commit.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking the commit for local config files..."
+          }
+        ]
+      }
+    ]
+  },
   "enabledPlugins": {
     "my-toolkit@andsim-claude-code-toolkit": true
   }
