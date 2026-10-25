@@ -220,6 +220,10 @@ dotnet ef database update \
   --startup-project src/FinNavis.Presentation
 ```
 
+## Git
+
+Branch names, commit format and the pull request flow are in `.claude/rules/git.md`.
+
 ## Safety
 
 - `launchSettings.json`, `.env`, `*.pem`, `*.key` are git-ignored. Never commit them.
