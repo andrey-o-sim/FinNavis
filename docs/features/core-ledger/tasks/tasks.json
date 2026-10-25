@@ -1,0 +1,311 @@
+{
+  "slug": "core-ledger",
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Stand up the Docker Compose stack with PostgreSQL 18",
+      "layer": "wiring",
+      "deps": [],
+      "acs": [],
+      "dod": "docker compose up starts the API and PostgreSQL 18 on a private network with a named volume, only the API port is published, and docker compose down -v leaves nothing behind.",
+      "files_hint": ["docker-compose.yml", "src/FinNavis.Presentation/Dockerfile", ".dockerignore"]
+    },
+    {
+      "id": "T02",
+      "title": "Build the Testcontainers PostgreSQL 18 fixture for the integration suite",
+      "layer": "tests",
+      "deps": [],
+      "acs": [],
+      "dod": "An xUnit collection fixture starts PostgreSQL 18 in Testcontainers, gives each test a clean database, and SmokeTests.cs is deleted from the integration project.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/PostgresFixture.cs", "tests/FinNavis.Infrastructure.IntegrationTests/DatabaseCollection.cs", "tests/FinNavis.Infrastructure.IntegrationTests/SmokeTests.cs"]
+    },
+    {
+      "id": "T03",
+      "title": "Add the CI job that builds the solution and runs every test",
+      "layer": "wiring",
+      "deps": ["T02"],
+      "acs": [],
+      "dod": "A CI workflow runs ./build.sh build then ./build.sh test on push and pull request with Docker available, and a deliberately failing test turns the job red.",
+      "files_hint": [".github/workflows/ci.yml"]
+    },
+    {
+      "id": "T04",
+      "title": "Decide by ADR what the module names in a *.NotFound error code",
+      "layer": "docs",
+      "deps": [],
+      "acs": [],
+      "dod": "A project-wide ADR states whether the module names the aggregate not found or the aggregate being operated on, both core-ledger and csv-import contracts match it, and api-sync-report.md no longer parks the convention.",
+      "files_hint": ["docs/adr/", "docs/features/core-ledger/contracts/openapi.yaml", "docs/features/core-ledger/contracts/api-sync-report.md", "docs/features/csv-import/contracts/openapi.yaml"]
+    },
+    {
+      "id": "T05",
+      "title": "Add the domain primitives: Money, DateRange, CategoryKind, IClock and the domain error",
+      "layer": "domain",
+      "deps": [],
+      "acs": [],
+      "dod": "Unit tests cover Money arithmetic and DateRange boundary days, Domain still references nothing, and SmokeTests.cs is deleted from FinNavis.Domain.UnitTests.",
+      "files_hint": ["src/FinNavis.Domain/ValueObjects/", "src/FinNavis.Domain/Enums/", "src/FinNavis.Domain/Abstractions/IClock.cs", "src/FinNavis.Domain/Errors/", "tests/FinNavis.Domain.UnitTests/ValueObjects/", "tests/FinNavis.Domain.UnitTests/SmokeTests.cs"]
+    },
+    {
+      "id": "T06",
+      "title": "Add the Account entity and IAccountRepository",
+      "layer": "domain",
+      "deps": ["T05"],
+      "acs": ["AC-08"],
+      "dod": "Unit tests show a rename keeps the same identity (AC-08) and a blank or over-100-character name is refused; the entity carries no balance field.",
+      "files_hint": ["src/FinNavis.Domain/Entities/Account.cs", "src/FinNavis.Domain/Abstractions/IAccountRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/AccountTests.cs"]
+    },
+    {
+      "id": "T07",
+      "title": "Add the Category and CategoryGroup entities with the same-side invariant",
+      "layer": "domain",
+      "deps": ["T05"],
+      "acs": ["AC-13", "AC-28", "AC-29", "AC-30", "AC-34"],
+      "dod": "Unit tests show placing a category into a group on the other side is refused (AC-30), moving or renaming keeps identity (AC-13, AC-28, AC-34), clearing the link leaves the category intact (AC-29), and nothing creates a Default group.",
+      "files_hint": ["src/FinNavis.Domain/Entities/Category.cs", "src/FinNavis.Domain/Entities/CategoryGroup.cs", "src/FinNavis.Domain/Abstractions/ICategoryRepository.cs", "src/FinNavis.Domain/Abstractions/ICategoryGroupRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/CategoryTests.cs", "tests/FinNavis.Domain.UnitTests/Entities/CategoryGroupTests.cs"]
+    },
+    {
+      "id": "T08",
+      "title": "Add the Transaction entity and ITransactionRepository",
+      "layer": "domain",
+      "deps": ["T05"],
+      "acs": ["AC-02", "AC-21", "AC-24"],
+      "dod": "Unit tests show an amount of zero or below is refused (AC-02), a note over 500 characters is refused, an amount edit applies in place with no reversing entry (AC-21), and naming a second account is refused (AC-24).",
+      "files_hint": ["src/FinNavis.Domain/Entities/Transaction.cs", "src/FinNavis.Domain/Abstractions/ITransactionRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/TransactionTests.cs"]
+    },
+    {
+      "id": "T09",
+      "title": "Add the Transfer entity and ITransferRepository",
+      "layer": "domain",
+      "deps": ["T05"],
+      "acs": ["AC-05", "AC-06", "AC-23"],
+      "dod": "Unit tests show a same-account transfer is refused (AC-05) and a non-positive amount is refused; the entity exposes no category (AC-23) and carries both sides in one object so a half-applied transfer is unrepresentable (AC-06).",
+      "files_hint": ["src/FinNavis.Domain/Entities/Transfer.cs", "src/FinNavis.Domain/Abstractions/ITransferRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/TransferTests.cs"]
+    },
+    {
+      "id": "T10",
+      "title": "Declare IUnitOfWork and the ILedgerQueries read port with its result records",
+      "layer": "app",
+      "deps": ["T05"],
+      "acs": [],
+      "dod": "Both ports are declared in Application/Abstractions with plain read-row results, nothing in Application references EF Core or HTTP, and the architecture tests stay green.",
+      "files_hint": ["src/FinNavis.Application/Abstractions/IUnitOfWork.cs", "src/FinNavis.Application/Abstractions/ILedgerQueries.cs", "src/FinNavis.Application/Abstractions/Reads/"]
+    },
+    {
+      "id": "T11",
+      "title": "Add FinNavisDbContext and the five entity configurations",
+      "layer": "infra",
+      "deps": ["T06", "T07", "T08", "T09"],
+      "acs": [],
+      "dod": "Every column type, bound, index and unique constraint matches data-model.md row by row, CategoryKind uses HasConversion<string>(), and no CHECK constraint, trigger, business default or FK cascade exists.",
+      "files_hint": ["src/FinNavis.Infrastructure/Persistence/FinNavisDbContext.cs", "src/FinNavis.Infrastructure/Persistence/Configurations/"]
+    },
+    {
+      "id": "T12",
+      "title": "Generate the EF Core migration and diff it against the staged SQL spec",
+      "layer": "migration",
+      "deps": ["T11", "T02"],
+      "acs": [],
+      "dod": "./build.sh migrate CoreLedgerInitial produces a migration whose script matches the five staged .up.sql pairs; it applies and reverts cleanly against PostgreSQL 18 in Testcontainers, and the fixture now applies migrations.",
+      "files_hint": ["docs/features/core-ledger/migrations/", "src/FinNavis.Infrastructure/Persistence/Migrations/", "tests/FinNavis.Infrastructure.IntegrationTests/PostgresFixture.cs"]
+    },
+    {
+      "id": "T13",
+      "title": "Add the five EF Core repository adapters and the unit of work",
+      "layer": "infra",
+      "deps": ["T12", "T10"],
+      "acs": [],
+      "dod": "Every repository port round-trips an entity through PostgreSQL in Testcontainers, the three name-scoped existence checks hit their unique index, a failed commit rolls back the whole unit of work, and the architecture tests stay green.",
+      "files_hint": ["src/FinNavis.Infrastructure/Repositories/", "src/FinNavis.Infrastructure/Persistence/UnitOfWork.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Repositories/"]
+    },
+    {
+      "id": "T14",
+      "title": "Implement the balance query and the two delete existence checks",
+      "layer": "infra",
+      "deps": ["T12", "T10"],
+      "acs": ["AC-09", "AC-12", "AC-14", "AC-15"],
+      "dod": "Integration tests show a balance equals the sum of its movements (AC-14) and a transfer leaves the total unchanged (AC-15), and the two existence checks answer correctly for accounts (AC-09) and categories (AC-12) using their indexes.",
+      "files_hint": ["src/FinNavis.Infrastructure/Queries/LedgerBalanceQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/BalanceQueryTests.cs"]
+    },
+    {
+      "id": "T15",
+      "title": "Implement the history page: UNION ALL with a keyset cursor",
+      "layer": "infra",
+      "deps": ["T12", "T10"],
+      "acs": ["AC-16", "AC-17"],
+      "dod": "Integration tests show filtered movements marked as transaction or transfer with notes (AC-16), an empty period returning an empty page not a failure (AC-17), and paging forward then back over seeded data returning every row exactly once with an opaque cursor and limit 1-200 default 50.",
+      "files_hint": ["src/FinNavis.Infrastructure/Queries/LedgerHistoryQueries.cs", "src/FinNavis.Infrastructure/Queries/HistoryCursor.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/HistoryQueryTests.cs"]
+    },
+    {
+      "id": "T16",
+      "title": "Implement the period breakdown aggregate query",
+      "layer": "infra",
+      "deps": ["T12", "T10"],
+      "acs": ["AC-18", "AC-19", "AC-20"],
+      "dod": "One aggregate query returns totals per category and per group with sides kept apart (AC-18), its generated SQL names no transfers table (AC-20), group totals plus the ungrouped total equal the period total (AC-19), and it uses both expected indexes.",
+      "files_hint": ["src/FinNavis.Infrastructure/Queries/LedgerBreakdownQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/BreakdownQueryTests.cs"]
+    },
+    {
+      "id": "T17",
+      "title": "Register every adapter and use case in the composition root",
+      "layer": "wiring",
+      "deps": ["T01", "T13", "T14", "T15", "T16"],
+      "acs": [],
+      "dod": "A resolution test proves every port declared in Domain/Abstractions and Application/Abstractions resolves from the container, Presentation registers no Infrastructure type one by one, and no connection string is in a committed file.",
+      "files_hint": ["src/FinNavis.Infrastructure/DependencyInjection/", "src/FinNavis.Application/DependencyInjection/", "src/FinNavis.Presentation/Program.cs"]
+    },
+    {
+      "id": "T18",
+      "title": "Write the four account use cases",
+      "layer": "app",
+      "deps": ["T13", "T14"],
+      "acs": ["AC-07", "AC-08", "AC-09", "AC-10", "AC-25", "AC-35"],
+      "dod": "Unit tests cover create reading back at zero (AC-07), rename keeping every movement (AC-08), delete refused with recorded history (AC-09) and allowed without (AC-10), duplicate names refused (AC-35), and an unknown id reported as unknown (AC-25).",
+      "files_hint": ["src/FinNavis.Application/Accounts/", "tests/FinNavis.Application.UnitTests/Accounts/"]
+    },
+    {
+      "id": "T19",
+      "title": "Write the four category-group use cases",
+      "layer": "app",
+      "deps": ["T13"],
+      "acs": ["AC-26", "AC-27", "AC-28", "AC-29", "AC-31"],
+      "dod": "Unit tests cover create on a named side holding no categories (AC-26), list with name and side (AC-27), rename leaving category figures unchanged (AC-28), delete clearing links and removing the group in one unit of work with no category deleted (AC-29), and a duplicate name refused per side (AC-31).",
+      "files_hint": ["src/FinNavis.Application/CategoryGroups/", "tests/FinNavis.Application.UnitTests/CategoryGroups/"]
+    },
+    {
+      "id": "T20",
+      "title": "Write the five category use cases",
+      "layer": "app",
+      "deps": ["T13", "T14"],
+      "acs": ["AC-11", "AC-12", "AC-13", "AC-30", "AC-32", "AC-33", "AC-34", "AC-36"],
+      "dod": "Unit tests cover create with and without a group (AC-11), delete refused with history (AC-12), move between groups keeping the figure (AC-13), the other-side refusal (AC-30), the unknown-group refusal creating nothing (AC-32), list all and narrowed (AC-33), rename keeping the closed-period figure (AC-34), and a duplicate name refused per side (AC-36).",
+      "files_hint": ["src/FinNavis.Application/Categories/", "tests/FinNavis.Application.UnitTests/Categories/"]
+    },
+    {
+      "id": "T21",
+      "title": "Write the three transaction use cases",
+      "layer": "app",
+      "deps": ["T13"],
+      "acs": ["AC-01", "AC-03", "AC-21", "AC-22", "AC-24", "AC-25"],
+      "dod": "Unit tests cover recording with the note kept (AC-01), the unknown-category refusal creating nothing (AC-03), an in-place amount edit (AC-21), a hard delete (AC-22), the kind-change refusal (AC-24), and an unknown id reported as unknown (AC-25); external_ref stays null.",
+      "files_hint": ["src/FinNavis.Application/Transactions/", "tests/FinNavis.Application.UnitTests/Transactions/"]
+    },
+    {
+      "id": "T22",
+      "title": "Write the three transfer use cases",
+      "layer": "app",
+      "deps": ["T13"],
+      "acs": ["AC-04", "AC-05", "AC-06", "AC-23", "AC-25"],
+      "dod": "Unit tests cover source falling and destination rising with the total unchanged (AC-04), the same-account refusal (AC-05), a failed commit changing neither account (AC-06), the category refusal on edit (AC-23), and unknown ids reported as unknown (AC-25).",
+      "files_hint": ["src/FinNavis.Application/Transfers/", "tests/FinNavis.Application.UnitTests/Transfers/"]
+    },
+    {
+      "id": "T23",
+      "title": "Write the history and breakdown use cases",
+      "layer": "app",
+      "deps": ["T15", "T16"],
+      "acs": ["AC-16", "AC-17", "AC-18", "AC-19", "AC-20"],
+      "dod": "Unit tests cover filtered history with marked rows (AC-16), an empty period returning an empty page not a failure (AC-17), group and category totals with sides apart (AC-18), group totals plus the Default group equalling the period total (AC-19), and no transfer counted (AC-20); the Default group bucket is assembled, never stored.",
+      "files_hint": ["src/FinNavis.Application/Reporting/", "tests/FinNavis.Application.UnitTests/Reporting/"]
+    },
+    {
+      "id": "T24",
+      "title": "Build the error registry and route every failure through the flat envelope",
+      "layer": "ports",
+      "deps": ["T05", "T04"],
+      "acs": ["AC-25"],
+      "dod": "All 27 codes in the registry match contracts/openapi.yaml string for string and a test fails if either side drifts; a routing 404 and a model-binding failure both return the flat envelope rather than application/problem+json, with snake_case keys everywhere including inside details.",
+      "files_hint": ["src/FinNavis.Presentation/Errors/", "src/FinNavis.Presentation/Middleware/", "src/FinNavis.Presentation/Program.cs", "tests/FinNavis.Presentation.UnitTests/Errors/"]
+    },
+    {
+      "id": "T25",
+      "title": "Add the four account endpoints",
+      "layer": "ports",
+      "deps": ["T18", "T24", "T17"],
+      "acs": ["AC-07", "AC-08", "AC-09", "AC-10", "AC-35"],
+      "dod": "The four endpoints match the contract field for field and return the PRD outcomes for AC-07, AC-08, AC-09, AC-10 and AC-35; every 4xx carries the flat envelope and no response record is shared with another operation folder.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/Accounts/"]
+    },
+    {
+      "id": "T26",
+      "title": "Add the four category-group endpoints",
+      "layer": "ports",
+      "deps": ["T19", "T24", "T17"],
+      "acs": ["AC-26", "AC-27", "AC-28", "AC-29", "AC-31"],
+      "dod": "The four endpoints match the contract field for field and return the PRD outcomes for AC-26, AC-27, AC-28, AC-29 and AC-31, with deleteCategoryGroup returning 204 and no body; every 4xx carries the flat envelope.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/CategoryGroups/"]
+    },
+    {
+      "id": "T27",
+      "title": "Add the five category endpoints",
+      "layer": "ports",
+      "deps": ["T20", "T24", "T17"],
+      "acs": ["AC-11", "AC-12", "AC-30", "AC-32", "AC-33", "AC-34", "AC-36"],
+      "dod": "The five endpoints match the contract field for field and return the PRD outcomes for AC-11, AC-12, AC-30, AC-32, AC-33, AC-34 and AC-36; every 4xx carries the flat envelope and setCategoryGroup tells its two 404 refusals apart.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/Categories/"]
+    },
+    {
+      "id": "T28",
+      "title": "Add the three transaction endpoints",
+      "layer": "ports",
+      "deps": ["T21", "T24", "T17"],
+      "acs": ["AC-01", "AC-02", "AC-03", "AC-21", "AC-22", "AC-24"],
+      "dod": "The three endpoints match the contract field for field and return the PRD outcomes for AC-01, AC-02, AC-03, AC-21, AC-22 and AC-24; money crosses the wire as a string, external_ref is not surfaced, and every 4xx carries the flat envelope.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/Transactions/"]
+    },
+    {
+      "id": "T29",
+      "title": "Add the three transfer endpoints",
+      "layer": "ports",
+      "deps": ["T22", "T24", "T17"],
+      "acs": ["AC-04", "AC-05", "AC-06", "AC-23"],
+      "dod": "The three endpoints match the contract field for field, carry no category field anywhere, and return the PRD outcomes for AC-04, AC-05, AC-06 and AC-23; every 4xx carries the flat envelope.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/Transfers/"]
+    },
+    {
+      "id": "T30",
+      "title": "Add the history and breakdown endpoints",
+      "layer": "ports",
+      "deps": ["T23", "T24", "T17"],
+      "acs": ["AC-16", "AC-17", "AC-18", "AC-19", "AC-20"],
+      "dod": "Both endpoints match the contract field for field including the cursor page wrapper with prev_cursor, and return the PRD outcomes for AC-16, AC-17, AC-18, AC-19 and AC-20; an empty period is a 200 and every 4xx carries the flat envelope.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/Reporting/"]
+    },
+    {
+      "id": "T31",
+      "title": "Prove QG-1: the balance invariant over 1 000 randomised operation sequences",
+      "layer": "tests",
+      "deps": ["T25", "T28", "T29"],
+      "acs": ["AC-14", "AC-15", "AC-21", "AC-22"],
+      "dod": "A property-based test generates at least 1 000 randomised sequences of recordings, edits and deletions against PostgreSQL 18 in Testcontainers and reports 0 balance discrepancies, with the total across accounts unchanged by any transfer and a failing seed printed.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/BalanceInvariantTests.cs"]
+    },
+    {
+      "id": "T32",
+      "title": "Prove QG-2: seed 20 000 movements, time the three budgets, assert the index",
+      "layer": "tests",
+      "deps": ["T30", "T25"],
+      "acs": [],
+      "dod": "A repeatable seeder builds ~20 000 movements and the three named latency tests pass at p95 <= 300 ms, <= 500 ms and <= 400 ms, the CI smoke test measures >= 10 requests/s, and the EXPLAIN assertion fails if the breakdown index is dropped.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/LatencyTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Seeding/", ".github/workflows/ci.yml"]
+    },
+    {
+      "id": "T33",
+      "title": "Prove QG-3: report stability when categories and groups are reshaped",
+      "layer": "tests",
+      "deps": ["T30", "T27", "T26"],
+      "acs": ["AC-13", "AC-18", "AC-19", "AC-20", "AC-28", "AC-29", "AC-34"],
+      "dod": "The three sad.md §10 QG-3 tests pass against seeded data in Testcontainers, plus the group-rename, group-removal and category-rename cases, and a direct query proves no Default row exists in category_groups.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/BreakdownStabilityTests.cs"]
+    },
+    {
+      "id": "T34",
+      "title": "Diff the served OpenAPI document against the contract and close the deferrals",
+      "layer": "docs",
+      "deps": ["T25", "T26", "T27", "T28", "T29", "T30"],
+      "acs": [],
+      "dod": "The document served at /openapi/v1.json and contracts/openapi.yaml agree on all 21 operations and 27 error codes, api-sync-report.md is re-run with drift points 2 and 6 no longer deferred, and CLAUDE.md \"Not set up yet\" lists only what is still missing.",
+      "files_hint": ["docs/features/core-ledger/contracts/api-sync-report.md", "CLAUDE.md", "docs/features/core-ledger/tasks/tracker.md"]
+    }
+  ]
+}
