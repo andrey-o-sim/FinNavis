@@ -1,0 +1,248 @@
+{
+  "slug": "csv-import",
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Answer PRD §8's four file questions and fix ADR-0002's proximity parameters",
+      "layer": "docs",
+      "deps": [],
+      "acs": [],
+      "dod": "PRD §8's four file questions are answered from a real statement and a real export, ADR-0002 states the date window, whether the file's text takes part and what happens when one row matches two movements, and sad.md §11 no longer carries them as open.",
+      "files_hint": ["docs/features/csv-import/PRD.md", "docs/features/csv-import/sad.md", "docs/features/csv-import/adr/0002-match-on-an-exact-external-reference-first-then-a-date-and-amount-window.md"]
+    },
+    {
+      "id": "T02",
+      "title": "Add the three missing refusal messages to PRD §10",
+      "layer": "docs",
+      "deps": [],
+      "acs": [],
+      "dod": "PRD §10 carries a row for Import.MappingProfileNotConfirmed, Import.AlreadyUndone and Import.NotRecorded, contracts/openapi.yaml repeats the same wording, and the deferral is struck from api-sync-report.md.",
+      "files_hint": ["docs/features/csv-import/PRD.md", "docs/features/csv-import/contracts/openapi.yaml", "docs/features/csv-import/contracts/api-sync-report.md"]
+    },
+    {
+      "id": "T03",
+      "title": "Add the four import enums and the MovementFingerprint value object",
+      "layer": "domain",
+      "deps": [],
+      "acs": [],
+      "dod": "MovementFingerprint hashes 12.5 and 12.5000 to the same 64 lowercase hex characters and a null note to the empty string, ImportRunKind, ImportRunStatus, SetAsideReason and MappingRuleTarget are declared with the values data-model.md names, and src/FinNavis.Domain still references no project and no package.",
+      "files_hint": ["src/FinNavis.Domain/Enums/", "src/FinNavis.Domain/ValueObjects/MovementFingerprint.cs", "tests/FinNavis.Domain.UnitTests/ValueObjects/MovementFingerprintTests.cs"]
+    },
+    {
+      "id": "T04",
+      "title": "Add the MappingProfile aggregate, its rules and IMappingProfileRepository",
+      "layer": "domain",
+      "deps": ["T03"],
+      "acs": ["AC-01", "AC-04"],
+      "dod": "Unit tests show a rule carries a target category exactly when its target is Category and none when it is TransferBetweenOwnAccounts, two rules for the same source category are refused, re-confirming a shape replaces its rules wholesale (AC-01), and no entity gives a recorded movement any way to point back at a rule (AC-04).",
+      "files_hint": ["src/FinNavis.Domain/Entities/MappingProfile.cs", "src/FinNavis.Domain/Entities/MappingRule.cs", "src/FinNavis.Domain/Abstractions/IMappingProfileRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/MappingProfileTests.cs"]
+    },
+    {
+      "id": "T05",
+      "title": "Add the ImportRun aggregate with its five child types and IImportRunRepository",
+      "layer": "domain",
+      "deps": ["T03"],
+      "acs": ["AC-13", "AC-14", "AC-17", "AC-18"],
+      "dod": "Unit tests show a run carries both counts and its set-aside rows with a reason, row number and raw line each (AC-13), a set-aside row exposes no way to become a movement (AC-14), a movement link reports a mismatch when its stored fingerprint stops matching (AC-18), the created-account and created-category links record what the run made (AC-17), and marking an already-Undone run is refused; the entity has no Failed status and no undone_at field.",
+      "files_hint": ["src/FinNavis.Domain/Entities/ImportRun.cs", "src/FinNavis.Domain/Entities/ImportTransactionLink.cs", "src/FinNavis.Domain/Entities/ImportTransferLink.cs", "src/FinNavis.Domain/Entities/ImportCreatedAccountLink.cs", "src/FinNavis.Domain/Entities/ImportCreatedCategoryLink.cs", "src/FinNavis.Domain/Entities/SetAsideRow.cs", "src/FinNavis.Domain/Abstractions/IImportRunRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/ImportRunTests.cs"]
+    },
+    {
+      "id": "T06",
+      "title": "Declare IStatementReader and IImportQueries in Application/Abstractions",
+      "layer": "app",
+      "deps": ["T03"],
+      "acs": [],
+      "dod": "IStatementReader yields the header row and then rows one at a time as an IAsyncEnumerable taking a CancellationToken, IImportQueries declares the candidate snapshot and the AC-17 in-use check, neither mentions EF Core or CSV, and src/FinNavis.Application references no package outside Domain.",
+      "files_hint": ["src/FinNavis.Application/Abstractions/IStatementReader.cs", "src/FinNavis.Application/Abstractions/IImportQueries.cs", "src/FinNavis.Application/Abstractions/Reads/"]
+    },
+    {
+      "id": "T07",
+      "title": "Add the DbContext sets and the eight entity configurations",
+      "layer": "infra",
+      "deps": ["T04", "T05"],
+      "acs": [],
+      "dod": "Eight IEntityTypeConfiguration<T> files map the eight tables with snake_case names, every enum uses HasConversion<string>(), every bound matches data-model.md, the thirteen indexes of data-model.md § Indexes are declared, and both link configurations carry a comment pointing at ADR-0008's field list.",
+      "files_hint": ["src/FinNavis.Infrastructure/Persistence/FinNavisDbContext.cs", "src/FinNavis.Infrastructure/Persistence/Configurations/"]
+    },
+    {
+      "id": "T08",
+      "title": "Generate the import migration and diff it against the staged spec",
+      "layer": "migration",
+      "deps": ["T07"],
+      "acs": [],
+      "dod": "./build.sh migrate AddCsvImport generates one migration for the eight tables, dotnet ef migrations script matches the eight staged .up.sql files on every table, column, type, bound, index and FK, it applies against PostgreSQL in Testcontainers and dotnet ef database update reverts it, and the migration carries no CHECK constraint, trigger, stored procedure or business DEFAULT.",
+      "files_hint": ["src/FinNavis.Infrastructure/Persistence/Migrations/", "docs/features/csv-import/migrations/", "tests/FinNavis.Infrastructure.IntegrationTests/Persistence/"]
+    },
+    {
+      "id": "T09",
+      "title": "Add EfImportRunRepository and EfMappingProfileRepository",
+      "layer": "infra",
+      "deps": ["T08"],
+      "acs": [],
+      "dod": "Both ports round-trip against PostgreSQL in Testcontainers, loading one run brings its five child collections, the profile lookup by shape key uses ux_mapping_profiles_shape_key and the test fails when that index is dropped, and a failed commit through core-ledger's IUnitOfWork leaves no run, link or set-aside row behind.",
+      "files_hint": ["src/FinNavis.Infrastructure/Repositories/EfImportRunRepository.cs", "src/FinNavis.Infrastructure/Repositories/EfMappingProfileRepository.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Repositories/"]
+    },
+    {
+      "id": "T10",
+      "title": "Implement the candidate snapshot in EfImportQueries",
+      "layer": "infra",
+      "deps": ["T06", "T08"],
+      "acs": ["AC-20", "AC-21"],
+      "dod": "One query returns every transaction and transfer on the accounts the file names across the dates it covers, including movements the owner typed by hand (AC-21) and ones an earlier run recorded (AC-20); an EXPLAIN assertion shows the statement-load snapshot using core-ledger's idx_transactions_occurred_on_account_id rather than a sequential scan, and that test fails when the index is dropped.",
+      "files_hint": ["src/FinNavis.Infrastructure/Queries/EfImportQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CandidateSnapshotTests.cs"]
+    },
+    {
+      "id": "T11",
+      "title": "Implement the AC-17 still-in-use check in EfImportQueries",
+      "layer": "infra",
+      "deps": ["T06", "T08"],
+      "acs": ["AC-17"],
+      "dod": "One existence query reports which of a run's created accounts and categories a movement outside the run now names (AC-17), an account named only by the run's own movements is reported as not in use, and the query adds no index — it reads core-ledger's idx_transactions_account_id, idx_transactions_category_id and both transfers account indexes.",
+      "files_hint": ["src/FinNavis.Infrastructure/Queries/EfImportQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CreatedEntityInUseTests.cs"]
+    },
+    {
+      "id": "T12",
+      "title": "Add the CSV adapter behind IStatementReader and the synthetic sample files",
+      "layer": "infra",
+      "deps": ["T06"],
+      "acs": ["AC-03"],
+      "dod": "The adapter streams rows without holding the file in memory, normalises the header row into the shape key of data-model.md decision 2, reports which of date, amount or account is missing before anything is recorded (AC-03), references no ledger type, and the committed sample files are synthetic with invented merchants and amounts.",
+      "files_hint": ["src/FinNavis.Infrastructure/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Fixtures/"]
+    },
+    {
+      "id": "T13",
+      "title": "Register the four import adapters in the Infrastructure container",
+      "layer": "wiring",
+      "deps": ["T09", "T10", "T11", "T12"],
+      "acs": [],
+      "dod": "IImportRunRepository, IMappingProfileRepository, IImportQueries and IStatementReader all resolve from the container in one resolve test, registration happens in Infrastructure's own DependencyInjection entry point rather than type by type in Program.cs, and tests/FinNavis.ArchitectureTests is green.",
+      "files_hint": ["src/FinNavis.Infrastructure/DependencyInjection/", "src/FinNavis.Presentation/Program.cs", "tests/FinNavis.ArchitectureTests/"]
+    },
+    {
+      "id": "T14",
+      "title": "Build the shared import pipeline, the policy object and the two-tier duplicate matcher",
+      "layer": "app",
+      "deps": ["T01", "T04", "T05", "T06", "T10"],
+      "acs": ["AC-15", "AC-20", "AC-21"],
+      "dod": "One pipeline serves both entry points through a policy object (ADR-0005), the matcher tries the exact external_ref tier first and the proximity tier second with the parameters T01 settled (AC-20, AC-21), two identical rows in one file are both recorded because the snapshot was taken before the run wrote anything, a row an earlier load set aside is recorded once a rule covers it (AC-15), and src/FinNavis.Application references no EF Core.",
+      "files_hint": ["src/FinNavis.Application/Import/Pipeline/", "tests/FinNavis.Application.UnitTests/Import/Pipeline/"]
+    },
+    {
+      "id": "T15",
+      "title": "Add the InspectFile and ConfirmMappingProfile use cases",
+      "layer": "app",
+      "deps": ["T04", "T06", "T09", "T12"],
+      "acs": ["AC-01", "AC-02", "AC-03", "AC-04"],
+      "dod": "Inspect reports the file's own categories and whether rules already exist for its shape, a file naming no date or no amount is refused and the missing one named (AC-03), confirm refuses a rule pointing at a category the ledger does not have and names it back with the PRD §10 wording while creating nothing (AC-02), the rules are remembered for the shape (AC-01), and re-confirming replaces them without touching anything recorded (AC-04).",
+      "files_hint": ["src/FinNavis.Application/Import/InspectFile/", "src/FinNavis.Application/Import/ConfirmMappingProfile/", "tests/FinNavis.Application.UnitTests/Import/InspectFile/", "tests/FinNavis.Application.UnitTests/Import/ConfirmMappingProfile/"]
+    },
+    {
+      "id": "T16",
+      "title": "Add the LoadStatement use case with the statement policy",
+      "layer": "app",
+      "deps": ["T14"],
+      "acs": ["AC-05", "AC-06", "AC-07", "AC-08", "AC-09", "AC-15", "AC-22"],
+      "dod": "An unknown named account or an unconfirmed shape refuses the whole load with no account created (AC-09), a covered row is recorded on the named account with the rule's category (AC-05), a transfer rule, a foreign-currency row and an uncovered category are each set aside with their own reason and the category named back (AC-06, AC-07, AC-08), the whole run commits in one IUnitOfWork so a failure leaves every balance unchanged (AC-22), and a second load after a rule is added records only the waiting rows (AC-15).",
+      "files_hint": ["src/FinNavis.Application/Import/LoadStatement/", "tests/FinNavis.Application.UnitTests/Import/LoadStatement/"]
+    },
+    {
+      "id": "T17",
+      "title": "Add the MigrateHistory use case with the migration policy",
+      "layer": "app",
+      "deps": ["T14"],
+      "acs": ["AC-03", "AC-10", "AC-11", "AC-12"],
+      "dod": "An export naming no date, no amount or no account per row is refused and the missing one named (AC-03), every row is recorded on the account and category it names keeping its own date with accounts and categories the ledger lacks created and linked to the run (AC-10), a row naming two of the owner's accounts becomes a Transfer that leaves the total unchanged (AC-11), every write is an insert so a hand-typed month gains rows and loses none (AC-12), and no mapping profile is read.",
+      "files_hint": ["src/FinNavis.Application/Import/MigrateHistory/", "tests/FinNavis.Application.UnitTests/Import/MigrateHistory/"]
+    },
+    {
+      "id": "T18",
+      "title": "Add the GetImportRun use case",
+      "layer": "app",
+      "deps": ["T05", "T09"],
+      "acs": ["AC-13", "AC-14"],
+      "dod": "The run report carries recorded_row_count, already_present_row_count, every set-aside row with its reason, row number, source category and raw line, and whether the run was undone (AC-13); nothing in the use case can turn a set-aside row into a movement (AC-14); the read goes through IImportRunRepository and not through a query port.",
+      "files_hint": ["src/FinNavis.Application/Import/GetImportRun/", "tests/FinNavis.Application.UnitTests/Import/GetImportRun/"]
+    },
+    {
+      "id": "T19",
+      "title": "Add the UndoImportRun use case",
+      "layer": "app",
+      "deps": ["T05", "T09", "T11"],
+      "acs": ["AC-16", "AC-17", "AC-18", "AC-19"],
+      "dod": "An already-undone run is refused and nothing changes, a movement whose fingerprint no longer matches blocks the whole undo and the changed rows are named back with no delete performed (AC-18), a clean undo removes every movement the run recorded (AC-16) and every account and category it created that nothing outside the run names (AC-17), the run is marked Undone while its movements are gone so the same file loads afresh (AC-19), and the whole undo commits in one IUnitOfWork.",
+      "files_hint": ["src/FinNavis.Application/Import/UndoImportRun/", "tests/FinNavis.Application.UnitTests/Import/UndoImportRun/"]
+    },
+    {
+      "id": "T20",
+      "title": "Add the Import and MappingProfile error codes to the registry",
+      "layer": "ports",
+      "deps": ["T02", "T04", "T05"],
+      "acs": ["AC-02", "AC-03", "AC-09", "AC-18"],
+      "dod": "Twelve constants across ImportErrors and MappingProfileErrors return exactly the strings contracts/openapi.yaml advertises, each spelled Module.ErrorName, every message is the PRD §10 wording and not invented (AC-02, AC-03, AC-09, AC-18), and a test asserts no response from this feature carries application/problem+json.",
+      "files_hint": ["src/FinNavis.Presentation/Errors/", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
+    },
+    {
+      "id": "T21",
+      "title": "Add the MappingProfiles endpoints: Inspect and Confirm",
+      "layer": "ports",
+      "deps": ["T13", "T15", "T20"],
+      "acs": ["AC-01", "AC-02", "AC-03"],
+      "dod": "POST /api/v1/mapping-profiles/inspect and POST /api/v1/mapping-profiles match contracts/openapi.yaml on every request and response field, each operation owns its own records in its own folder shared with nothing, confirm answers 201 on a new shape and 200 on a re-confirm (AC-01), an unknown category returns the flat envelope with code MappingProfile.CategoryNotFound (AC-02), a file with no date or amount returns Import.MissingRequiredColumn (AC-03), and every JSON key is snake_case.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/MappingProfiles/", "src/FinNavis.Presentation/Program.cs"]
+    },
+    {
+      "id": "T22",
+      "title": "Add the ImportRuns load endpoints: LoadStatement and MigrateHistory",
+      "layer": "ports",
+      "deps": ["T13", "T16", "T17", "T20"],
+      "acs": ["AC-05", "AC-09", "AC-13", "AC-22"],
+      "dod": "POST /api/v1/import-runs/statement and POST /api/v1/import-runs/history-migration take the file as multipart and answer 200 with recorded_row_count, already_present_row_count and the full set_aside list (AC-05, AC-13), an unknown named account returns Import.AccountNotFound (AC-09) and an unconfirmed shape returns 409 Import.MappingProfileNotConfirmed, a failed load returns Import.NotRecorded with nothing written (AC-22), each operation owns its own records, and no response is application/problem+json.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/ImportRuns/LoadStatement/", "src/FinNavis.Presentation/Endpoints/ImportRuns/MigrateHistory/", "src/FinNavis.Presentation/Program.cs"]
+    },
+    {
+      "id": "T23",
+      "title": "Add the ImportRuns read and undo endpoints: Get and Undo",
+      "layer": "ports",
+      "deps": ["T13", "T18", "T19", "T20"],
+      "acs": ["AC-13", "AC-16", "AC-18"],
+      "dod": "GET /api/v1/import-runs/{import_run_id} pages its set-aside rows by opaque cursor ordered by row_number with limit min 1, max 200, default 50 and refuses a bad cursor with Import.InvalidPaging (AC-13), POST .../undo answers the run as Undone (AC-16), a hand-edited run is refused with Import.MovementsChangedByHand and the rows named back (AC-18), a second undo returns Import.AlreadyUndone, and each operation owns its own records.",
+      "files_hint": ["src/FinNavis.Presentation/Endpoints/ImportRuns/Get/", "src/FinNavis.Presentation/Endpoints/ImportRuns/Undo/", "src/FinNavis.Presentation/Program.cs"]
+    },
+    {
+      "id": "T24",
+      "title": "Quality gate QG-1 — nothing is recorded twice",
+      "layer": "tests",
+      "deps": ["T22"],
+      "acs": ["AC-15", "AC-20", "AC-21"],
+      "dod": "LoadStatement_SameFileTwice_RecordsNothingTheSecondTime (AC-20), LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth and LoadStatement_RowOverlapsAHandTypedMovement_CountsItAsAlreadyThere (AC-21) pass against PostgreSQL 18 in Testcontainers using the synthetic sample files, a row set aside and then covered by a new rule lands on the second load (AC-15), and the identical-rows test fails the moment the candidate snapshot can see the run's own writes.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/DuplicateSafetyTests.cs"]
+    },
+    {
+      "id": "T25",
+      "title": "Quality gate QG-2 — a load is all-or-nothing, and reversible",
+      "layer": "tests",
+      "deps": ["T22", "T23"],
+      "acs": ["AC-16", "AC-17", "AC-18", "AC-19", "AC-22"],
+      "dod": "UndoImportRun_1500Rows_P95Under30s meets undo of a load of 1500 rows, p95 ≤ 30 s (PRD §6); LoadStatement_CommitFailsPartWay_LedgerIsUnchanged (AC-22), UndoImportRun_MovementChangedByHand_IsRefusedAndNamesTheRows (AC-18), UndoImportRun_CreatedCategoryNowUsedElsewhere_IsKept (AC-17) and LoadStatement_RunUndoneThenSameFileAgain_RecordsEverything (AC-19) all pass against PostgreSQL 18 in Testcontainers, and the fingerprint test fails when a field is dropped from ADR-0008's list.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/UndoAndAtomicityTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Seeding/"]
+    },
+    {
+      "id": "T26",
+      "title": "Quality gate QG-3 — a bulk load fits inside one evening's patience",
+      "layer": "tests",
+      "deps": ["T22"],
+      "acs": ["AC-10"],
+      "dod": "MigrateHistory_1500RowsSeveralAccounts_P95Under60s meets load the old history (~1500 rows, several accounts), p95 ≤ 60 s (PRD §6) against a ledger seeded with ~20 000 movements and the synthetic export (AC-10), and its EXPLAIN assertion reports an index scan rather than a sequential scan and fails when the candidate-snapshot index is dropped.",
+      "files_hint": ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/MigrateHistoryLatencyTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Seeding/"]
+    },
+    {
+      "id": "T27",
+      "title": "Diff the served document against the contract and close the deferrals",
+      "layer": "docs",
+      "deps": ["T21", "T22", "T23"],
+      "acs": [],
+      "dod": "/openapi/v1.json and contracts/openapi.yaml agree on all six operations and all twelve error codes, the three deferrals this epic closes — no registry in src/, application/problem+json still on, drift point 6 unchecked — are struck from api-sync-report.md, and the report is re-run with --reconcile to a Verdict of PASS or PASS (with deferrals).",
+      "files_hint": ["docs/features/csv-import/contracts/openapi.yaml", "docs/features/csv-import/contracts/api-sync-report.md"]
+    }
+  ]
+}
