@@ -53,7 +53,7 @@ nobody will ever be shown. This one does not.
 |---|---|
 | `<slug>` | Ask for it, or propose two or three from the idea. |
 | `docs/features/<slug>/idea-brief.md` | «Run `finnavis-interview <slug>` first — a PRD without a confirmed brief is me guessing your idea back at you.» |
-| `docs/GLOSSARY.md` | «The glossary is missing. Run `finnavis-interview` or add the terms first — without it §4 roles and §5 domain terms are invented.» |
+| `docs/GLOSSARY.md` | «The glossary is missing. Run `finnavis-fix-term` to bootstrap it and add the feature's terms — without it §4 roles and §5 domain terms are invented.» |
 
 ### Two files, two jobs — do not mix them
 
@@ -189,19 +189,37 @@ Work three sources, in this order:
 Deliver in batches of 2-3. Volume scales with depth: `easy` asks only 1 and 2 plus any rule whose
 answer cannot be inferred; `hard` works every rule that applies.
 
-### 3. Glossary capture (deferred)
+### 3. Glossary reconciliation (in-flow — a hard rule, at every depth)
 
-Every new domain word goes into a session-state list, `pending_glossary_terms`. Skip generic technical
-words. Do **not** write anything now — Phases 0-8 are read-only. Terms are appended to
-`docs/GLOSSARY.md` in Phase 10, in the house format: one line, canonical definition, then the
-boundary — what it is **NOT**. A term without a NOT-boundary is a label, not a definition.
+**The moment a domain word surfaces that `docs/GLOSSARY.md` does not define, run
+`finnavis-fix-term` for it — immediately, before continuing the phase you are in.** Do not collect
+unknown words and sort them out later.
+
+`finnavis-fix-term` owns the glossary. The filter for what counts as a domain word rather than a
+technical one, the line format, the mandatory NOT-boundary, the case rule and the alphabetical
+position all live there, so this skill no longer carries its own copy of any of them.
+
+Why in-flow and not batched: §4 user stories and §5 acceptance criteria are written **from** these
+names. A word settled after the draft means re-reading the draft to check it still says what it
+meant. A word settled when it surfaces means the draft is right the first time, and the user is
+answering while the sentence that raised the question is still on screen.
+
+**The one thing deferred is the file write.** Phases 0-8 run before `ExitPlanMode`, and plan mode
+forbids a write — so run `finnavis-fix-term` steps 1-5, which only ask, and let its step 6 hand the
+composed lines back as `pending_glossary_terms`. Phase 10 writes them. This is a mode constraint,
+not a change of policy: by the time §4 and §5 are drafted every term in them is settled, which is
+the whole point.
 
 Keep a second session-state list alongside it, `feature_terms`: every glossary term this feature
-actually works with, new ones included. It becomes the `## Glossary` line of the feature's
-`CONTEXT.md` in Phase 10. A term the feature only mentions in passing does not belong on it.
+actually works with, new ones included. It becomes the `**Terms this feature uses:**` line of the
+feature's `CONTEXT.md` in Phase 10. A term the feature only mentions in passing does not belong
+on it.
 
-By the time §4 and §5 are drafted, every role and domain term used in them is either already in
-`docs/GLOSSARY.md` or pending in that list. The PRD never invents a role.
+If a word cannot be settled now, it does not get an invented definition. It goes to §8 Open
+questions with an owner and a due stage, and the PRD avoids leaning on it — later stages trust the
+glossary, so a guess there is worse than a gap.
+
+The PRD never invents a role.
 
 ### 4. Extra channels (AskUserQuestion, multi-select)
 
@@ -313,8 +331,13 @@ self-check against the files on disk, propose the commit, print the handoff.
 
 - `docs/features/<slug>/PRD.md` from the template, every section filled from session memory.
 - `docs/features/<slug>/.size` if Phase 1 established it.
-- Append `pending_glossary_terms` to `docs/GLOSSARY.md`, each with its NOT-boundary, and bump its
-  `updated_at`. Terms stay alphabetical.
+- Append `pending_glossary_terms` to `docs/GLOSSARY.md` — the lines `finnavis-fix-term` composed
+  and the user confirmed in Phase 3, each at its alphabetical position, each with its
+  NOT-boundary. Bump that file's `updated_at` and change nothing else in it. Format and position
+  rules: → [`finnavis-fix-term` references/entry-format.md](../finnavis-fix-term/references/entry-format.md).
+  This skill writes the feature's `**Terms this feature uses:**` line itself, below — a later
+  standalone `finnavis-fix-term <term> <slug>` run is what keeps that line current once
+  `CONTEXT.md` exists.
 - `docs/features/<slug>/CONTEXT.md` from [templates/CONTEXT.md](templates/CONTEXT.md). Five sections:
   - **Glossary** — the link to `docs/GLOSSARY.md` plus `feature_terms` from Phase 3, alphabetical,
     each name verbatim. **No definitions.** Copying one here creates a second source of truth.
@@ -426,6 +449,7 @@ block — the last output of the run, every time:
 | [references/nfr-kpi-bank.md](references/nfr-kpi-bank.md) | Phase 5 | Default NFR rows for this stack, solo KPI bank, banned metrics |
 | [references/refusal-messages.md](references/refusal-messages.md) | Phases 5, 8 | The §10 table, its coverage rule, and why no code goes in it |
 | [references/critic-prompt.md](references/critic-prompt.md) | Phase 7 | The second reader: full prompt, its seven checks, what to do with the answer |
+| [`finnavis-fix-term`](../finnavis-fix-term/SKILL.md) | Phases 3, 10 | Owns the glossary: the domain-vs-technical filter, the line format, the mandatory NOT-boundary, the case rule, alphabetical position. Run in-flow in Phase 3 for every undefined term; its lines are written in Phase 10 |
 | [templates/PRD-template.md](templates/PRD-template.md) | Phases 0, 10 | The artifact |
 | [templates/CONTEXT.md](templates/CONTEXT.md) | Phases 0, 10 | The feature's own context file — five sections, two of them pointers |
 
@@ -442,8 +466,11 @@ block — the last output of the run, every time:
 > 4. **Phase 2** — carries three §15 questions; finds one contradiction with `SPEC.md`; asks what
 >    happens to an import when the file is loaded a second time, and what an imported row may be
 >    edited into afterwards.
-> 5. **Phase 3** — "mapping profile" goes to `pending_glossary_terms`. `feature_terms` collects the
->    seventeen glossary words this feature works with, the seven of its own included.
+> 5. **Phase 3** — "mapping profile" is undefined, so `finnavis-fix-term` runs on the spot: the
+>    domain filter passes it, the user confirms a definition and a NOT-boundary against
+>    `Import run`, and the composed line waits in `pending_glossary_terms` because plan mode
+>    forbids the write. `feature_terms` collects the seventeen glossary words this feature works
+>    with, the seven of its own included.
 > 6. **Phase 4** — channels: `core-ledger/PRD.md` as the reference, plus `ARCHITECTURE.md`.
 > 7. **Phase 5** — drafts §1-§10. §5 gets the four mandatory types; **duplicate safety** is mandatory
 >    here (data comes from outside), **history integrity** too (an import touches past periods),

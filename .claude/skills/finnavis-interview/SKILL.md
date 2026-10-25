@@ -126,14 +126,23 @@ The bank has six categories; the two that matter most here and are missing from 
 protocols are **"why is the tool you use today not enough"** and **"what does this unlock"**.
 On a one-user project those two carry the priority signal that Reach normally carries.
 
-### 3. Glossary capture (deferred)
+### 3. Glossary capture (confirm now, write in Phase 12)
 
-Every new domain word in the user's answers goes into a session-state list,
-`pending_glossary_terms`. Skip generic technical words (HTTP, JSON, cache, queue).
+Every new domain word in the user's answers is handed to **`finnavis-fix-term`**, which owns the
+glossary — the filter for what counts as a domain word, the line format, the mandatory
+NOT-boundary and the alphabetical position all live there, so this skill no longer carries its own
+copy of them.
 
-Do **not** write `docs/GLOSSARY.md` now — that is a write, and Phases 0-11 are read-only. The terms
-are applied in Phase 12, in the house format described in
-→ [references/glossary-seed.md](references/glossary-seed.md).
+Run its steps 1-5 **now**, while the answer that produced the word is still on screen: that is
+where the user can say what they meant. Those steps only ask, and asking is allowed in plan mode.
+
+Do **not** let it write `docs/GLOSSARY.md` here — Phases 0-11 are read-only because
+`ExitPlanMode` has not run yet, and a write would fail. The confirmed lines come back as session
+state in `pending_glossary_terms`, and Phase 12 writes them.
+
+If the interview did not settle a word, do not invent a definition to fill the glossary. It goes
+to §15 Open questions with an owner and a due stage — an unresolved entry is worse than no entry,
+because later stages trust it.
 
 ### 4. Competitive research (Claude-driven, read-only)
 
@@ -270,7 +279,7 @@ Everything so far is session memory. Call `ExitPlanMode` with a plan containing:
 
 1. Create `docs/features/<slug>/`.
 2. Copy the template into it.
-3. Append the pending glossary terms to `docs/GLOSSARY.md`.
+3. Append the pending glossary terms to `docs/GLOSSARY.md` (lines already confirmed in Phase 3).
 4. Fill sections 1-17 plus Related and the DoD self-check.
 5. Set the frontmatter.
 6. Run the Phase 13 self-check.
@@ -279,10 +288,12 @@ Everything so far is session memory. Call `ExitPlanMode` with a plan containing:
 ### 12. Write
 
 - `mkdir docs/features/<slug>/`, copy `./templates/idea-brief.md` into it.
-- Append pending glossary terms to `docs/GLOSSARY.md` in the house format
-  (→ [references/glossary-seed.md](references/glossary-seed.md)): one line, canonical
-  definition, then the boundary — what it is **NOT**. A term without a boundary is a label,
-  not a definition.
+- Append `pending_glossary_terms` to `docs/GLOSSARY.md` — the lines `finnavis-fix-term` composed
+  and the user confirmed in Phase 3. Insert each at its alphabetical position, change nothing
+  else, and bump that file's `updated_at`. Format and position rules:
+  → [`finnavis-fix-term` references/entry-format.md](../finnavis-fix-term/references/entry-format.md).
+  Commit the glossary change together with the brief — the same interview produced both, and
+  splitting them loses the reason the term was added.
 - Fill every section from session memory. Frontmatter:
   `status: Confirmed`, `value_score.rice`, `value_score.state: confirmed`,
   `value_score.confirmed_at: <today>`, `feasibility_state: confirmed`, `updated_at: <today>`,
@@ -332,7 +343,7 @@ open question and leave the decision to the stage that owns it.
 | [references/personas.md](references/personas.md) | Phase 6 | Builder / Future-me / User-me prompts |
 | [references/repo-map.md](references/repo-map.md) | Phase 10 | FinNavis module map and what it means for feasibility |
 | [references/anti-patterns.md](references/anti-patterns.md) | Phase 13 | Banned-term regex and why each term is banned |
-| [references/glossary-seed.md](references/glossary-seed.md) | Phases 3, 12 | docs/GLOSSARY.md format and worked examples |
+| [`finnavis-fix-term`](../finnavis-fix-term/SKILL.md) | Phases 3, 12 | Owns the glossary: the domain-vs-technical filter, the line format, the mandatory NOT-boundary, alphabetical position. This skill confirms terms through it in Phase 3 and writes them in Phase 12 |
 | [templates/idea-brief.md](templates/idea-brief.md) | Phase 12 | The artifact |
 
 ## Definition of Done
@@ -391,7 +402,9 @@ open question and leave the decision to the stage that owns it.
 > 4. **Phase 2** — batch 1: "which bank, which export format?", "how many rows a month, and how
 >    long does it take you today?". Batch 2: "what does 'it worked' mean — zero manual entry or
 >    less of it?", "what should happen to a row that is already in the ledger?".
-> 5. **Phase 3** — "statement" and "duplicate" go to `pending_glossary_terms`.
+> 5. **Phase 3** — "statement" and "duplicate" go through `finnavis-fix-term` steps 1-5: both pass
+>     the domain filter, the user confirms a definition and a NOT-boundary for each, and the two
+>     composed lines wait in `pending_glossary_terms`. Nothing is written — plan mode.
 > 6. **Phase 4** — searches MoneyOk import, YNAB file-based import, Firefly III CSV importer,
 >    Actual Budget. Builds §6. Finding: everyone imports, nobody reconciles against what is
 >    already there without a UI.
