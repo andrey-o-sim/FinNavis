@@ -21,9 +21,14 @@ pull request.
 | `hotfix/`  | A defect that has to ship now. Same shape as `bugfix/`, different urgency.|
 | `docs/`    | Documents only — `docs/`, `ARCHITECTURE.md`, `CLAUDE.md`, ADRs, skills.   |
 | `test/`    | Tests only — adding coverage, fixing a flaky test, test infrastructure.   |
+| `chore/`   | Everything around the code — dependencies, `build.sh`, CI, editor config. |
 
-These five plus `master` are the whole list. If a change does not fit one, it is usually two
+These six plus `master` are the whole list. If a change does not fit one, it is usually two
 changes.
+
+`chore/` is the easiest one to abuse. Its boundary: the change adds no behaviour, fixes no defect,
+adds no test and writes no document. The moment a "dependency bump" needs a code change to keep the
+build green, it stops being a chore and becomes `feature/` or `bugfix/`.
 
 ### Name
 
@@ -37,7 +42,7 @@ changes.
 - No issue number. This repo has no issue tracker.
 
 Good: `feature/transfer-rounding`, `docs/git-rules`, `bugfix/balance-off-by-one`,
-`test/account-repository-integration`.
+`test/account-repository-integration`, `chore/bump-npgsql`.
 
 Bad: `feature/1`, `feature/2-skill`, `my-branch`, `fix_stuff`.
 
