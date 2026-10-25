@@ -230,14 +230,14 @@ managing a category and `ICategoryRepository` served all of it. US-09 and US-10 
 PRD amendment of 2026-10-20.)
 
 **A group belongs to one side of the ledger, exactly as a category does** (AC-26, AC-30, and
-`CONTEXT.md`, which is canonical). `CategoryGroup` therefore carries `CategoryKind`. Placing a
+`GLOSSARY.md`, which is canonical). `CategoryGroup` therefore carries `CategoryKind`. Placing a
 category into a group on the other side is refused by the `CategoryGroup` entity as a domain
 invariant — not by a database constraint, per the repo's "DB as dumb storage" rule.
 
 **Removing a group does not remove the categories inside it** (AC-29). The group row goes; every
 category it held keeps all of its recorded history and only loses its link to a group. The breakdown
 then reports those categories under the Default group. Note what this does *not* mean: the Default
-group is produced by the breakdown and is never a row of its own (`CONTEXT.md`), so nothing is
+group is produced by the breakdown and is never a row of its own (`GLOSSARY.md`), so nothing is
 reassigned to it — the link is simply cleared, and a category with no group falls there by
 definition. Clearing it is the use case's job in the Application layer, not a database cascade.
 
@@ -1211,8 +1211,8 @@ alerts, no metrics stack, one replica.
 <!--           Один термін може мати дві мови у заголовку: «Goal (Обʼєктив)».              -->
 <!-- 📌 Приклад: «Lesson | урок усередині курсу, що складається з блоків (text, video)». -->
 
-Domain terms come from `CONTEXT.md`, which is canonical — if anything in this document contradicts
-it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
+Domain terms come from `GLOSSARY.md`, which is canonical — if anything in this document contradicts
+it, `GLOSSARY.md` wins. Only the terms this SAD actually uses are listed.
 
 | Term | Meaning |
 |---|---|
@@ -1225,7 +1225,7 @@ it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
 | Transaction | A single income or expense recorded on exactly one account, with an amount, a date, a category and an optional free-text note. Not a Transfer |
 | Transfer | Moves money between two different accounts of the owner: one falls and the other rises by the same amount. Carries no category and leaves the owner's total unchanged. Not a Transaction |
 
-**Terms this document introduces that are not in `CONTEXT.md`.** They are technical rather than
+**Terms this document introduces that are not in `GLOSSARY.md`.** They are technical rather than
 domain words, so they do not need a glossary entry there — recorded here for the reader:
 
 | Term | Meaning |

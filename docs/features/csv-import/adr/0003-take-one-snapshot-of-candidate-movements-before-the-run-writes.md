@@ -25,7 +25,7 @@ budget. Per-row checking would meet the numbers too. The PRD was corrected on 20
 longer makes that claim; this paragraph keeps it because it is what the alternative had going for
 it, and removing it would make the decision below look unopposed.
 
-What actually decides it is correctness, and `CONTEXT.md` states the invariant: two separate spends
+What actually decides it is correctness, and `GLOSSARY.md` states the invariant: two separate spends
 that happen to share a date, an amount and a description are **not** duplicates — both are real and
 both belong in the ledger. So a file carrying the same purchase twice must produce two entries. A
 check that runs row by row, interleaved with the inserts of the same run inside one transaction
@@ -34,7 +34,7 @@ dropping it silently, which is the exact failure ADR-0002 called the worst one a
 
 ## Decision drivers
 
-- `CONTEXT.md` *Duplicate* — two coincidentally identical spends are both real.
+- `GLOSSARY.md` *Duplicate* — two coincidentally identical spends are both real.
 - SAD §1 quality goal 1 — nothing is recorded twice; and its mirror, that nothing real is dropped.
 - PRD §6 — load of ~1500 rows p95 ≤ 60 s, undo of 1500 rows p95 ≤ 30 s. Both are met by either
   option, so neither is the deciding driver here.

@@ -23,7 +23,7 @@ names: a figure that silently changes after it was already read, and the same mo
 |---|---|---|
 | **happy** | the main flow | records it and confirms |
 | **error** | submits input that cannot be right (zero amount, missing date) | blocks it and says what must be true instead, in plain words |
-| **domain invariant** | violates a rule named in `CONTEXT.md` (a transfer needs two different accounts; a transfer carries no category) | blocks it and names the rule plainly |
+| **domain invariant** | violates a rule named in `docs/GLOSSARY.md` (a transfer needs two different accounts; a transfer carries no category) | blocks it and names the rule plainly |
 | **cross-context** | acts on something whose state belongs elsewhere in the ledger (an unknown category, an account history references) | enforces the rule across that boundary |
 
 ### Conditional (at least one must be present; each must be resolved explicitly)
@@ -32,10 +32,10 @@ names: a figure that silently changes after it was already read, and the same mo
 |---|---|---|
 | **history integrity** | the feature writes or re-reads recorded movements — which in this project is almost everything | the feature touches nothing already recorded (a pure settings screen) |
 | **duplicate safety** | data arrives from outside (a file, a message, another tool) or the action can be retried | the action is a single manual entry the owner sees the result of |
-| **authorization** | `CONTEXT.md` has more than one actor role, **or** any glossary term about sign-in, session or token exists | neither is true — today, with `Owner` the only actor |
+| **authorization** | `docs/GLOSSARY.md` has more than one actor role, **or** any glossary term about sign-in, session or token exists | neither is true — today, with `Owner` the only actor |
 
 The authorization trigger is deliberately read off the glossary rather than hard-coded. When the sign-in
-feature lands and adds a second actor to `CONTEXT.md`, this type becomes mandatory by itself. No edit to
+feature lands and adds a second actor to `docs/GLOSSARY.md`, this type becomes mandatory by itself. No edit to
 this skill is needed.
 
 **history integrity** examples: a figure already reported for a closed period does not change when the

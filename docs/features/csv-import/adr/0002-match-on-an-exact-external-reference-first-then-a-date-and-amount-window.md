@@ -19,7 +19,7 @@ were waiting land and the rows the earlier load recorded do not repeat. AC-21: a
 a movement the Owner already typed by hand on the day counts as already there, rather than being
 recorded again or set aside.
 
-`CONTEXT.md` defines *Duplicate* as a row in a loaded file naming a movement already recorded — and
+`GLOSSARY.md` defines *Duplicate* as a row in a loaded file naming a movement already recorded — and
 draws the boundary explicitly: two separate spends that happen to share a date, an amount and a
 description are **not** duplicates; both are real and both belong in the ledger.
 
@@ -38,7 +38,7 @@ visible extra row they can delete. The first is far worse.
 - PRD §5 AC-20, AC-21, AC-15 — the three criteria this rule has to satisfy.
 - PRD §8 — the exact predicate and the existence of an operation number are open, due before
   implementation starts.
-- `CONTEXT.md` *Duplicate* — the NOT-boundary: two coincidentally identical spends are both real.
+- `GLOSSARY.md` *Duplicate* — the NOT-boundary: two coincidentally identical spends are both real.
 - SAD §1 quality goal 1 — nothing is recorded twice.
 - SAD §2 Constraints — `core-ledger` ADR-0006 already put `transactions.external_ref` in place,
   nullable with a unique index, and deliberately left the detection rule to this feature.

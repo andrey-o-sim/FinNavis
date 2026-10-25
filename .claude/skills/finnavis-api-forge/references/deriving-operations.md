@@ -18,7 +18,7 @@ PRD §4 is the list. Read each story as "who wants to do what", and the verb pic
 contract already took some of them.
 
 Paths are plural, lowercase, hyphenless: `/api/v1/accounts`, `/api/v1/category-groups` only if the
-glossary itself hyphenates. Nouns come from `CONTEXT.md`, verbatim. If `CONTEXT.md` calls it a
+glossary itself hyphenates. Nouns come from `docs/GLOSSARY.md`, verbatim. If `docs/GLOSSARY.md` calls it a
 *movement*, the path is not `/transactions-and-transfers`.
 
 ## One operation, one endpoint folder

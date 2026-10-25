@@ -503,7 +503,7 @@ paths:
       summary: Create a category group
       description: |
         US-09, AC-26. A group belongs to **one side of the ledger**, spending or earning,
-        exactly as a category does (`CONTEXT.md`). It can then hold categories of that same
+        exactly as a category does (`GLOSSARY.md`). It can then hold categories of that same
         side only — AC-30.
 
         The group is created empty. The **Default group** is not created here and never can
@@ -1605,7 +1605,7 @@ components:
       type: object
       description: |
         An optional container holding related categories for reporting. A group belongs to one
-        side of the ledger and holds only categories from that same side (`CONTEXT.md`).
+        side of the ledger and holds only categories from that same side (`GLOSSARY.md`).
 
         Not the **Default group** — that bucket is produced by the breakdown for categories
         belonging to no group, and is never a row here (sad.md §12).

@@ -20,7 +20,7 @@ PRD §8 carries an open question with a deadline at this stage: *should an entry
 client-supplied identifier from day one, so later de-duplication, import and message capture need no
 backfill?* The PRD's standing default was no.
 
-The question is live because of what comes next. CONTEXT.md already defines *Duplicate* — a row in a
+The question is live because of what comes next. GLOSSARY.md already defines *Duplicate* — a row in a
 loaded file naming a movement already in the ledger — and *Import run*, which must be readable back
 and undoable as a whole. csv-import is the next feature in the queue, and the planned message
 capture creates an expense from an incoming Telegram or email message. Both need a way to say "this
@@ -35,7 +35,7 @@ whether to build it, but whether to leave room for it.
 - PRD §6.1 — repeated-request de-duplication is out of scope for this feature.
 - `SPEC.md` "Safe schema change" — a change reaching a database that already holds rows must lose or
   alter no row.
-- CONTEXT.md *Duplicate* and *Import run* — both already defined, so the need is known rather than
+- GLOSSARY.md *Duplicate* and *Import run* — both already defined, so the need is known rather than
   speculative.
 - The ledger is expected to hold at least three months of real history within 90 days (PRD §7
   "Migration depth"), so the next migration will land on a populated table.

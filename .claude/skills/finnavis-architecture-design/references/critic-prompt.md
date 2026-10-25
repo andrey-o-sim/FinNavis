@@ -62,7 +62,7 @@ The source files. **Read these yourself — do not trust anyone's summary of the
 
 - `docs/features/<slug>/PRD.md` — the goals, the acceptance criteria, the numeric targets in §6, the
   open questions in §8.
-- `CONTEXT.md` in the repository root — the agreed names for roles and domain words.
+- `docs/GLOSSARY.md` — the agreed names for roles and domain words.
 - `CLAUDE.md` and `ARCHITECTURE.md` in the repository root — how this repository is built and what it
   forbids.
 - `SPEC.md` in the repository root — what the product is, what it is not, and what is planned but

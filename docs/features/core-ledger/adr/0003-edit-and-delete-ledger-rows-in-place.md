@@ -76,7 +76,7 @@ Consequences.
 - AC-21 and AC-22 hold exactly as written, with no reinterpretation.
 - History contains only entries the owner believes are real — no reversed pairs to filter out on
   every read.
-- The schema stays small, and the later csv-import "undo a run" behaviour (CONTEXT.md, *Import run*)
+- The schema stays small, and the later csv-import "undo a run" behaviour (GLOSSARY.md, *Import run*)
   is a plain delete of that run's rows.
 
 **Negative**

@@ -42,7 +42,7 @@ Three places are allowed to break the rule, and nowhere else:
 These read like stack names but are product words here. Do not flag them:
 
 - **Account, Category, Category Group, Transaction, Transfer** — domain terms, defined in
-  `CONTEXT.md`.
+  `docs/GLOSSARY.md`.
 - **Balance, period, statement, import, export** — things the owner asks for.
 - **Interface** in the sense of "what the owner touches". The ban is on naming the technology,
   not on discussing shape.

@@ -257,7 +257,7 @@ approach, a file format, or a rule for what makes two rows the same.
 - [ ] A move between two of the owner's own accounts appears in both statements. Is pairing
       those rows in scope here, or later? Owner: Andrey, due: before the approach is chosen.
 - [ ] "Import run" surfaced as a word for a single load but was not settled, so it is not in
-      `CONTEXT.md`. Owner: Andrey, due: when the approach is chosen.
+      `GLOSSARY.md`. Owner: Andrey, due: when the approach is chosen.
 
 ## 16. What this unlocks
 
@@ -282,7 +282,7 @@ repeated load safe and explainable — is the hard part the next stage must not 
 
 ## Related
 
-- `CONTEXT.md` — glossary, canonical. Terms added by this interview: `Duplicate`, `Statement`.
+- `GLOSSARY.md` — glossary, canonical. Terms added by this interview: `Duplicate`, `Statement`.
 - `SPEC.md` — scope and the draft requirement list.
 - `ARCHITECTURE.md`, `docs/adr/0001-initial-setup.md` — layering and the dependency rule.
 - `docs/features/core-ledger/idea-brief.md` — this feature depends on it, and answers its §15
@@ -301,4 +301,4 @@ repeated load safe and explainable — is the hard part the next stage must not 
 - [x] §13 rationale cites §6, §8, §11, §12
 - [x] §16 filled — four later features named
 - [x] §17 filled
-- [x] New domain terms appended to CONTEXT.md, each with its NOT-boundary
+- [x] New domain terms appended to GLOSSARY.md, each with its NOT-boundary

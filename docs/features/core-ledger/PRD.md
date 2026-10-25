@@ -10,7 +10,7 @@ ticket: "none"
 
 # PRD — core-ledger
 
-> **Inputs (required):** [idea-brief](./idea-brief.md) · [CONTEXT](../../../CONTEXT.md) (the glossary lives at the repo root, not in this folder)
+> **Inputs (required):** [idea-brief](./idea-brief.md) · [CONTEXT](./CONTEXT.md) (this feature's terms, invariants and out-of-scope)
 > **Reference module:** N/A — green-field mode
 > **External context channels used:** None — only CONTEXT + idea-brief, plus `SPEC.md`, read to resolve one scope contradiction
 
@@ -87,7 +87,7 @@ longer match it. Listed here so none of them is discovered late:
 
 | Artifact | What no longer matches | Resolved by |
 |---|---|---|
-| `CONTEXT.md` | Category Group was defined with no side. **Updated in this same change**, because `sad.md` §12 makes the glossary canonical — *"if anything in this document contradicts it, `CONTEXT.md` wins"* | done here |
+| `GLOSSARY.md` | Category Group was defined with no side. **Updated in this same change**, because `sad.md` §12 makes the glossary canonical — *"if anything in this document contradicts it, `GLOSSARY.md` wins"* | done here |
 | `sad.md` §5 | Gives `CategoryGroup` no repository of its own, reasoning that *"US-04 treats creating a category, putting it in a group and moving it between groups as one job"*. US-09 makes group lifecycle a job in its own right. The Application and Presentation trees also carry no group operations and no list operation | re-run §5 |
 | `sad.md` §6 | States *"nine flows cover all eight §4 user stories and all 25 §5 acceptance criteria"*. There are now ten stories and 36 criteria | `/sdlc-complete-sequence-diagrams` |
 | `sad.md` §12 | Repeats the old Category Group wording in its own glossary table | re-run §12 |
@@ -189,7 +189,7 @@ until it does, `.size`, this document's frontmatter and `sad.md` all still read 
 ## 5. Acceptance criteria
 
 <!-- Coverage type `authorization` — N/A: the product has one owner, no sign-in, and no second
-     person (see the `Owner` entry in CONTEXT.md), so no actor can lack permission and no existence
+     person (see the `Owner` entry in GLOSSARY.md), so no actor can lack permission and no existence
      can be hidden. Tracked as a gap in §8; the later sign-in feature owns this type. -->
 
 ### AC-01 (US-01) — happy path

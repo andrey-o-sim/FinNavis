@@ -172,7 +172,7 @@ The second version costs three more lines and removes a round trip. That is the 
 - Terse labels with no action (`Accept`, `Yes`, `Option B`) on a decision that is hard to reverse.
 - Hiding the catch in a follow-up ("if you pick this, I'll ask about X later").
 - Asking about anything in [repo-conventions.md](repo-conventions.md) section A. It is decided.
-- Asking a question whose answer is already in `PRD.md`, `CONTEXT.md` or an Accepted ADR.
+- Asking a question whose answer is already in `PRD.md`, `docs/GLOSSARY.md` or an Accepted ADR.
 - More than 4 options, or more than 4 questions in one call.
 - Pasting raw Mermaid as the body of a question — describe the diagram in prose instead.
 - A bare `§7` anywhere in a question or an option. Name the section every time.

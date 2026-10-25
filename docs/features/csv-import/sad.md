@@ -240,7 +240,7 @@ decision is taken here, and §5 (Building block view) draws one application cont
    questions in §11 (Risks and technical debt), carried from PRD §8. ADR-0003 fixes *how* the match
    is executed and holds whatever the parameters turn out to be: one query before the first write,
    then matching against that snapshot only. The deciding argument there is correctness, not speed.
-   `CONTEXT.md` says two identical spends are two real spends and both belong in the ledger, so the
+   `GLOSSARY.md` says two identical spends are two real spends and both belong in the ledger, so the
    check must not see rows this same run just added — which a snapshot taken up front gives for
    free, and a per-row check interleaved with inserts has to be made careful about.
 
@@ -281,7 +281,7 @@ Presentation. The conventions quoted below — areas at the root of Application,
 each operation's own folder, one `IEntityTypeConfiguration<T>` per entity — come from `CLAUDE.md`
 and `ARCHITECTURE.md`. They are inherited here, not decided.
 
-**Two new aggregates, two new repository ports.** `CONTEXT.md` already separates them:
+**Two new aggregates, two new repository ports.** `GLOSSARY.md` already separates them:
 
 - **`ImportRun`** — one load of one file taken as a whole. It holds the name the file came with, the
   day it was handed over, which of the two jobs it was, the account it was loaded onto when the file
@@ -294,7 +294,7 @@ and `ARCHITECTURE.md`. They are inherited here, not decided.
   (ADR-0009). Each **rule** inside it says what one of the file's own categories means: one of the
   Owner's categories, or a move between the Owner's own accounts. **Two meanings, not three** — a
   rule saying "record this with no category" was dropped on 2026-10-18 at the data-model stage,
-  because a Transaction names exactly one category (`CONTEXT.md`) and there is no default category.
+  because a Transaction names exactly one category (`GLOSSARY.md`) and there is no default category.
   A file category the Owner leaves without a rule has its rows set aside instead (AC-08, AC-14). A
   profile outlives every run that uses it, and AC-04 is why it is a separate aggregate — changing a
   rule must leave recorded rows exactly as they were, which is only true if no recorded row points
@@ -376,7 +376,7 @@ src/FinNavis.Presentation/
 
 Two names worth a line. The Application area is `Import/` — singular, because it is a business area
 like `Reporting/`, not a resource. The Presentation resources are `ImportRuns/` and
-`MappingProfiles/` — plural, and named from `CONTEXT.md`, because they are what the API exposes. The
+`MappingProfiles/` — plural, and named from `GLOSSARY.md`, because they are what the API exposes. The
 two confirm-step operations sit under `MappingProfiles/` rather than under `ImportRuns/`: `Inspect/`
 reads a file and reports the categories it carries without recording anything, and it exists only to
 feed `Confirm/`.
@@ -436,7 +436,7 @@ AC-09 to flow 2's heading, the rule step to flow 3's loop, and one clause to flo
 refusal. The numbering was deliberately left alone, because commits and ADRs point at these numbers.
 
 **A statement load takes the account from the Owner, not from the file** — a Statement covers one
-account by definition (`CONTEXT.md`), so the Owner names it when handing the file over and no column
+account by definition (`GLOSSARY.md`), so the Owner names it when handing the file over and no column
 in the file is read for it. PRD AC-03 and AC-09 are written against the other model, where a
 statement row names its own account; §11 (Risks and technical debt) carries that as a wording gap in
 the PRD rather than hiding it here. A history migration does read accounts per row, which is what
@@ -965,7 +965,7 @@ inventing a figure would not be.
   text.
 - **Then:** no row naming a movement already in the ledger produces a second one, and it is counted
   as **already there** rather than set aside (AC-20, AC-21, AC-15). The mirror holds too and matters
-  as much: two rows naming two separate real spends are **both** recorded, because `CONTEXT.md`
+  as much: two rows naming two separate real spends are **both** recorded, because `GLOSSARY.md`
   defines them as two real spends rather than a duplicate. **PRD §6 sets no number here.** This is
   a correctness invariant; a figure invented for it would only make §10 look more measured than it
   is.
@@ -1057,7 +1057,7 @@ in §9, which are risks under another name.
 | PRD §1 records that the scope grew past what the idea-brief priced — RICE was scored from effort M, the scope written is L | Medium | Re-score before this feature is scheduled, as PRD §1 itself asks. It is not an architecture risk; it is here so it is not lost between documents | Andrey |
 | One transaction per run stops being the right shape above roughly 50 000 rows in a file (ADR-0004) | Low | §7 carries the threshold. The Import run record is already the progress table a resumable design would need, so the revisit is bounded | Andrey |
 | A bank adding or renaming one column makes the shape new, so the Owner confirms the rules again (ADR-0009) | Low | Correct rather than broken — the file really did change. Accepted | Andrey |
-| An old run keeps listing a row as set aside after a later run recorded it, so a run report ages | Low | Accepted: a run report is a record of one event (`CONTEXT.md` *Import run*), not a live view. AC-13 asks what the load did, which is what it keeps saying | Andrey |
+| An old run keeps listing a row as set aside after a later run recorded it, so a run report ages | Low | Accepted: a run report is a record of one event (`GLOSSARY.md` *Import run*), not a live view. AC-13 asks what the load did, which is what it keeps saying | Andrey |
 | Transfers carry no `external_ref` (`core-ledger` ADR-0006 put it on transactions only), so a Transfer recorded by a history migration is reachable only by the proximity tier | Low | Costs nothing today: the export is loaded once. Noted so nobody assumes the two tiers are symmetric | Andrey |
 | No optimistic concurrency token, and ADR-0003's snapshot cannot see a movement written while a run is in flight | Low | One owner, one client, no second writer. Accepted, and stated so the assumption is visible when one appears | Andrey |
 | `SPEC.md` draft requirements ask for an expense marker usable as a filter, which `core-ledger` §8 closed as "no". A statement's payee field is where that need becomes concrete | Low | Inherited from `core-ledger/sad.md` §11, which named this feature as the trigger. Adding it later is an additive migration plus a filter, not a rewrite | Andrey |
@@ -1134,17 +1134,17 @@ approved — `PRD.md` §1 records the same three):
 - **PRD §8 still carried the identifier question as open** while §11 above already listed it as
   closed. The PRD row is removed.
 
-**Two domain words were added to `CONTEXT.md`** in the same pass — *Export*, which `Statement` had
+**Two domain words were added to `GLOSSARY.md`** in the same pass — *Export*, which `Statement` had
 only ever defined by negation, and *Shape*, which `Mapping profile` and ADR-0009 both depend on.
 
 ## 12. Glossary
 
 <!-- Why: stops the argument a year from now about what a word meant. -->
-<!-- Write: the CONTEXT.md terms this document uses, then the technical terms it introduces. -->
-<!-- Watch: CONTEXT.md is canonical. A new *domain* word belongs there, not here. -->
+<!-- Write: the GLOSSARY.md terms this document uses, then the technical terms it introduces. -->
+<!-- Watch: GLOSSARY.md is canonical. A new *domain* word belongs there, not here. -->
 
-Domain terms come from `CONTEXT.md`, which is canonical — if anything in this document contradicts
-it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
+Domain terms come from `GLOSSARY.md`, which is canonical — if anything in this document contradicts
+it, `GLOSSARY.md` wins. Only the terms this SAD actually uses are listed.
 
 | Term | Meaning |
 |---|---|
@@ -1160,7 +1160,7 @@ it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
 | Transaction | A single income or expense recorded on exactly one account, with an amount, a date, a category and an optional free-text note. Not a Transfer |
 | Transfer | Moves money between two different accounts of the owner: one falls and the other rises by the same amount. Carries no category and leaves the owner's total unchanged. Not a Transaction. A history migration can record one (AC-11); a statement load cannot, because a statement names only one side (AC-06) |
 
-**Terms this document introduces that are not in `CONTEXT.md`.** They are technical rather than
+**Terms this document introduces that are not in `GLOSSARY.md`.** They are technical rather than
 domain words, so they do not need an entry there — recorded here for the reader:
 
 | Term | Meaning |

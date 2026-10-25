@@ -348,17 +348,17 @@ rather than as neglect.>
 ## 12. Glossary
 
 <!-- Why: stops the argument a year from now about what a word meant. -->
-<!-- Write: the CONTEXT.md terms this document uses, then the technical terms it introduces. -->
-<!-- Watch: CONTEXT.md is canonical. A new *domain* word belongs there, not here. -->
+<!-- Write: the docs/GLOSSARY.md terms this document uses, then the technical terms it introduces. -->
+<!-- Watch: docs/GLOSSARY.md is canonical. A new *domain* word belongs there, not here. -->
 
-Domain terms come from `CONTEXT.md`, which is canonical — if anything in this document contradicts
-it, `CONTEXT.md` wins. Only the terms this SAD actually uses are listed.
+Domain terms come from `docs/GLOSSARY.md`, which is canonical — if anything in this document contradicts
+it, `docs/GLOSSARY.md` wins. Only the terms this SAD actually uses are listed.
 
 | Term | Meaning |
 |---|---|
 | <term> | <definition with its boundary — what it is NOT> |
 
-**Terms this document introduces that are not in `CONTEXT.md`.** They are technical rather than
+**Terms this document introduces that are not in `docs/GLOSSARY.md`.** They are technical rather than
 domain words, so they do not need an entry there — recorded here for the reader:
 
 | Term | Meaning |

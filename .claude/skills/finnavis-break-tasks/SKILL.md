@@ -13,7 +13,7 @@ description: >
   dependency graph or tasks.json for a feature in this repo — including phrasings like "разбей на
   задачи {slug}", "декомпозиция {slug}", "план работ", "список задач", "что делать по порядку",
   "/finnavis-break-tasks {slug}" — even when they do not say the word task. Hard-refuses if
-  docs/features/<slug>/PRD.md, sad.md, an Accepted ADR or the repo-root CONTEXT.md is missing, and
+  docs/features/<slug>/PRD.md, sad.md, an Accepted ADR or docs/features/<slug>/CONTEXT.md is missing, and
   refuses to overwrite an existing tasks/ without --reconcile.
 argument-hint: "[slug] [--reconcile]"
 ---
@@ -86,7 +86,7 @@ skill derives `deps` instead of asking for them.
 | `docs/features/<slug>/PRD.md` | «Run `finnavis-prd <slug>` first — without §5 acceptance criteria no task has a Definition of Done.» |
 | `docs/features/<slug>/sad.md` | «Run `finnavis-architecture-design <slug>` first — §5 is where the task boundaries come from.» |
 | no Accepted ADR in `docs/features/<slug>/adr/` | «The design has no recorded decisions. Run `finnavis-architecture-design <slug>`, or record the decision that was made.» |
-| `CONTEXT.md` at the repo root | «The glossary is missing. Without it the task titles invent names for things that already have one.» |
+| `docs/features/<slug>/CONTEXT.md` | «The feature's context file is missing. Re-run `finnavis-prd <slug>` — its `## Invariants` are what a Domain-ring task has to enforce.» |
 | `docs/features/<slug>/tasks/` already exists, no `--reconcile` | Refuse. «A breakdown exists. Re-running erases the statuses in `tracker.md`. Use `/finnavis-break-tasks <slug> --reconcile`, or delete the folder on purpose.» |
 | `docs/features/<slug>/contracts/openapi.yaml` | Not a refusal — a warning. The `ports` tasks lose their operation list and the registry task its code list. Offer `finnavis-api-forge <slug>` first, and ask whether to continue. |
 | `docs/features/<slug>/data-model.md` | Not a refusal — a warning. There is no `migration` task to anchor and the `infra` tasks lose their table names. Offer `finnavis-generate-data-model <slug>` first. |
@@ -101,8 +101,9 @@ than the vocabulary. Task ids, layer names, file paths, `AC-NN` and `§6` never 
 
 - `<slug>` · `PRD.md` (§2 goals, §3 non-goals, §4 user stories, §5 acceptance criteria, §6 NFR,
   §8 open questions) · `sad.md` (frontmatter `target_surfaces`, §5 containers and ports, §6 flows,
-  §7 deployment, §10 quality gates, §11 risks) · every Accepted ADR in `adr/` · `CONTEXT.md` —
-  **required**.
+  §7 deployment, §10 quality gates, §11 risks) · every Accepted ADR in `adr/` ·
+  `docs/features/<slug>/CONTEXT.md` (its `## Invariants` are what a Domain-ring task enforces, and
+  it links to `docs/GLOSSARY.md`, where the names a task title uses are defined) — **required**.
 - `data-model.md` and the staged pairs under `migrations/` — the `migration` and `infra` tasks.
 - `contracts/openapi.yaml` and `contracts/api-sync-report.md` — the `ports` tasks, the error
   registry, and the Deferrals that become parked items in `_epic.md`.

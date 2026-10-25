@@ -14,7 +14,7 @@ description: >
   for a feature in this repo — including phrasings like "спроектируй архитектуру {slug}",
   "SAD для {slug}", "архитектура фичи", "нарисуй C4", "нужен ADR на {решение}",
   "/finnavis-architecture-design {slug}" — even when they do not say the words SAD or Arc42.
-  Hard-refuses if docs/features/<slug>/PRD.md or the repo-root CONTEXT.md is missing.
+  Hard-refuses if docs/features/<slug>/PRD.md or docs/features/<slug>/CONTEXT.md is missing.
 argument-hint: "[slug] [--depth=easy|medium|hard]"
 ---
 
@@ -73,7 +73,7 @@ Everything frozen, and everything genuinely open, is listed in
 |---|---|
 | `<slug>` | Ask for it, or list the folders under `docs/features/` that have a PRD and no `sad.md`. |
 | `docs/features/<slug>/PRD.md` | «Run `finnavis-prd <slug>` first — an architecture without acceptance criteria is me designing against my own guesses.» |
-| `CONTEXT.md` at the repo root | «The glossary is missing. Without it §1 stakeholders, §3 actors and §12 are invented names.» |
+| `docs/features/<slug>/CONTEXT.md` | «The feature's context file is missing. Re-run `finnavis-prd <slug>` — without it §12 cannot say which terms this feature uses, and its invariants are invented.» |
 | `PRD.md` has `status: Draft` | Not a refusal — a warning. Say it once: the PRD is still a draft, so anything built on it may move. Ask whether to continue. |
 
 `CLAUDE.md`, `ARCHITECTURE.md` and `SPEC.md` are not gates — but a run that did not read them
@@ -113,7 +113,9 @@ fifteen separate times is worse than asking once.
 - `docs/features/<slug>/PRD.md` — §2 Goals, §3 Non-goals, §4 user stories, §5 acceptance criteria,
   §6 NFR with its numbers, §6.1 Security/privacy, §8 Open questions, §9 Data impact, §10 Refusal
   messages.
-- `CONTEXT.md` (repo root) — the canonical glossary.
+- `docs/features/<slug>/CONTEXT.md` — the feature's context: the terms it uses, its `## Invariants`,
+  its `## Out of scope`, and the link to `docs/GLOSSARY.md` where those terms are defined. The
+  glossary is reached through this file; it is not a separate input to track.
 
 **Read always, not optional in practice:**
 
@@ -131,7 +133,9 @@ fifteen separate times is worse than asking once.
 ### 0. Setup (read-only)
 
 - **Read** `./templates/sad-template.md` and `./templates/adr-template.md` into session memory.
-- **Read** `CONTEXT.md` — `## Glossary` is session state. These names are canonical for §1, §3, §12.
+- **Read** `docs/features/<slug>/CONTEXT.md`, then follow it to `docs/GLOSSARY.md`. The term list is
+  what §12 enumerates; the definitions behind those terms are session state and are canonical for
+  §1, §3 and §12. The `## Invariants` are rules §5 and §6 must hold, not decisions to re-take.
 - **Read** `docs/features/<slug>/PRD.md` in full.
 - **Read** `CLAUDE.md`, `ARCHITECTURE.md`, `SPEC.md`, `docs/adr/`.
 - **Read** every earlier feature's `sad.md` §2 and §9 plus its `adr/` titles. A pin or a decision
@@ -241,7 +245,7 @@ only after an explicit yes.
 
 Dispatch `plugin:critic` (fallback `general-purpose`) with the self-contained prompt in
 [references/critic-prompt.md](references/critic-prompt.md). Send the finished `sad.md`, the
-edits-log and the ADR-spawns log. The reader opens `PRD.md`, `CONTEXT.md`, `CLAUDE.md`,
+edits-log and the ADR-spawns log. The reader opens `PRD.md`, `docs/GLOSSARY.md`, `CLAUDE.md`,
 `ARCHITECTURE.md`, `SPEC.md` and the `adr/` folders itself — never paste their bodies.
 
 It runs eight checks: was the document changed outside the review; does it still follow its own §4
@@ -268,7 +272,7 @@ Commit: `03: sad finalization (critic pass)`.
 - **§11** has a row for every `save_as_oq`, each with owner and due.
 - **Frontmatter** `target_surfaces` is non-empty and §5 draws one container per surface.
 - **No `<placeholder>`, `TODO` or `NNNN` survives** anywhere in the file or the ADRs.
-- **No invented role** — every name in §1 and §3 is in `CONTEXT.md`.
+- **No invented role** — every name in §1 and §3 is in `docs/GLOSSARY.md`.
 
 A failed check means fixing that section and checking again, not noting it and moving on.
 
@@ -279,7 +283,7 @@ convention, a naming rule. For each one, ask once whether it goes into `CLAUDE.m
 `CLAUDE.md` without that yes. A no means the convention stays feature-local and gets a §11 row, so
 the next feature inherits the question instead of the silence.
 
-Same sweep for `CONTEXT.md`: a genuine **domain** word that surfaced during the walk and is not in
+Same sweep for `docs/GLOSSARY.md`: a genuine **domain** word that surfaced during the walk and is not in
 the glossary is named in the handoff, with its NOT-boundary, for the user to add.
 
 ### 8. Handoff
@@ -326,7 +330,7 @@ The last output of the run, every time:
 - Nothing already decided by `CLAUDE.md`, `ARCHITECTURE.md` or an earlier Accepted ADR became a new ADR.
 - §10 has a scenario per §1 quality goal, with PRD §6 numbers verbatim and a named way to verify.
 - §11 carries a row for every `save_as_oq`, each with owner and due, plus the unproven-ground rows.
-- §1 and §3 use `CONTEXT.md` names verbatim. No invented reviewer, PM, security lead or operator.
+- §1 and §3 use `docs/GLOSSARY.md` names verbatim. No invented reviewer, PM, security lead or operator.
 - The second reader ran on the finished document; every finding is resolved or left with a §1 ¶4 line.
 
 ## Anti-patterns
@@ -381,7 +385,7 @@ The last output of the run, every time:
 > The whole walk below is therefore held in Russian — every question, every option label. The
 > `sad.md` it writes is in English, like the rest of the repo.
 >
-> 1. **Phase 0** — reads both templates, `CONTEXT.md` (Statement, Duplicate, Mapping profile, Import
+> 1. **Phase 0** — reads both templates, `docs/GLOSSARY.md` (Statement, Duplicate, Mapping profile, Import
 >    run, Set-aside row), `csv-import/PRD.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `SPEC.md`,
 >    `docs/adr/0001`, and `core-ledger/sad.md` §2 + its six ADRs. Notes two inherited constraints:
 >    PostgreSQL pinned to 18 by `core-ledger`, and `external_ref` already exists on transactions

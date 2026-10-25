@@ -15,7 +15,7 @@ description: >
   codes for a feature in this repo — including phrasings like "контракт API для {slug}", "OpenAPI
   для {slug}", "опиши эндпоинты", "какие коды ошибок", "зафиксируй интерфейс",
   "/finnavis-api-forge {slug}" — even when they do not say the words contract or OpenAPI.
-  Hard-refuses if docs/features/<slug>/PRD.md, sad.md or the repo-root CONTEXT.md is missing.
+  Hard-refuses if docs/features/<slug>/PRD.md, sad.md or docs/features/<slug>/CONTEXT.md is missing.
 argument-hint: "[slug] [--reconcile] [--drift-only]"
 ---
 
@@ -87,7 +87,7 @@ served document:
 | `<slug>` | Ask for it, or list the folders under `docs/features/` that have a `sad.md` and no `contracts/openapi.yaml`. |
 | `docs/features/<slug>/PRD.md` | «Run `finnavis-prd <slug>` first — without user stories and acceptance criteria the endpoint list is invented.» |
 | `docs/features/<slug>/sad.md` | «Run `finnavis-architecture-design <slug>` first — §6 is where the error responses come from.» |
-| `CONTEXT.md` at the repo root | «The glossary is missing. Without it the schema and field names are invented words.» |
+| `docs/features/<slug>/CONTEXT.md` | «The feature's context file is missing. Re-run `finnavis-prd <slug>` — its `## Sentinel errors` names the modules every error code is spelled under.» |
 | `docs/features/<slug>/data-model.md` | Not a refusal — this is scenario B. Say it once: types lose their bounds and error codes lose their constraints. Offer `finnavis-generate-data-model <slug>` first, and ask whether to continue. |
 | `sad.md` §6 has no flows | Not a refusal — a warning. Error responses would come from the PRD only, which lists the happy path and one or two refusals. Offer `finnavis-complete-sequence-diagrams <slug>` first. |
 
@@ -102,7 +102,9 @@ translate, in any language.
 
 - `<slug>` · `PRD.md` (§1 why, §4 user stories, §5 acceptance criteria, §6.1 out of scope, §8 open
   questions, §10 refusal wording) · `sad.md` (§5 containers and ports, §6 flows and their
-  `alt`-branches, §8 crosscutting, §11 risks and open items) · `CONTEXT.md` — **required**.
+  `alt`-branches, §8 crosscutting, §11 risks and open items) · `docs/features/<slug>/CONTEXT.md`
+  (its `## Sentinel errors` names the modules every code is spelled under, and it links to
+  `docs/GLOSSARY.md`, where the schema and field names come from) — **required**.
 - `data-model.md` — scenario A when present. Every typed column, bound and enum crosses into the
   schemas unchanged.
 - `CLAUDE.md`, `.claude/rules/openapi.md`, `ARCHITECTURE.md`, `docs/features/<slug>/adr/` — read

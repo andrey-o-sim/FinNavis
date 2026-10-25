@@ -46,7 +46,7 @@ Untouched: `create_accounts`, `create_transactions`, `create_transfers` (both ha
 Three, exactly as the PRD amendment predicted:
 
 1. **`category_groups.kind`** — a group belongs to one side of the ledger (AC-26, AC-30, and
-   `CONTEXT.md`, which is canonical and was updated in commit `ff1397a`).
+   `GLOSSARY.md`, which is canonical and was updated in commit `ff1397a`).
 2. **`ux_category_groups_name_kind`** — a group name is unique per side, not globally (AC-31). This
    is the one the PRD flagged as *"a second schema change, not documentation"*. Correct: the old
    spec had `UNIQUE (name)`.

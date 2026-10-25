@@ -25,8 +25,8 @@ checks below structurally. Each one comes from a real break in this repository.
 8. **No HTTP verb, path, status code or SQL** in any message. Grep the block for `GET `, `POST `,
    `PUT `, `DELETE `, `/`, `200`, `201`, `400`, `404`, `SELECT`, `INSERT`, `UPDATE`.
    A `/` inside ordinary prose is fine; a `/` in a path is not.
-9. **Names check out.** The actor is in `CONTEXT.md`. Every domain noun in a message is a
-   `CONTEXT.md` term or a §5 name — not a synonym invented while drafting. `Statement`, `Import run`
+9. **Names check out.** The actor is in `docs/GLOSSARY.md`. Every domain noun in a message is a
+   `docs/GLOSSARY.md` term or a §5 name — not a synonym invented while drafting. `Statement`, `Import run`
    and `Set-aside row` mean specific things here.
 
 A block that fails any check is fixed **before it is described to the user**, not after. Showing a

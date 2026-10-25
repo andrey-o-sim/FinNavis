@@ -8,7 +8,7 @@ The section-by-section review goes forward and never comes back. It cannot see w
 to §1, and it cannot see a hole that only shows up once every section exists. So one more reader goes
 over the finished draft — one that never saw the conversation and therefore cannot inherit its
 optimism. It reads the source files itself, which is why the skill sends only the draft and the list
-of changes, and never pastes `idea-brief.md` or `CONTEXT.md` into the prompt.
+of changes, and never pastes `idea-brief.md` or `docs/GLOSSARY.md` into the prompt.
 
 ## How to run it
 
@@ -54,7 +54,7 @@ The source files. **Read these yourself — do not trust anyone's summary of the
 
 - `docs/features/<slug>/idea-brief.md` — the problem, what was ruled out, the scoring, the chosen
   approach, the questions left open.
-- `CONTEXT.md` in the repository root — the agreed names for roles and domain words.
+- `docs/GLOSSARY.md` — the agreed names for roles and domain words, canonical for every feature.
 - `SPEC.md` in the repository root — what the product is and is not.
 
 ### How to work

@@ -5,8 +5,8 @@ Phase 4.
 
 ## Sources, in priority order
 
-1. **`CONTEXT.md`** (repo root) — canonical for role and domain-term names. If anything contradicts
-   it, `CONTEXT.md` wins and the contradiction becomes a question.
+1. **`docs/GLOSSARY.md`** — canonical for role and domain-term names. If anything contradicts
+   it, `docs/GLOSSARY.md` wins and the contradiction becomes a question.
 2. **`docs/features/<slug>/PRD.md`** — §2 Goals, §3 Non-goals, §4 user stories, §5 acceptance
    criteria, §6 NFR with numeric targets, §6.1 Security/privacy, §7 KPIs, §8 Open questions, §9 Data
    impact, §10 Refusal messages, and any §1 ¶4 decision line.
@@ -61,7 +61,7 @@ feature needs that nothing else uses, a tool the feature introduces. Everything 
 - Two or three sentences of business context from PRD §1.
 - A greenfield/brownfield note in an HTML comment: what exists in `src/` today and what this feature
   is the first to build.
-- **External systems table** — actors from `CONTEXT.md`, systems from the scan. For this product it
+- **External systems table** — actors from `docs/GLOSSARY.md`, systems from the scan. For this product it
   is usually two rows: the Owner, and PostgreSQL.
 - **An explicit sentence about what is absent.** "No third-party system is involved, and that is a
   decision, not an omission" — then name the planned consumers (the PWA, import, export, assistant
@@ -228,20 +228,20 @@ Then two blocks below the table:
 
 Not walked. Two tables:
 
-- Terms from `CONTEXT.md` that this document actually uses, copied with their boundary intact.
-  `CONTEXT.md` is canonical — say so, and say that it wins on any contradiction.
+- Terms from `docs/GLOSSARY.md` that this document actually uses, copied with their boundary intact.
+  `docs/GLOSSARY.md` is canonical — say so, and say that it wins on any contradiction.
 - Terms this document introduces that are technical rather than domain words — a query port, an
-  external reference. They do not belong in `CONTEXT.md`, and recording them here is what keeps the
+  external reference. They do not belong in `docs/GLOSSARY.md`, and recording them here is what keeps the
   SAD readable on its own.
 
-If the walk surfaced a genuine **domain** word that is not in `CONTEXT.md`, that is not a §12 row —
+If the walk surfaced a genuine **domain** word that is not in `docs/GLOSSARY.md`, that is not a §12 row —
 it is a missing glossary entry. Flag it in the handoff so it gets added with its NOT-boundary.
 
 ## Hygiene, before the walk starts
 
 Self-check the in-memory draft. The critic is the second backstop; this is the first.
 
-- §1 stakeholders and §3 actors use `CONTEXT.md` names verbatim. No invented `user`, `admin`,
+- §1 stakeholders and §3 actors use `docs/GLOSSARY.md` names verbatim. No invented `user`, `admin`,
   `reviewer`, `PM`.
 - §2 contradicts nothing in `CLAUDE.md` / `ARCHITECTURE.md` / `SPEC.md`, or carries an explicit
   override pointing at §11.

@@ -57,7 +57,7 @@ closed forever.
 | §9 Architecture decisions | Not walked — assembled from the ADRs spawned in §4–§8 |
 | §10 Quality requirements | One scenario per §1 quality goal. Numbers verbatim from PRD §6 |
 | §11 Risks and technical debt | Assembled from the logs, PRD §8 and the unproven-ground list; then confirmed |
-| §12 Glossary | Not walked — extracted from `CONTEXT.md` plus terms this document introduces |
+| §12 Glossary | Not walked — extracted from `docs/GLOSSARY.md` plus terms this document introduces |
 
 **Never return to a written section.** Cross-section drift is the critic's job in Phase 5. Re-opening
 §4 after §10 is written means the per-section batch was not trusted in the first place, and it costs

@@ -18,7 +18,7 @@ as one story and three spellings of `Infrastructure` break it.
 
 | Alias | Name | Is | Appears in |
 |---|---|---|---|
-| `Owner` | `Owner` (actor) | The single person the product serves. From `CONTEXT.md` | §3, §5, §6 |
+| `Owner` | `Owner` (actor) | The single person the product serves. From `docs/GLOSSARY.md` | §3, §5, §6 |
 | `Pres` | `Presentation` | Minimal API endpoints, contracts, composition root | §5, §6 |
 | `App` | `Application` | Use cases, `IUnitOfWork`, outside-world ports | §5, §6 |
 | `Dom` | `Domain` | Entities, value objects, rules, repository ports | §5, §6 |

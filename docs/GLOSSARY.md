@@ -3,13 +3,20 @@ status: Living
 updated_at: "2026-10-25"
 ---
 
-# Domain Context — FinNavis
+# Domain Glossary — FinNavis
 
 <!--
-CONTEXT.md is the domain glossary — not a PRD and not a scratch pad. NO implementation
-detail here (no datastore/broker/framework names, no API contracts) — only domain words
-and the boundaries between them. Implementation choices live in the SAD and ADRs;
-behaviour lives in PRD.md.
+This file is the canonical glossary for the whole repository. Every feature reads it;
+no feature copies a term out of it. If any document contradicts a definition here, this
+file wins.
+
+NO implementation detail here (no datastore/broker/framework names, no API contracts,
+no error codes) — only domain words and the boundaries between them. Implementation
+choices live in the SAD and the ADRs; behaviour lives in PRD.md.
+
+What belongs to one feature does not live here. Each feature carries its own
+docs/features/<slug>/CONTEXT.md, which names the terms that feature uses and holds its
+own invariants and out-of-scope list. A term is defined once — in this file.
 
 Terms get fixed inline, the moment they surface in an interview / PRD / review — never
 batched «I'll consolidate later».

@@ -10,7 +10,7 @@ source_brief: "./idea-brief.md"
 
 # PRD — csv-import
 
-> **Inputs:** [idea-brief](./idea-brief.md) · [CONTEXT](../../../CONTEXT.md) (repo root) · [SPEC](../../../SPEC.md)
+> **Inputs:** [idea-brief](./idea-brief.md) · [CONTEXT](./CONTEXT.md) (this feature's terms, invariants and out-of-scope) · [SPEC](../../../SPEC.md)
 > **Other channels read:** `docs/features/core-ledger/PRD.md`, as a wording and structure reference
 
 ## 1. Context
@@ -58,7 +58,7 @@ load records remembers the load that brought it; handing the same file over agai
 **Corrected on 2026-10-17, after the architecture stage** (`sad.md` §11 raised all three):
 
 - **AC-03 and AC-09** were written assuming a statement names the account each of its rows belongs
-  to. A statement covers one account (`CONTEXT.md`), so the owner names it when handing the file
+  to. A statement covers one account (`GLOSSARY.md`), so the owner names it when handing the file
   over, and the file is not read for it. Both criteria now say so, and §10 follows. The export of
   the old history is unchanged — it does name accounts per row.
 - **§6's explanation of its two numbers** claimed that answering "is this row already in the ledger"
@@ -72,9 +72,9 @@ load records remembers the load that brought it; handing the same file over agai
 **Corrected on 2026-10-18, after the data-model stage** (`data-model.md` raised both):
 
 - **AC-01 offered a third kind of rule — "recorded with no category" — that cannot be stored.** A
-  transaction names exactly one category (`CONTEXT.md`), and `core-ledger` makes that column
+  transaction names exactly one category (`GLOSSARY.md`), and `core-ledger` makes that column
   required. Confirmed with the owner: a category is required and the owner provides it; there is no
-  default category. `CONTEXT.md`'s *Default group* is a different thing — a bucket the breakdown
+  default category. `GLOSSARY.md`'s *Default group* is a different thing — a bucket the breakdown
   produces, which cannot be picked when filing a transaction. AC-01 now has two kinds of rule, and
   "do not file this one" is said by adding no rule at all, which AC-08 and AC-14 already cover.
 - **§8 still carried the identifier question as open.** `core-ledger` ADR-0006 closed it before the
@@ -150,7 +150,7 @@ load records remembers the load that brought it; handing the same file over agai
 ## 5. Acceptance criteria
 
 <!-- Coverage type `authorization` — N/A: one owner, no sign-in, no second person (see `Owner` in
-CONTEXT.md), so no actor can lack permission. Tracked in §8; the sign-in feature owns this type. -->
+GLOSSARY.md), so no actor can lack permission. Tracked in §8; the sign-in feature owns this type. -->
 
 ### AC-01 (US-01) — happy
 

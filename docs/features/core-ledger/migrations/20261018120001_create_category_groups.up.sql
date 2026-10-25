@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS category_groups (
 );
 
 -- kind is CategoryKind (Expense | Income), stored as a string, never as an int (CLAUDE.md).
--- A group belongs to one side of the ledger, exactly as a category does (AC-26, AC-30, CONTEXT.md).
+-- A group belongs to one side of the ledger, exactly as a category does (AC-26, AC-30, GLOSSARY.md).
 -- No CHECK on it: the allowed values are a domain rule, enforced by the enum in code.
 
 -- UNIQUE is (name, kind), not (name) alone — AC-31. A spending "Gifts" and an earning "Gifts" are

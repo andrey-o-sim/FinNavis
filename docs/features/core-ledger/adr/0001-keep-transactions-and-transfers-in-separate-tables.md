@@ -19,7 +19,7 @@ ticket: "none"
 The ledger records two kinds of money movement. A transaction is a single income or expense on
 exactly one account and always carries a category. A transfer moves money between two of the
 owner's own accounts, touches two accounts, carries no category, and leaves the owner's total
-unchanged (CONTEXT.md). Both kinds show up together in the same reads — the account balance
+unchanged (GLOSSARY.md). Both kinds show up together in the same reads — the account balance
 (AC-14), the filtered history (AC-16) and the period breakdown (AC-18, AC-20).
 
 How the two kinds are stored sets the schema, every read query, and what the later csv-import

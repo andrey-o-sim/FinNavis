@@ -13,7 +13,7 @@ description: >
   repo — including phrasings like "модель данных для {slug}", "схема для {slug}", "спроектируй
   таблицы", "какие индексы нужны", "сгенерируй миграции", "/finnavis-generate-data-model {slug}" —
   even when they do not say the words data model. Hard-refuses if docs/features/<slug>/PRD.md,
-  sad.md or the repo-root CONTEXT.md is missing.
+  sad.md or docs/features/<slug>/CONTEXT.md is missing.
 argument-hint: "[slug] [--drift-only]"
 ---
 
@@ -76,7 +76,7 @@ runnable:
 | `<slug>` | Ask for it, or list the folders under `docs/features/` that have a `sad.md` and no `data-model.md`. |
 | `docs/features/<slug>/PRD.md` | «Run `finnavis-prd <slug>` first — without acceptance criteria every column bound is my guess.» |
 | `docs/features/<slug>/sad.md` | «Run `finnavis-architecture-design <slug>` first — §5 names the aggregates this schema stores.» |
-| `CONTEXT.md` at the repo root | «The glossary is missing. Without it the table and column names are invented words.» |
+| `docs/features/<slug>/CONTEXT.md` | «The feature's context file is missing. Re-run `finnavis-prd <slug>` — its `## Invariants` are what a constraint has to protect.» |
 | `sad.md` §6 has no flows | Not a refusal — a warning. Say it once: every index comes from a §6 query, so an incomplete §6 means guessed indexes. Offer `finnavis-complete-sequence-diagrams <slug>` first, and ask whether to continue. |
 
 ## Language
@@ -89,7 +89,9 @@ than the vocabulary.
 
 - `<slug>` · `PRD.md` (§4 user stories, §5 acceptance criteria, §6.1, §8 open questions, §9 data
   impact) · `sad.md` (§5 aggregates and ports, §6 flows and the Notes-flagged index hints, §8, §11)
-  · `CONTEXT.md` — **required**.
+  · `docs/features/<slug>/CONTEXT.md` (the feature's terms, its `## Invariants` — what a constraint
+  exists to protect — and the link to `docs/GLOSSARY.md`, where those terms are defined) —
+  **required**.
 - `CLAUDE.md`, `ARCHITECTURE.md`, `.claude/rules/migrations.md`, `docs/features/<slug>/adr/` — read
   every run. The rules file is the house style; it is read, never written.
 - **Every earlier feature's `data-model.md`, staged migrations and Accepted ADRs** — they are the
@@ -122,7 +124,7 @@ Aggregates come from SAD §5 — never re-derived, never re-asked. One table per
 tables an aggregate owns. Types, bounds and nullability →
 [references/columns-and-types.md](references/columns-and-types.md).
 
-Each column traces to something: an acceptance criterion, an ADR, a `CONTEXT.md` term, or a decision
+Each column traces to something: an acceptance criterion, an ADR, a `docs/GLOSSARY.md` term, or a decision
 this document makes in §"Decisions taken". A column that traces to nothing is a column nobody asked
 for — drop it or make it a decision with a reason.
 
@@ -216,7 +218,7 @@ Each line is also the anti-pattern it rules out — the failure mode is named af
   runnable*.
 - One table per SAD §5 aggregate; aggregates were read, not re-decided — *a schema on a wrong
   aggregate gets rebuilt, not patched*.
-- Every column traces to an AC, an ADR, a `CONTEXT.md` term, or a recorded decision — *no column
+- Every column traces to an AC, an ADR, a `docs/GLOSSARY.md` term, or a recorded decision — *no column
   nobody asked for*.
 - Every index names the query it serves, and the ones not created are listed with reasons — *no
   "just in case" index, and no silent re-adding of one that was already rejected*.

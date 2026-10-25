@@ -7,10 +7,12 @@ description: >
   acceptance-criteria coverage model is solo-shaped: 4 always-mandatory types plus
   history-integrity / duplicate-safety / authorization, each resolved explicitly instead
   of invented. Writes a 10-section PRD that stays technology-free end to end — data impact
-  and refusal messages included, failure codes and test plans excluded.
+  and refusal messages included, failure codes and test plans excluded. Also writes the
+  feature's own docs/features/<slug>/CONTEXT.md — terms it uses pointing at the canonical
+  docs/GLOSSARY.md, plus its invariants and out-of-scope list.
   Triggers on "/finnavis-prd {slug}", "write PRD for {slug}", "draft PRD for {slug}",
   "PRD для {slug}", "напиши PRD {slug}", "опиши требования", "product requirements for {slug}".
-  Hard-refuses if docs/features/<slug>/idea-brief.md or the repo-root CONTEXT.md is missing.
+  Hard-refuses if docs/features/<slug>/idea-brief.md or docs/GLOSSARY.md is missing.
 argument-hint: "[slug] [--depth=easy|medium|hard] [--reference <path>]"
 ---
 
@@ -51,10 +53,21 @@ nobody will ever be shown. This one does not.
 |---|---|
 | `<slug>` | Ask for it, or propose two or three from the idea. |
 | `docs/features/<slug>/idea-brief.md` | «Run `finnavis-interview <slug>` first — a PRD without a confirmed brief is me guessing your idea back at you.» |
-| `CONTEXT.md` at the repo root | «The glossary is missing. Run `finnavis-interview` or add the terms first — without it §4 roles and §5 domain terms are invented.» |
+| `docs/GLOSSARY.md` | «The glossary is missing. Run `finnavis-interview` or add the terms first — without it §4 roles and §5 domain terms are invented.» |
 
-The glossary lives at the **repo root** (`CONTEXT.md`), not in the feature folder. It is shared by
-every feature. Never create a second copy under `docs/features/<slug>/`.
+### Two files, two jobs — do not mix them
+
+- **`docs/GLOSSARY.md` is the canonical glossary, shared by every feature.** A term is defined
+  there once, with its NOT-boundary. This skill reads it, and appends to it when the walk surfaces
+  a new domain word. It never copies a definition out of it.
+- **`docs/features/<slug>/CONTEXT.md` is this feature's own slice.** This skill **writes** it in
+  Phase 10, from [templates/CONTEXT.md](templates/CONTEXT.md). Its `## Glossary` section carries no
+  definitions — only a link to `docs/GLOSSARY.md` and the list of terms this feature uses. The
+  other four sections are per-feature: `Invariants`, `Sentinel errors`, `Org-filter invariant`,
+  `Out of scope`.
+
+A definition lives in exactly one place. If `CONTEXT.md` and `docs/GLOSSARY.md` ever disagree, the
+glossary wins.
 
 ## Language
 
@@ -80,7 +93,7 @@ unavailable (the session did not start in plan mode), skip Phase 9 and run Phase
 - `<slug>` — kebab-case, matches the folder `finnavis-interview` created.
 - `docs/features/<slug>/idea-brief.md` — §2 Problem, §5/§6 Out of scope, §11 RICE, §13 Recommendation,
   §15 Open questions.
-- `CONTEXT.md` (repo root) — the canonical glossary.
+- `docs/GLOSSARY.md` — the canonical glossary, shared by every feature.
 
 **Optional:**
 
@@ -96,9 +109,12 @@ unavailable (the session did not start in plan mode), skip Phase 9 and run Phase
 
 ### 0. Setup (read-only)
 
-- **Read** `./templates/PRD-template.md` into session memory. Do not copy it yet.
-- **Read** `CONTEXT.md` (repo root) — load `## Glossary` as session state. These role names and
-  domain terms are canonical for §4 and §5.
+- **Read** `./templates/PRD-template.md` and `./templates/CONTEXT.md` into session memory. Do not
+  copy either yet.
+- **Read** `docs/GLOSSARY.md` — load `## Glossary` as session state. These role names and domain
+  terms are canonical for §4 and §5.
+- **Read** a neighbouring feature's `CONTEXT.md` if one exists — it shows the house wording for the
+  five sections.
 - **Read** `docs/features/<slug>/idea-brief.md` in full.
 - **Read** `SPEC.md` if present.
 - **Check** `docs/features/<slug>/PRD.md` does not already exist as `Approved`.
@@ -176,12 +192,16 @@ answer cannot be inferred; `hard` works every rule that applies.
 ### 3. Glossary capture (deferred)
 
 Every new domain word goes into a session-state list, `pending_glossary_terms`. Skip generic technical
-words. Do **not** write `CONTEXT.md` now — Phases 0-8 are read-only. Terms are appended in Phase 10,
-in the house format: one line, canonical definition, then the boundary — what it is **NOT**. A term
-without a NOT-boundary is a label, not a definition.
+words. Do **not** write anything now — Phases 0-8 are read-only. Terms are appended to
+`docs/GLOSSARY.md` in Phase 10, in the house format: one line, canonical definition, then the
+boundary — what it is **NOT**. A term without a NOT-boundary is a label, not a definition.
+
+Keep a second session-state list alongside it, `feature_terms`: every glossary term this feature
+actually works with, new ones included. It becomes the `## Glossary` line of the feature's
+`CONTEXT.md` in Phase 10. A term the feature only mentions in passing does not belong on it.
 
 By the time §4 and §5 are drafted, every role and domain term used in them is either already in
-`CONTEXT.md` or pending in that list. The PRD never invents a role.
+`docs/GLOSSARY.md` or pending in that list. The PRD never invents a role.
 
 ### 4. Extra channels (AskUserQuestion, multi-select)
 
@@ -251,7 +271,7 @@ least one AC). Both hold at every depth.
 
 Dispatch `plugin:critic` (fallback `general-purpose`) with the self-contained prompt in
 [references/critic-prompt.md](references/critic-prompt.md). Inline the draft and the list of changes;
-the reader opens `CONTEXT.md`, `idea-brief.md` and `SPEC.md` itself — never paste their bodies.
+the reader opens `docs/GLOSSARY.md`, `idea-brief.md` and `SPEC.md` itself — never paste their bodies.
 
 It runs seven checks: does the document still follow the approach it claims; has the work grown past
 the estimate; was anything the brief called important dropped; was the document changed outside the
@@ -285,16 +305,29 @@ A failed check means fixing that section and checking again, not noting it and m
 
 ### 9. ExitPlanMode
 
-Plan contents: create the folder if needed, write `PRD.md`, write `.size` if it was established here,
-append pending glossary terms to the repo-root `CONTEXT.md`, re-run the Phase 8 self-check against the
-file on disk, propose the commit, print the handoff.
+Plan contents: create the folder if needed, write `PRD.md`, write `CONTEXT.md`, write `.size` if it
+was established here, append pending glossary terms to `docs/GLOSSARY.md`, re-run the Phase 8
+self-check against the files on disk, propose the commit, print the handoff.
 
 ### 10. Write
 
 - `docs/features/<slug>/PRD.md` from the template, every section filled from session memory.
 - `docs/features/<slug>/.size` if Phase 1 established it.
-- Append `pending_glossary_terms` to the repo-root `CONTEXT.md`, each with its NOT-boundary, and bump
-  its `updated_at`.
+- Append `pending_glossary_terms` to `docs/GLOSSARY.md`, each with its NOT-boundary, and bump its
+  `updated_at`. Terms stay alphabetical.
+- `docs/features/<slug>/CONTEXT.md` from [templates/CONTEXT.md](templates/CONTEXT.md). Five sections:
+  - **Glossary** — the link to `docs/GLOSSARY.md` plus `feature_terms` from Phase 3, alphabetical,
+    each name verbatim. **No definitions.** Copying one here creates a second source of truth.
+  - **Invariants** — the rules that hold across the whole feature, phrased «X always» / «X never»,
+    each citing the §5 AC it protects. Drawn from the AC of type *domain invariant* and
+    *history integrity*, lifted one level: state the rule, not the scenario. Do not restate an AC.
+  - **Sentinel errors** — the pointer block from the template. **Never a list of codes.** Codes are
+    derived later by `finnavis-api-forge` into `contracts/openapi.yaml`, and a copy here would be a
+    third place to keep in sync. Fill only the module list — the §5 aggregates that refuse, singular
+    and PascalCase.
+  - **Org-filter invariant** — the template's N/A block, unchanged. It stays in the file rather than
+    being pruned, so the gap is visible until the sign-in feature lands.
+  - **Out of scope** — §3 Non-goals, one line each, reason kept.
 - Frontmatter: `status: Draft` — **always Draft**. Flipping to `Approved` is the human gate; the skill
   never does it, not even when the critic returns clean. Also `slug`, `stage: "02"`, `feature_size`,
   `depth`, `updated_at`, `source_brief`.
@@ -318,7 +351,8 @@ block — the last output of the run, every time:
 
 **Review before continuing**
 - `docs/features/<slug>/PRD.md` — §5 acceptance criteria and §8 open questions first
-- `CONTEXT.md` — <N> new terms appended
+- `docs/features/<slug>/CONTEXT.md` — the invariants, and the term list under `## Glossary`
+- `docs/GLOSSARY.md` — <N> new terms appended
 - flip `status: Draft` → `Approved` yourself once you agree with it
 
 **Run next**
@@ -330,7 +364,7 @@ block — the last output of the run, every time:
 
 - `docs/features/<slug>/PRD.md` exists, 10 sections + §6.1 filled or explicitly `N/A: reason`.
 - `status: Draft` in frontmatter — the skill never writes `Approved`.
-- §4 roles come from `CONTEXT.md` verbatim. No invented `user`, `admin` or `reviewer`.
+- §4 roles come from `docs/GLOSSARY.md` verbatim. No invented `user`, `admin` or `reviewer`.
 - §5 holds the four mandatory coverage types, at least one conditional type, an explicit resolution for
   every conditional type, and ≥1 AC per retained §4 user story.
 - Zero forbidden tokens in §1-§7 (regex-verified, word boundaries on).
@@ -339,7 +373,10 @@ block — the last output of the run, every time:
 - §8 rows all carry owner + due; every `idea-brief.md` §15 question is answered or carried here.
 - §9 names every new read path and answers the already-recorded-history question; §10 covers every
   failure AC.
-- New domain terms are in the repo-root `CONTEXT.md`, each with its NOT-boundary.
+- New domain terms are in `docs/GLOSSARY.md`, each with its NOT-boundary.
+- `docs/features/<slug>/CONTEXT.md` exists with all five sections. Its `## Glossary` holds a link and
+  a term list, **no definitions**; its `## Sentinel errors` holds a pointer and a module list, **no
+  codes**; its `## Org-filter invariant` carries the N/A block rather than being pruned.
 - The second reader ran on the reviewed draft; every finding is resolved or left with a §1 ¶4 line.
 
 ## Anti-patterns
@@ -359,6 +396,14 @@ block — the last output of the run, every time:
 - **A failure code anywhere in the PRD.** `finnavis.transfers.same_account` is a name for a machine.
   The PRD states the refusal in the owner's words — in §5 and again, collected, in §10 — and hands the
   naming to the stage that writes the code.
+- **Copying a definition into the feature's `CONTEXT.md`.** A term is defined once, in
+  `docs/GLOSSARY.md`. A copy in a feature folder is a second source of truth that nobody will keep in
+  sync. The feature's file lists the names it uses and links to the glossary.
+- **Listing error codes under `## Sentinel errors`.** Codes are derived later, by
+  `finnavis-api-forge`, into `contracts/openapi.yaml` and the error registry. Writing them here makes a
+  third copy out of a document that cannot be checked against the code.
+- **Pruning `## Org-filter invariant` because it is empty.** It is empty for a reason that will change.
+  The N/A block keeps the gap readable until the sign-in feature lands.
 - **Designing the schema in §9.** "Add an index on `date`", "a new migration adds table `movements`" —
   at PRD time both are guesses, and a guess in a document is read later as a decision. §9 names the
   read path and hands the lookup decision over.
@@ -382,6 +427,7 @@ block — the last output of the run, every time:
 | [references/refusal-messages.md](references/refusal-messages.md) | Phases 5, 8 | The §10 table, its coverage rule, and why no code goes in it |
 | [references/critic-prompt.md](references/critic-prompt.md) | Phase 7 | The second reader: full prompt, its seven checks, what to do with the answer |
 | [templates/PRD-template.md](templates/PRD-template.md) | Phases 0, 10 | The artifact |
+| [templates/CONTEXT.md](templates/CONTEXT.md) | Phases 0, 10 | The feature's own context file — five sections, two of them pointers |
 
 ## Example
 
@@ -389,14 +435,15 @@ block — the last output of the run, every time:
 >
 > **— Plan mode, read-only —**
 >
-> 1. **Phase 0** — reads the template, root `CONTEXT.md` (Statement, Duplicate already there),
+> 1. **Phase 0** — reads both templates, `docs/GLOSSARY.md` (Statement, Duplicate already there),
 >    `idea-brief.md` (approach C, "Mapped Import With Duplicate Guard"), `SPEC.md`.
 > 2. **Phase 0.5** — depth: medium.
 > 3. **Phase 1** — no `.size`. Classifies S: ~8 evenings, no new project, one additive migration.
 > 4. **Phase 2** — carries three §15 questions; finds one contradiction with `SPEC.md`; asks what
 >    happens to an import when the file is loaded a second time, and what an imported row may be
 >    edited into afterwards.
-> 5. **Phase 3** — "mapping profile" goes to `pending_glossary_terms`.
+> 5. **Phase 3** — "mapping profile" goes to `pending_glossary_terms`. `feature_terms` collects the
+>    seventeen glossary words this feature works with, the seven of its own included.
 > 6. **Phase 4** — channels: `core-ledger/PRD.md` as the reference, plus `ARCHITECTURE.md`.
 > 7. **Phase 5** — drafts §1-§10. §5 gets the four mandatory types; **duplicate safety** is mandatory
 >    here (data comes from outside), **history integrity** too (an import touches past periods),
@@ -410,6 +457,9 @@ block — the last output of the run, every time:
 >
 > **— ExitPlanMode —**
 >
-> 11. **Phase 10** — writes `PRD.md` (`status: Draft`), `.size` = S, appends one glossary term.
+> 11. **Phase 10** — writes `PRD.md` (`status: Draft`), `.size` = S, appends one term to
+>     `docs/GLOSSARY.md`, writes `CONTEXT.md`: the term list, nine invariants lifted from the
+>     invariant-type and history-integrity ACs, `Import` and `MappingProfile` as the refusing modules,
+>     the N/A org-filter block, and §3's five non-goals.
 > 12. **Phase 11** — proposes `02: PRD for csv-import`, prints the handoff, reminds the user that the
 >     `Approved` flip is theirs.

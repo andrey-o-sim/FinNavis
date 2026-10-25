@@ -263,7 +263,7 @@ No web client, no authentication, no owner field.
 
 ## Related
 
-- `CONTEXT.md` — glossary, canonical. Holds `Category`, `Category Group`, `Transaction`,
+- `GLOSSARY.md` — glossary, canonical. Holds `Category`, `Category Group`, `Transaction`,
   `Transfer`.
 - `SPEC.md` — product scope and draft business requirements.
 - `ARCHITECTURE.md`, `docs/adr/0001-initial-setup.md` — layering and the dependency rule.

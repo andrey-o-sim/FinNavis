@@ -16,7 +16,7 @@ review board. No `ticket`: there is no tracker. Inventing these is the first ant
 
 # PRD — <slug>
 
-> **Inputs:** [idea-brief](./idea-brief.md) · [CONTEXT](../../../CONTEXT.md) (repo root) · [SPEC](../../../SPEC.md)
+> **Inputs:** [idea-brief](./idea-brief.md) · [CONTEXT](./CONTEXT.md) (this feature's terms, invariants and out-of-scope) · [SPEC](../../../SPEC.md)
 > **Other channels read:** <the ones picked in Phase 4, named concretely — "ARCHITECTURE.md §Layout",
 > "docs/features/core-ledger/PRD.md as reference", "src/FinNavis.Domain" — or "None">
 
@@ -47,7 +47,7 @@ Written as what the owner can do that they could not do before. No numbers — n
 <!-- Skill instruction: as many as it takes to cover every §2 goal. Format:
 
 ### US-NN: <3-6 word action title>
-**As an** <role, verbatim from the CONTEXT.md glossary — today that is `owner`>
+**As an** <role, verbatim from `docs/GLOSSARY.md` — today that is `owner`>
 **I want** <action>
 **So that** <the benefit the owner observes>
 
@@ -65,7 +65,7 @@ saying so in one line, plus a §8 row when its absence is a real gap the project
 The wording to copy, as an example — written as a comment in the PRD, not as visible text:
 
     Coverage type `authorization` — N/A: one owner, no sign-in, no second person (see `Owner` in
-    CONTEXT.md), so no actor can lack permission. Tracked in §8; the sign-in feature owns this type.
+    docs/GLOSSARY.md), so no actor can lack permission. Tracked in §8; the sign-in feature owns this type.
 
 Format:
 

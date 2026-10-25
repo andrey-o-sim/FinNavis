@@ -1,7 +1,7 @@
 ---
 status: Draft
-owner: "<from CONTEXT.md>"
-reviewers: ["<from CONTEXT.md>"]
+owner: "<from docs/GLOSSARY.md>"
+reviewers: ["<from docs/GLOSSARY.md>"]
 updated_at: "<YYYY-MM-DD>"
 feature_size: "<XS|S|M|L>"
 stage: "04"

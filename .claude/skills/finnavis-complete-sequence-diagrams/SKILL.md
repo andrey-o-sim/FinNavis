@@ -12,7 +12,7 @@ description: >
   over an existing SAD — including phrasings like "дорисуй потоки csv-import", "проверь покрытие §6",
   "sequence для {slug}", "нарисуй поток отмены загрузки", "runtime view для фичи",
   "/finnavis-complete-sequence-diagrams {slug}" — even when they do not say the words sequence or
-  §6. Hard-refuses if docs/features/<slug>/sad.md, PRD.md or the repo-root CONTEXT.md is missing.
+  §6. Hard-refuses if docs/features/<slug>/sad.md, PRD.md or docs/features/<slug>/CONTEXT.md is missing.
 argument-hint: "[slug] [--flow=<name>] [--depth=easy|medium|hard]"
 ---
 
@@ -59,7 +59,7 @@ noise, and noise in a runtime view is worse than a gap, because a gap is visible
 | `<slug>` | Ask for it, or list the folders under `docs/features/` that have a `sad.md`. |
 | `docs/features/<slug>/sad.md` | «Run `finnavis-architecture-design <slug>` first — §6 is a section of the SAD, and there is nothing here to audit or append to.» |
 | `docs/features/<slug>/PRD.md` | «Without §4 and §5 there is no coverage floor, so an audit would only be me agreeing with myself.» |
-| `CONTEXT.md` at the repo root | «The glossary is missing. Without it the actor and the domain nouns in a flow are invented names.» |
+| `docs/features/<slug>/CONTEXT.md` | «The feature's context file is missing. Re-run `finnavis-prd <slug>` — its `## Invariants` are what an `alt` branch refuses on.» |
 | `sad.md` has no `## 6. Runtime view` heading | Not a refusal — report it and offer to run the full top-up as if §6 were empty. Say plainly that stage 03 normally fills it and this is unusual. |
 
 `CLAUDE.md` and `ARCHITECTURE.md` are not gates, but a run that did not read them draws arrows that
@@ -87,7 +87,9 @@ does not open its own depth question; stage 03 already recorded the answer.
 ## Inputs
 
 - `<slug>` · `docs/features/<slug>/sad.md` (§5 names the participants, §6 holds the flows) ·
-  `docs/features/<slug>/PRD.md` (§4, §5, §10) · `CONTEXT.md` — **required**, all four.
+  `docs/features/<slug>/PRD.md` (§4, §5, §10) · `docs/features/<slug>/CONTEXT.md` (its
+  `## Invariants` are what an `alt` branch refuses on, and it links to `docs/GLOSSARY.md`, where the
+  actor and the domain nouns are defined) — **required**, all four.
 - `CLAUDE.md`, `ARCHITECTURE.md`, `docs/features/<slug>/adr/` — read every run. An Accepted ADR
   constrains what a flow may show: ADR-0004 (`separate the read path behind a query port`) is why a
   read flow does not look like a write one.
@@ -98,7 +100,7 @@ does not open its own depth question; stage 03 already recorded the answer.
 ### 0. Setup (read-only)
 
 Read in full: `PRD.md` (§4, §5 and §10 are session state), `sad.md` (hold §5's container list and
-the whole of §6), `CONTEXT.md`, `CLAUDE.md`, `ARCHITECTURE.md`, the `adr/` titles, and both
+the whole of §6), `docs/GLOSSARY.md`, `CLAUDE.md`, `ARCHITECTURE.md`, the `adr/` titles, and both
 templates. Build the participant list from §5 →
 [references/participants.md](references/participants.md). Note the depth from the frontmatter.
 

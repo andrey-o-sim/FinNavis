@@ -13,7 +13,7 @@ updated_at: "2026-10-17"
 
 ## Context
 
-`CONTEXT.md` defines a *Mapping profile* as the rules remembered for one shape of file, so the next
+`GLOSSARY.md` defines a *Mapping profile* as the rules remembered for one shape of file, so the next
 file of the same shape needs no confirmation. AC-01 states the promise in the Owner's terms: once
 the rules for a shape are confirmed, the next statement of that shape needs no confirmation at all.
 
@@ -25,13 +25,13 @@ up by.
 ## Decision drivers
 
 - PRD §5 AC-01 — the next file of the same shape needs **no confirmation**.
-- `CONTEXT.md` *Mapping profile* — rules for one shape of file, which outlive every load.
+- `GLOSSARY.md` *Mapping profile* — rules for one shape of file, which outlive every load.
 - PRD §2 Goals — the Owner stops re-typing the month-end batch; a monthly step that still needs a
   decision is a smaller version of the same chore.
 - ADR-0001 — the file is never stored, so whatever identifies a shape has to be derivable from the
   file as it is read.
 - SAD §2 Constraints — a bank controls the shape of its statement and the Owner cannot change it
-  (`CONTEXT.md` *Statement*).
+  (`GLOSSARY.md` *Statement*).
 
 ## Considered options
 

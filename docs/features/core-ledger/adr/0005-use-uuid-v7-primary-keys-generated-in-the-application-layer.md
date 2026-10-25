@@ -31,7 +31,7 @@ incoming Telegram or email message.
   or alter no row. A primary-key type change cannot meet that bar cheaply.
 - PRD §6 — period breakdown p95 ≤ 500 ms and history page p95 ≤ 400 ms, both served by indexed
   queries, so index behaviour matters.
-- CONTEXT.md *Import run* — one load of one file is read back or undone as a whole, which is easier
+- GLOSSARY.md *Import run* — one load of one file is read back or undone as a whole, which is easier
   when the rows and their links can be built before anything is written.
 - ADR-0006 — a nullable external reference is added now so the next features need no backfill; the
   same reasoning applies to the key itself.

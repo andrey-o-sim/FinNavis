@@ -61,7 +61,7 @@ Every code traces to something. In order of strength:
 | An `alt`-branch label in `sad.md` §6 | named after the branch | `Import.UnknownAccount` |
 | A validation bound (`varchar(N)`, a range) | `<Entity>.<Field>Invalid` or `OutOfRange` | `Transaction.AmountOutOfRange` |
 
-`Module` is the aggregate in the **singular**, PascalCase, from `CONTEXT.md`: `Account`,
+`Module` is the aggregate in the **singular**, PascalCase, from `docs/GLOSSARY.md`: `Account`,
 `Transaction`, `Transfer`, `Category`, `CategoryGroup`, `Import`, `MappingProfile`. It reads like a
 C# class because the registry makes it one — `CategoryErrors.GroupNotFound` returns
 `"Category.GroupNotFound"` — but it is still the domain word, not the table name and not the path

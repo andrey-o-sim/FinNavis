@@ -165,7 +165,7 @@ explicitly does not.>
 ## 15. Open questions
 
 - [ ] <question> — owner: <name>, due: <stage or date>
-- [ ] <unresolved domain term goes here, not into CONTEXT.md>
+- [ ] <unresolved domain term goes here, not into docs/GLOSSARY.md>
 
 ## 16. What this unlocks
 
@@ -189,7 +189,7 @@ that. It is a strong argument for the smallest approach in §7, or for not build
 
 ## Related
 
-- `CONTEXT.md` — glossary, canonical. Terms added by this interview: <list>
+- `docs/GLOSSARY.md` — glossary, canonical. Terms added by this interview: <list>
 - `SPEC.md` — scope and the draft requirement list
 - `ARCHITECTURE.md`, `docs/adr/` — layering and past decisions
 - earlier briefs this one depends on: <list>
@@ -206,4 +206,4 @@ that. It is a strong argument for the smallest approach in §7, or for not build
 - [ ] §13 rationale cites §6, §8, §11, §12
 - [ ] §16 filled — unlocks named, or explicitly nothing
 - [ ] §17 filled
-- [ ] New domain terms appended to CONTEXT.md, each with its NOT-boundary
+- [ ] New domain terms appended to docs/GLOSSARY.md, each with its NOT-boundary

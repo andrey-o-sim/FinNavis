@@ -125,7 +125,7 @@ These are schema-level choices the PRD and SAD left open. Each one is a decision
    stays dumb storage (`.claude/rules/migrations.md`). AC-30 joins them — see decision 7.
 
 7. **A group carries a `kind`, and "a group and its categories share a side" stays a domain
-   invariant.** `category_groups.kind` is new in this revision (AC-26, AC-30, and `CONTEXT.md`,
+   invariant.** `category_groups.kind` is new in this revision (AC-26, AC-30, and `GLOSSARY.md`,
    which is canonical). The *column* is structural; the *rule* about matching sides is not. A
    composite FK — `UNIQUE (id, kind)` on `category_groups` plus a two-column FK from `categories` —
    would make a mismatched placement unrepresentable, and it was considered seriously. It is
@@ -185,7 +185,7 @@ load one group by id when creating or moving a category (flow 6), or before rena
 breakdown (flow 3) → same index.
 **Constraints:** UNIQUE on (`name`, `kind`) — AC-31.
 **A group belongs to one side of the ledger** and holds only categories from that same side
-(AC-26, AC-30, `CONTEXT.md`). The matching-sides rule is a domain invariant rather than a composite
+(AC-26, AC-30, `GLOSSARY.md`). The matching-sides rule is a domain invariant rather than a composite
 FK — decision 7 gives the trade-off.
 **Removing a group does not remove its categories** (AC-29). The use case clears their
 `category_group_id` and then deletes this row — decision 8.

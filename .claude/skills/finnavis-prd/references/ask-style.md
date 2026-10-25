@@ -96,5 +96,5 @@ The second version costs three more lines and removes a round trip. That is the 
 - Hiding the catch in a follow-up question ("if you pick this, I'll ask about X later").
 - More than 4 options, or more than 4 questions in one call.
 - Asking a question whose answer is already in `idea-brief.md` §13 (Recommendation) or in
-  `CONTEXT.md`.
+  `docs/GLOSSARY.md`.
 - A bare `§8` anywhere in a question or an option. Name the section every time.

@@ -169,10 +169,10 @@ These are schema-level choices the PRD and SAD left open. Each one is a decision
 
 1. **A mapping rule has two targets, not three.** `MappingRuleTarget` is `Category` or
    `TransferBetweenOwnAccounts`. PRD AC-01 offers a third — *"recorded with no category"* — and it
-   cannot be stored: `core-ledger`'s `transactions.category_id` is `NOT NULL`, `CONTEXT.md` says
+   cannot be stored: `core-ledger`'s `transactions.category_id` is `NOT NULL`, `GLOSSARY.md` says
    every transaction names exactly one category, and SAD §6 flow 2 draws no branch for it. Confirmed
    with the owner on 2026-10-18: a category is required and the Owner provides it; there is no
-   default category (`CONTEXT.md`'s *Default group* is a different thing — a bucket the breakdown
+   default category (`GLOSSARY.md`'s *Default group* is a different thing — a bucket the breakdown
    produces, not a row). A file category the Owner does not want to file simply gets no rule, and
    its rows are set aside with reason `NoRuleCovers` (AC-08, AC-14). **AC-01 still reads as if three
    targets exist** — the audit carries the exact edit.
@@ -440,7 +440,7 @@ query needs no index of its own, because `core-ledger` already indexes `transact
 index on `category_id`. The AC-17 check reads `core-ledger`'s existing
 `idx_transactions_category_id`.
 **Constraints:** UNIQUE on `category_id`; FK → `import_runs(id)`; FK → `categories(id)`.
-**A category group is never created by an import.** The export names categories, and `CONTEXT.md`
+**A category group is never created by an import.** The export names categories, and `GLOSSARY.md`
 makes a group optional; a created category simply has none, which the breakdown reports under the
 Default group.
 
@@ -536,7 +536,7 @@ Every index below is justified by a concrete query from a SAD §6 flow, or by th
 - **Test fixtures** — not in a migration. See below.
 
 **There is deliberately no default category seed.** Confirmed with the owner on 2026-10-18 while
-resolving decision 1: a category is required and the Owner provides it. `CONTEXT.md`'s *Default
+resolving decision 1: a category is required and the Owner provides it. `GLOSSARY.md`'s *Default
 group* is a different concept — a bucket the breakdown produces, which "cannot be renamed, deleted,
 or picked when filing a transaction" — and seeding a *category* would create exactly the row that
 definition rules out.

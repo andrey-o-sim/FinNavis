@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS mapping_profile_rules (
 --   'TransferBetweenOwnAccounts' — a statement load sets the row aside (AC-06); a history
 --                                  migration records a Transfer (AC-11)
 -- PRD AC-01 reads as if a third target exists — "recorded with no category". It cannot be stored:
--- transactions.category_id is NOT NULL and CONTEXT.md says every transaction names exactly one
+-- transactions.category_id is NOT NULL and GLOSSARY.md says every transaction names exactly one
 -- category. Confirmed with the owner on 2026-10-18 that a category is required and there is no
 -- default category. A file category the Owner does not want to file gets no rule at all, and its
 -- rows are set aside with reason 'NoRuleCovers' (AC-08, AC-14). See data-model.md decision 1.

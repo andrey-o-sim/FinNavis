@@ -2,7 +2,7 @@
 
 **Verdict:** <PASS | PASS (with deferrals) | FAIL>
 **Run at:** <YYYY-MM-DD> (run <N>, mode: <first run | --reconcile | --drift-only>)
-**Sources read:** PRD.md <✓|✗> · data-model.md <✓|✗> · sad.md §5/§6/§8/§11 <✓|✗> · adr/<range> <✓|✗> · CONTEXT.md <✓|✗> · `.claude/rules/openapi.md` <✓>
+**Sources read:** PRD.md <✓|✗> · data-model.md <✓|✗> · sad.md §5/§6/§8/§11 <✓|✗> · adr/<range> <✓|✗> · docs/GLOSSARY.md <✓|✗> · `.claude/rules/openapi.md` <✓>
 **Scenario:** <A — data-model.md exists, every field traces to a column | B — inferred from PRD and sequences>
 **Contract version:** `info.version: <x.y.z>`, OpenAPI 3.1.0
 **Surface:** `backend-service` — read from `sad.md` frontmatter `target_surfaces`, not re-derived.

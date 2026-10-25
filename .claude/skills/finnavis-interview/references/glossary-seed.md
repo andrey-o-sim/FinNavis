@@ -1,7 +1,11 @@
 # Glossary — format and worked examples
 
-Used in Phase 3 (collect) and Phase 12 (write). The target file is `CONTEXT.md` at the repo
-root, section `## Glossary`.
+Used in Phase 3 (collect) and Phase 12 (write). The target file is `docs/GLOSSARY.md`, section
+`## Glossary` — the canonical glossary, shared by every feature. A term is defined there once.
+
+This stage never writes a feature's own `docs/features/<slug>/CONTEXT.md`: that file is written
+later, by `finnavis-prd`, and it carries no definitions — only the list of terms the feature uses,
+plus its invariants and out-of-scope list.
 
 ## The format
 
@@ -16,7 +20,7 @@ One line per term, three parts:
 word means in isolation, not where it stops. Most domain confusion is two words whose edges
 overlap, and the boundary is the only part of the entry that resolves it.
 
-## The four terms already in CONTEXT.md
+## The four terms already in docs/GLOSSARY.md
 
 These are the house examples. Match their shape.
 
@@ -51,7 +55,7 @@ and two people could reasonably read it differently:
 - `Period` — confusable with calendar month versus billing month versus "last 30 days".
 
 **Skip** generic technical vocabulary: HTTP, JSON, cache, queue, index, endpoint, migration.
-These are not domain terms, they are implementation words, and `CONTEXT.md` explicitly keeps
+These are not domain terms, they are implementation words, and `docs/GLOSSARY.md` explicitly keeps
 implementation out.
 
 **Skip** words the user used once in passing with no modelling consequence.
@@ -63,7 +67,7 @@ implementation out.
   turned out to be wrong, that is a finding for §15 Open questions, and it gets fixed
   deliberately in its own change. Silently redefining a term in a feature commit is how two
   parts of a codebase end up meaning different things by the same word.
-- Bump `updated_at` in the `CONTEXT.md` frontmatter.
+- Bump `updated_at` in the `docs/GLOSSARY.md` frontmatter.
 - Commit the glossary change together with the brief — they were produced by the same
   interview, and splitting them loses the reason the term was added.
 
@@ -76,4 +80,4 @@ the glossary. Put it in §15 Open questions:
 - [ ] "Period" — a calendar month, or 30 days from a date? Owner: Andrey, due: data-model stage.
 ```
 
-An unresolved term in `CONTEXT.md` is worse than no entry: later work will trust it.
+An unresolved term in `docs/GLOSSARY.md` is worse than no entry: later work will trust it.

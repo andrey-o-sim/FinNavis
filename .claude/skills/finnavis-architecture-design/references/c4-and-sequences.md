@@ -8,7 +8,7 @@ Three rules hold for every diagram in this document:
    to the user describes what it says in prose — who talks to what, in which order, where it can
    fail. Never paste raw Mermaid source as the question: reading diagram syntax out of a terminal
    prompt is a tax on the reader, and they will approve it without reading.
-2. **Names come from somewhere.** Actors from `CONTEXT.md`. Containers from §5. Sequence participants
+2. **Names come from somewhere.** Actors from `docs/GLOSSARY.md`. Containers from §5. Sequence participants
    from §5 by name. A diagram is the one place where an invented name looks authoritative.
 3. **A broken block is never committed.** Run the lint below before the section's commit.
 
@@ -19,7 +19,7 @@ story.
 
 | Name in a diagram | Is | Appears in |
 |---|---|---|
-| `Owner` | The single person the product serves. From `CONTEXT.md` | §3, §5, §6 |
+| `Owner` | The single person the product serves. From `docs/GLOSSARY.md` | §3, §5, §6 |
 | `FinNavis API` | The whole ASP.NET Core process, seen from outside | §3 |
 | `Presentation` | Minimal API endpoints, contracts, composition root | §5, §6 |
 | `Application` | Use cases, `IUnitOfWork`, outside-world ports | §5, §6 |
@@ -163,7 +163,7 @@ this structurally instead. Each check has caught a real break.
    every alias used in an arrow exists.
 7. **`alt` / `else` / `opt` / `loop` blocks are closed with `end`** — count them.
 8. **No placeholder survived.** No `<` … `>` stub, no `TODO`, no `NNNN` inside any block.
-9. **Names check out.** Every actor is in `CONTEXT.md`; every §6 participant is a §5 container.
+9. **Names check out.** Every actor is in `docs/GLOSSARY.md`; every §6 participant is a §5 container.
 
 A block that fails any check is fixed before the commit, not after. A broken diagram in a committed
 document is worse than no diagram: it renders as an error box, and nobody fixes an error box in a

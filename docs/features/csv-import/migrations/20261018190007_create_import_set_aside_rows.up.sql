@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS import_set_aside_rows (
 -- ledger, so an undo leaves them untouched and they stay readable on the undone run's report.
 --
 -- An old run keeps listing a row as set aside after a later run recorded it. SAD §11 accepts this:
--- a run report is a record of one event (CONTEXT.md "Import run"), not a live view.
+-- a run report is a record of one event (GLOSSARY.md "Import run"), not a live view.
 
 -- Query it serves: flow 5 lists every set-aside row of one run, with its reason (AC-13, AC-14).
 -- Also the FK index on import_run_id required by .claude/rules/migrations.md.

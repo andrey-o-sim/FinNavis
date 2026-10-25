@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS import_created_category_links (
 --
 -- The AC-17 check at undo time — "does a movement outside this run name this category?" — is served
 -- by core-ledger's existing idx_transactions_category_id. Transfers carry no category at all
--- (CONTEXT.md), so only one table has to be asked.
+-- (GLOSSARY.md), so only one table has to be asked.
 --
--- A CATEGORY GROUP is never created by an import. An export names categories; CONTEXT.md makes a
+-- A CATEGORY GROUP is never created by an import. An export names categories; GLOSSARY.md makes a
 -- group optional, so a created category simply has none, and the breakdown reports it under the
 -- Default group (core-ledger data-model.md). There is no import_created_category_group_links table
 -- for that reason.

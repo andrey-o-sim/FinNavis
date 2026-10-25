@@ -100,7 +100,7 @@ run Phase 12 directly. Nothing else changes.
 ### 0. Setup (read-only)
 
 - **Read** `./templates/idea-brief.md` into session memory. Do not copy it yet.
-- **Read** `CONTEXT.md` at the repo root — load `## Glossary` into session state.
+- **Read** `docs/GLOSSARY.md` — load `## Glossary` into session state.
 - **Read** `SPEC.md` if present — it holds scope and the draft requirement list. Later features
   are usually already named there; §16 needs them.
 - **Check** `docs/features/<slug>/idea-brief.md` does not already exist as `Confirmed`.
@@ -131,7 +131,7 @@ On a one-user project those two carry the priority signal that Reach normally ca
 Every new domain word in the user's answers goes into a session-state list,
 `pending_glossary_terms`. Skip generic technical words (HTTP, JSON, cache, queue).
 
-Do **not** write `CONTEXT.md` now — that is a write, and Phases 0-11 are read-only. The terms
+Do **not** write `docs/GLOSSARY.md` now — that is a write, and Phases 0-11 are read-only. The terms
 are applied in Phase 12, in the house format described in
 → [references/glossary-seed.md](references/glossary-seed.md).
 
@@ -270,7 +270,7 @@ Everything so far is session memory. Call `ExitPlanMode` with a plan containing:
 
 1. Create `docs/features/<slug>/`.
 2. Copy the template into it.
-3. Append the pending glossary terms to `CONTEXT.md`.
+3. Append the pending glossary terms to `docs/GLOSSARY.md`.
 4. Fill sections 1-17 plus Related and the DoD self-check.
 5. Set the frontmatter.
 6. Run the Phase 13 self-check.
@@ -279,7 +279,7 @@ Everything so far is session memory. Call `ExitPlanMode` with a plan containing:
 ### 12. Write
 
 - `mkdir docs/features/<slug>/`, copy `./templates/idea-brief.md` into it.
-- Append pending glossary terms to `CONTEXT.md` in the house format
+- Append pending glossary terms to `docs/GLOSSARY.md` in the house format
   (→ [references/glossary-seed.md](references/glossary-seed.md)): one line, canonical
   definition, then the boundary — what it is **NOT**. A term without a boundary is a label,
   not a definition.
@@ -332,7 +332,7 @@ open question and leave the decision to the stage that owns it.
 | [references/personas.md](references/personas.md) | Phase 6 | Builder / Future-me / User-me prompts |
 | [references/repo-map.md](references/repo-map.md) | Phase 10 | FinNavis module map and what it means for feasibility |
 | [references/anti-patterns.md](references/anti-patterns.md) | Phase 13 | Banned-term regex and why each term is banned |
-| [references/glossary-seed.md](references/glossary-seed.md) | Phases 3, 12 | CONTEXT.md format and worked examples |
+| [references/glossary-seed.md](references/glossary-seed.md) | Phases 3, 12 | docs/GLOSSARY.md format and worked examples |
 | [templates/idea-brief.md](templates/idea-brief.md) | Phase 12 | The artifact |
 
 ## Definition of Done
@@ -344,7 +344,7 @@ open question and leave the decision to the stage that owns it.
 - §11 states Reach = 1 **and** carries the honest caveat about the absolute score.
 - §13 rationale cites §6, §8, §11 and §12.
 - §16 lists what this unlocks, or says plainly that it unlocks nothing.
-- New domain terms are in `CONTEXT.md`, each with its NOT-boundary.
+- New domain terms are in `docs/GLOSSARY.md`, each with its NOT-boundary.
 - The `AskUserQuestion` checkpoints in Phases 1, 2, 9, 10, 11 actually fired. Check the message
   trail. One fabricated answer and the artifact is not valid.
 
@@ -383,7 +383,7 @@ open question and leave the decision to the stage that owns it.
 >
 > **— Plan mode, read-only —**
 >
-> 1. **Phase 0** — proposes `csv-import`, user confirms. Reads the template, `CONTEXT.md`,
+> 1. **Phase 0** — proposes `csv-import`, user confirms. Reads the template, `docs/GLOSSARY.md`,
 >    `SPEC.md`. Finds CSV import already listed as a draft requirement and as gap #7 of the
 >    eight named in `core-ledger` §2.
 > 2. **Phase 0.5** — depth: medium.
@@ -412,7 +412,7 @@ open question and leave the decision to the stage that owns it.
 > **— ExitPlanMode —**
 >
 > 14. **Phase 12** — creates the directory, writes the brief, appends "Statement" and
->     "Duplicate" to `CONTEXT.md` with their NOT-boundaries.
+>     "Duplicate" to `docs/GLOSSARY.md` with their NOT-boundaries.
 > 15. **Phase 13** — 17 sections ✓, no banned terms ✓, 4.1 pages ✓, citations ✓, §16 names
 >     three later features that need it.
 > 16. **Phase 14** — proposes `01: idea-brief for csv-import`. Next: `my-toolkit:task-develop`.
