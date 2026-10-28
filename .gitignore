@@ -52,3 +52,9 @@ settings.local.json
 .worktrees/
 # Per-developer SDLC plugin settings (sdlc.local.md and friends).
 .claude/*.local.md
+
+# Ralph loop run files in the repo root. DONE and BLOCKED are exit signals
+# for ralph.sh, cost.log is its per-run log. They belong to one run, not to the code.
+/DONE
+/BLOCKED
+/cost.log
