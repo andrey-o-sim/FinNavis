@@ -7,7 +7,8 @@ acs: ["AC-08"]
 files_hint: ["src/FinNavis.Domain/Entities/Account.cs", "src/FinNavis.Domain/Abstractions/IAccountRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/AccountTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T06 — Add the Account entity and `IAccountRepository`
