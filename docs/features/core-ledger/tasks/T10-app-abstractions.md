@@ -7,7 +7,8 @@ acs: []
 files_hint: ["src/FinNavis.Application/Abstractions/IUnitOfWork.cs", "src/FinNavis.Application/Abstractions/ILedgerQueries.cs", "src/FinNavis.Application/Abstractions/Reads/"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T10 — Declare `IUnitOfWork` and the `ILedgerQueries` read port
