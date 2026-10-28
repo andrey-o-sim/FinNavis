@@ -17,6 +17,10 @@ PERMISSION_MODE="${PERMISSION_MODE:-acceptEdits}"
 
 ITER=0
 TOTAL_COST=0
+TOTAL_IN=0
+TOTAL_CACHE_WRITE=0
+TOTAL_CACHE_READ=0
+TOTAL_OUT=0
 
 if [ ! -f "$PROMPT_FILE" ]; then
   echo "No $PROMPT_FILE found. Generate one first (see README: /ralph-prep)." >&2
@@ -31,7 +35,8 @@ fi
 # total_cost_usd is the CLI's own estimate (tokens x API list price), not the
 # billed amount. Compare it with the billing panel after the run.
 log_total() {
-  echo "=== $1 at $(date -Iseconds), iterations: $ITER, total_cost_usd: $TOTAL_COST (estimate) ===" >> "$COST_LOG"
+  echo "=== $1 at $(date -Iseconds), iterations: $ITER, total_cost_usd: $TOTAL_COST (estimate)," \
+    "tokens in=$TOTAL_IN cache_write=$TOTAL_CACHE_WRITE cache_read=$TOTAL_CACHE_READ out=$TOTAL_OUT ===" >> "$COST_LOG"
 }
 
 echo "=== Ralph run started: $(date -Iseconds) (prompt=$PROMPT_FILE, max_iter=$MAX_ITER) ===" >> "$COST_LOG"
@@ -84,14 +89,30 @@ while [ ! -f DONE ]; do
     | jq -r --unbuffered "$PROGRESS_FILTER" || CLAUDE_EXIT=$?
 
   # jq on Windows ends lines with CRLF; strip CR before using the values.
-  RESULT="$(jq -r 'select(.type == "result") | "\(.total_cost_usd // "?") \(.num_turns // "?") \(.subtype // "?")"' "$STREAM_FILE" | tr -d '\r')"
-  read -r COST TURNS STATUS <<< "${RESULT:-? ? no-result}"
+  # Tokens are summed over modelUsage, so a subagent on another model is counted too.
+  # input_tokens is only the uncached part; most input arrives as cache_write/cache_read.
+  RESULT="$(jq -r 'select(.type == "result") | [
+      .total_cost_usd, .num_turns, .subtype,
+      ([.modelUsage[]?.inputTokens] | add),
+      ([.modelUsage[]?.cacheCreationInputTokens] | add),
+      ([.modelUsage[]?.cacheReadInputTokens] | add),
+      ([.modelUsage[]?.outputTokens] | add)
+    ] | map(. // "?" | tostring) | join(" ")' "$STREAM_FILE" | tr -d '\r')"
+  read -r COST TURNS STATUS IN CACHE_WRITE CACHE_READ OUT <<< "${RESULT:-? ? no-result ? ? ? ?}"
 
-  echo "$(date -Iseconds) iter=$ITER cost_usd=$COST turns=$TURNS status=$STATUS" >> "$COST_LOG"
+  echo "$(date -Iseconds) iter=$ITER cost_usd=$COST turns=$TURNS status=$STATUS" \
+    "in=$IN cache_write=$CACHE_WRITE cache_read=$CACHE_READ out=$OUT" >> "$COST_LOG"
   if [ "$COST" != "?" ]; then
     TOTAL_COST="$(awk -v a="$TOTAL_COST" -v b="$COST" 'BEGIN { printf "%.4f", a + b }')"
   fi
-  echo "  iteration cost: \$$COST, run total: \$$TOTAL_COST (estimate)"
+  if [ "$OUT" != "?" ]; then
+    TOTAL_IN=$((TOTAL_IN + IN))
+    TOTAL_CACHE_WRITE=$((TOTAL_CACHE_WRITE + CACHE_WRITE))
+    TOTAL_CACHE_READ=$((TOTAL_CACHE_READ + CACHE_READ))
+    TOTAL_OUT=$((TOTAL_OUT + OUT))
+  fi
+  echo "  iteration cost: \$$COST, run total: \$$TOTAL_COST (estimate)," \
+    "tokens in=$IN cache_write=$CACHE_WRITE cache_read=$CACHE_READ out=$OUT"
 
   if [ "$CLAUDE_EXIT" -ne 0 ]; then
     echo "claude -p failed with exit code $CLAUDE_EXIT. Stopping."
