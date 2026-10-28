@@ -7,7 +7,8 @@ acs: []
 files_hint: ["src/FinNavis.Domain/ValueObjects/", "src/FinNavis.Domain/Enums/", "src/FinNavis.Domain/Abstractions/IClock.cs", "src/FinNavis.Domain/Errors/", "tests/FinNavis.Domain.UnitTests/ValueObjects/", "tests/FinNavis.Domain.UnitTests/SmokeTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T05 — Add the domain primitives

@@ -11,7 +11,7 @@
 | T02 | Testcontainers PostgreSQL 18 fixture | tests | Andrey Simonenko | M | — | todo |
 | T03 | CI job: build + test | wiring | Andrey Simonenko | S | T02 | todo |
 | T04 | ADR for the `*.NotFound` module | docs | Andrey Simonenko | S | — | todo |
-| T05 | Domain primitives | domain | Andrey Simonenko | S | — | todo |
+| T05 | Domain primitives | domain | Andrey Simonenko | S | — | done |
 | T06 | `Account` + `IAccountRepository` | domain | Andrey Simonenko | S | T05 | todo |
 | T07 | `Category` + `CategoryGroup` + ports | domain | Andrey Simonenko | M | T05 | todo |
 | T08 | `Transaction` + port | domain | Andrey Simonenko | M | T05 | todo |
