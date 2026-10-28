@@ -14,7 +14,7 @@
 | T05 | Domain primitives | domain | Andrey Simonenko | S | — | done |
 | T06 | `Account` + `IAccountRepository` | domain | Andrey Simonenko | S | T05 | done |
 | T07 | `Category` + `CategoryGroup` + ports | domain | Andrey Simonenko | M | T05 | done |
-| T08 | `Transaction` + port | domain | Andrey Simonenko | M | T05 | todo |
+| T08 | `Transaction` + port | domain | Andrey Simonenko | M | T05 | done |
 | T09 | `Transfer` + port | domain | Andrey Simonenko | S | T05 | todo |
 | T10 | `IUnitOfWork` + `ILedgerQueries` | app | Andrey Simonenko | S | T05 | todo |
 | T11 | DbContext + 5 configurations | infra | Andrey Simonenko | M | T06, T07, T08, T09 | todo |

@@ -7,7 +7,8 @@ acs: ["AC-02", "AC-21", "AC-24"]
 files_hint: ["src/FinNavis.Domain/Entities/Transaction.cs", "src/FinNavis.Domain/Abstractions/ITransactionRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/TransactionTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T08 — Add the `Transaction` entity and `ITransactionRepository`
