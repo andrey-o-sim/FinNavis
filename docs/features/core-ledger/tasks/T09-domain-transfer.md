@@ -7,7 +7,8 @@ acs: ["AC-05", "AC-06", "AC-23"]
 files_hint: ["src/FinNavis.Domain/Entities/Transfer.cs", "src/FinNavis.Domain/Abstractions/ITransferRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/TransferTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T09 — Add the `Transfer` entity and `ITransferRepository`
