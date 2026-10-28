@@ -7,7 +7,8 @@ acs: ["AC-13", "AC-28", "AC-29", "AC-30", "AC-34"]
 files_hint: ["src/FinNavis.Domain/Entities/Category.cs", "src/FinNavis.Domain/Entities/CategoryGroup.cs", "src/FinNavis.Domain/Abstractions/ICategoryRepository.cs", "src/FinNavis.Domain/Abstractions/ICategoryGroupRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/CategoryTests.cs", "tests/FinNavis.Domain.UnitTests/Entities/CategoryGroupTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T07 — Add the `Category` and `CategoryGroup` entities with the same-side invariant
