@@ -7,7 +7,8 @@ acs: []
 files_hint: ["src/FinNavis.Infrastructure/DependencyInjection/", "src/FinNavis.Application/DependencyInjection/", "src/FinNavis.Presentation/Program.cs"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T17 — Register every adapter and use case in the composition root

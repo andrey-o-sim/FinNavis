@@ -1,7 +1,12 @@
+using FinNavis.Application.DependencyInjection;
+using FinNavis.Infrastructure.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// TODO: register Application services (builder.Services.AddApplication()).
-// TODO: register Infrastructure services (builder.Services.AddInfrastructure(builder.Configuration)).
+// The composition root, and the only place that names a layer's registrations. The connection
+// string comes from configuration — never from a literal here (CLAUDE.md §Safety).
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenApi();
 
 var app = builder.Build();

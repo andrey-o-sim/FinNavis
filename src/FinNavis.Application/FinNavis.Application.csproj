@@ -1,6 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <!--
+      The container contract only. CLAUDE.md makes Application register its own use cases, and
+      that needs IServiceCollection. It carries no EF Core, no HTTP and no SQL, so the dependency
+      rule holds - tests/FinNavis.ArchitectureTests checks that.
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FinNavis.Domain\FinNavis.Domain.csproj" />
   </ItemGroup>
 
