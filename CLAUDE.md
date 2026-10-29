@@ -55,6 +55,14 @@ table in `ARCHITECTURE.md` together.
 
 ## Conventions
 
+### Project-specific
+
+- Use collection expressions (`[]`), never `Array.Empty<T>()` or `new List<T>()`
+- Code must explain itself. If it does not, extract a method or a named variable — do not write a comment to cover for it. A comment is only for the rare part where the **why** cannot be put into a name: logic that is hard to understand without knowing the reason it was done this way. Never restate what the code does, and never put process references in source — no AC numbers, no TestHub case ids, no "finding N".
+- EF: `AsNoTracking()` for reads, `AsSplitQuery()` for collections, project to DTOs to avoid over-fetching
+- Store new enum columns as strings (`HasConversion<string>`), not ints. Existing exception: `ExternalDomainDbModel.VerificationStatus` is an int — a filtered index (`ExternalDomainConfig.cs`) depends on it, don't convert it
+- Add indexes on frequently queried columns
+
 ### Ports vs plain interfaces
 
 Not every interface is a port. We use the Hexagonal Architecture meaning:
