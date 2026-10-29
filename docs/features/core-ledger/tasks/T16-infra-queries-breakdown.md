@@ -7,7 +7,8 @@ acs: ["AC-18", "AC-19", "AC-20"]
 files_hint: ["src/FinNavis.Infrastructure/Queries/LedgerBreakdownQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/BreakdownQueryTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T16 — Implement the period breakdown aggregate query

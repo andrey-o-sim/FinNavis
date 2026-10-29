@@ -22,7 +22,7 @@
 | T13 | 5 repository adapters + unit of work | infra | Andrey Simonenko | M | T12, T10 | done |
 | T14 | Balance query + 2 existence checks | infra | Andrey Simonenko | M | T12, T10 | done |
 | T15 | History page: `UNION ALL` + keyset cursor | infra | Andrey Simonenko | L | T12, T10 | done |
-| T16 | Breakdown aggregate query | infra | Andrey Simonenko | M | T12, T10 | todo |
+| T16 | Breakdown aggregate query | infra | Andrey Simonenko | M | T12, T10 | done |
 | T17 | DI registration, composition root | wiring | Andrey Simonenko | S | T01, T13, T14, T15, T16 | todo |
 | T18 | 4 account use cases | app | Andrey Simonenko | M | T13, T14 | todo |
 | T19 | 4 category-group use cases | app | Andrey Simonenko | M | T13 | todo |
