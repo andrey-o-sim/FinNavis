@@ -9,11 +9,14 @@ CREATE TABLE IF NOT EXISTS categories (
     category_group_id UUID         NULL,
     created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
 
-    CONSTRAINT pk_categories           PRIMARY KEY (id),
-    CONSTRAINT ux_categories_name_kind UNIQUE (name, kind),
+    CONSTRAINT pk_categories PRIMARY KEY (id),
     CONSTRAINT fk_categories_category_group
         FOREIGN KEY (category_group_id) REFERENCES category_groups (id)
 );
+
+-- A unique index, not a UNIQUE table constraint — same reason as ux_accounts_name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_categories_name_kind
+    ON categories (name, kind);
 
 -- kind is CategoryKind (Expense | Income), stored as a string, never as an int (CLAUDE.md).
 -- No CHECK on it: the allowed values are a domain rule, enforced by the enum in code.

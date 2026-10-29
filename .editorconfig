@@ -234,3 +234,10 @@ dotnet_naming_style.camel_case.capitalization = camel_case
 [tests/**/*.cs]
 # Test method names are Method_Scenario_ExpectedResult, so underscores are expected.
 dotnet_naming_rule.members_are_pascal_case.severity = none
+
+#### EF Core migrations ####
+
+[src/FinNavis.Infrastructure/Persistence/Migrations/*.cs]
+# Written by `dotnet ef`, never by hand, and regenerated on every new migration. Holding it to
+# the repo's style rules would fail the build on output nobody is allowed to edit.
+generated_code = true

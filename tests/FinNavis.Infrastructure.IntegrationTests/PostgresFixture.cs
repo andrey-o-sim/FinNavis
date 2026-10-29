@@ -1,3 +1,7 @@
+using FinNavis.Infrastructure.Persistence;
+
+using Microsoft.EntityFrameworkCore;
+
 using Npgsql;
 
 using Testcontainers.PostgreSql;
@@ -19,9 +23,26 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public string ConnectionString => _container.GetConnectionString();
 
-    public Task InitializeAsync() => _container.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _container.StartAsync();
+
+        // Every later integration test starts from the real schema instead of one a test built
+        // by hand, so a broken migration fails here rather than in whatever test runs first.
+        await using var context = CreateDbContext();
+        await context.Database.MigrateAsync();
+    }
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
+
+    public FinNavisDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<FinNavisDbContext>()
+            .UseNpgsql(ConnectionString)
+            .Options;
+
+        return new FinNavisDbContext(options);
+    }
 
     public async Task<NpgsqlConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
     {

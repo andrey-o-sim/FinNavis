@@ -18,7 +18,7 @@
 | T09 | `Transfer` + port | domain | Andrey Simonenko | S | T05 | done |
 | T10 | `IUnitOfWork` + `ILedgerQueries` | app | Andrey Simonenko | S | T05 | done |
 | T11 | DbContext + 5 configurations | infra | Andrey Simonenko | M | T06, T07, T08, T09 | done |
-| T12 | EF migration, diffed against the spec | migration | Andrey Simonenko | M | T11, T02 | todo |
+| T12 | EF migration, diffed against the spec | migration | Andrey Simonenko | M | T11, T02 | done |
 | T13 | 5 repository adapters + unit of work | infra | Andrey Simonenko | M | T12, T10 | todo |
 | T14 | Balance query + 2 existence checks | infra | Andrey Simonenko | M | T12, T10 | todo |
 | T15 | History page: `UNION ALL` + keyset cursor | infra | Andrey Simonenko | L | T12, T10 | todo |

@@ -8,9 +8,12 @@ CREATE TABLE IF NOT EXISTS category_groups (
     kind       VARCHAR(16)  NOT NULL,
     created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
 
-    CONSTRAINT pk_category_groups           PRIMARY KEY (id),
-    CONSTRAINT ux_category_groups_name_kind UNIQUE (name, kind)
+    CONSTRAINT pk_category_groups PRIMARY KEY (id)
 );
+
+-- A unique index, not a UNIQUE table constraint — same reason as ux_accounts_name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_category_groups_name_kind
+    ON category_groups (name, kind);
 
 -- kind is CategoryKind (Expense | Income), stored as a string, never as an int (CLAUDE.md).
 -- A group belongs to one side of the ledger, exactly as a category does (AC-26, AC-30, GLOSSARY.md).

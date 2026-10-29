@@ -7,7 +7,8 @@ acs: []
 files_hint: ["docs/features/core-ledger/migrations/", "src/FinNavis.Infrastructure/Persistence/Migrations/", "tests/FinNavis.Infrastructure.IntegrationTests/PostgresFixture.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T12 — Generate the EF Core migration and diff it against the staged SQL spec
