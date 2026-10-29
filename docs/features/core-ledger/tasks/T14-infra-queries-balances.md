@@ -7,7 +7,8 @@ acs: ["AC-09", "AC-12", "AC-14", "AC-15"]
 files_hint: ["src/FinNavis.Infrastructure/Queries/LedgerBalanceQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/BalanceQueryTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T14 — Implement the balance query and the two delete existence checks
