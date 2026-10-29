@@ -7,7 +7,8 @@ acs: ["AC-16", "AC-17"]
 files_hint: ["src/FinNavis.Infrastructure/Queries/LedgerHistoryQueries.cs", "src/FinNavis.Infrastructure/Queries/HistoryCursor.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/HistoryQueryTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T15 — Implement the history page: `UNION ALL` with a keyset cursor
