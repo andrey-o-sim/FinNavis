@@ -7,7 +7,8 @@ acs: []
 files_hint: ["src/FinNavis.Infrastructure/Repositories/", "src/FinNavis.Infrastructure/Persistence/UnitOfWork.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Repositories/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T13 — Add the five EF Core repository adapters and the unit of work
