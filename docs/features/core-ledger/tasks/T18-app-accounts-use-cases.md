@@ -7,7 +7,8 @@ acs: ["AC-07", "AC-08", "AC-09", "AC-10", "AC-25", "AC-35"]
 files_hint: ["src/FinNavis.Application/Accounts/", "tests/FinNavis.Application.UnitTests/Accounts/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T18 — Write the four account use cases

@@ -24,7 +24,7 @@
 | T15 | History page: `UNION ALL` + keyset cursor | infra | Andrey Simonenko | L | T12, T10 | done |
 | T16 | Breakdown aggregate query | infra | Andrey Simonenko | M | T12, T10 | done |
 | T17 | DI registration, composition root | wiring | Andrey Simonenko | S | T01, T13, T14, T15, T16 | done |
-| T18 | 4 account use cases | app | Andrey Simonenko | M | T13, T14 | todo |
+| T18 | 4 account use cases | app | Andrey Simonenko | M | T13, T14 | done |
 | T19 | 4 category-group use cases | app | Andrey Simonenko | M | T13 | todo |
 | T20 | 5 category use cases | app | Andrey Simonenko | L | T13, T14 | todo |
 | T21 | 3 transaction use cases | app | Andrey Simonenko | M | T13 | todo |
