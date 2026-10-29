@@ -7,7 +7,8 @@ acs: []
 files_hint: ["tests/FinNavis.Infrastructure.IntegrationTests/PostgresFixture.cs", "tests/FinNavis.Infrastructure.IntegrationTests/DatabaseCollection.cs", "tests/FinNavis.Infrastructure.IntegrationTests/SmokeTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T02 — Build the Testcontainers PostgreSQL 18 fixture for the integration suite
