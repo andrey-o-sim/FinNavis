@@ -7,7 +7,7 @@
 
 | # | Task | Layer | Owner | Estimate | Blocked by | Status |
 |---|---|---|---|---|---|---|
-| T01 | Compose stack with PostgreSQL 18 | wiring | Andrey Simonenko | S | — | todo |
+| T01 | Compose stack with PostgreSQL 18 | wiring | Andrey Simonenko | S | — | done |
 | T02 | Testcontainers PostgreSQL 18 fixture | tests | Andrey Simonenko | M | — | todo |
 | T03 | CI job: build + test | wiring | Andrey Simonenko | S | T02 | todo |
 | T04 | ADR for the `*.NotFound` module | docs | Andrey Simonenko | S | — | todo |

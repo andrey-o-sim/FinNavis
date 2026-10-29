@@ -7,7 +7,8 @@ acs: []
 files_hint: ["docker-compose.yml", "src/FinNavis.Presentation/Dockerfile", ".dockerignore"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T01 — Stand up the Docker Compose stack with PostgreSQL 18

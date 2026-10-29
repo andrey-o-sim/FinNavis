@@ -8,6 +8,11 @@
 # PowerShell reads both, but pin it so Windows and Linux diffs stay identical.
 *.ps1 text eol=crlf
 
+# The Docker build runs on Linux. With CRLF a line continuation becomes "\<CR>" and the
+# RUN command breaks, so these stay LF whatever the machine checking them out.
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+
 # Source and config: normalised in the repo, native in the working tree.
 *.cs text
 *.csproj text
