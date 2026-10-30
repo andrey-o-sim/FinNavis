@@ -1,6 +1,5 @@
 using FinNavis.Application.Abstractions;
 using FinNavis.Application.Abstractions.Reads;
-using FinNavis.Domain.Errors;
 using FinNavis.Domain.ValueObjects;
 
 namespace FinNavis.Application.Reporting;
@@ -28,9 +27,7 @@ public sealed class GetHistory(ILedgerQueries ledger)
 
         if (!DateRange.TryCreate(from, to, out _))
         {
-            throw new DomainRuleViolationException(
-                "History.InvalidFilter",
-                "'from' must not be after 'to'.");
+            throw HistoryErrors.DaysOutOfOrder();
         }
     }
 
@@ -38,9 +35,7 @@ public sealed class GetHistory(ILedgerQueries ledger)
     {
         if (limit is < HistoryPageRequest.MinLimit or > HistoryPageRequest.MaxLimit)
         {
-            throw new DomainRuleViolationException(
-                "History.InvalidFilter",
-                $"'limit' must be between {HistoryPageRequest.MinLimit} and {HistoryPageRequest.MaxLimit}.");
+            throw HistoryErrors.LimitOutOfRange();
         }
     }
 }

@@ -1,4 +1,5 @@
 using FinNavis.Application.Abstractions.Reads;
+using FinNavis.Application.Reporting;
 using FinNavis.Domain.Enums;
 using FinNavis.Domain.ValueObjects;
 using FinNavis.Infrastructure.Persistence;
@@ -81,25 +82,25 @@ public sealed class LedgerHistoryQueries(FinNavisDbContext context)
 
         // Reading backwards means a later page is where the caller came from, so one exists; and
         // reading forwards from a cursor means an earlier page is where the cursor came from.
-        bool hasNext = !readingForward || hasMoreBeyondThePage;
-        bool hasPrev = readingForward ? boundary is not null : hasMoreBeyondThePage;
+        // Both flags also need a row on this page, because the cursor that reaches the neighbour
+        // is minted from one — a flag with no cursor beside it names a page nobody can ask for.
+        bool pageHasRows = items.Count > 0;
+        bool hasNext = pageHasRows && (!readingForward || hasMoreBeyondThePage);
+        bool hasPrev = pageHasRows && (readingForward ? boundary is not null : hasMoreBeyondThePage);
 
         return new HistoryPage(
             items,
             hasNext,
             hasPrev,
-            NextCursor: hasNext && items.Count > 0 ? CursorOf(items[^1]).Encode() : null,
-            PrevCursor: hasPrev && items.Count > 0 ? CursorOf(items[0]).Encode() : null);
+            NextCursor: hasNext ? CursorOf(items[^1]).Encode() : null,
+            PrevCursor: hasPrev ? CursorOf(items[0]).Encode() : null);
     }
 
     private static int RequireLimitWithinBounds(int limit)
     {
         if (limit is < HistoryPageRequest.MinLimit or > HistoryPageRequest.MaxLimit)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(limit),
-                limit,
-                $"A history page holds between {HistoryPageRequest.MinLimit} and {HistoryPageRequest.MaxLimit} movements.");
+            throw HistoryErrors.LimitOutOfRange();
         }
 
         return limit;
@@ -112,9 +113,7 @@ public sealed class LedgerHistoryQueries(FinNavisDbContext context)
 
         if (hasAfter && hasBefore)
         {
-            throw new ArgumentException(
-                "A page is read in one direction: pass after or before, not both.",
-                nameof(page));
+            throw HistoryErrors.BothCursorsGiven();
         }
 
         if (!hasAfter && !hasBefore)
@@ -126,9 +125,7 @@ public sealed class LedgerHistoryQueries(FinNavisDbContext context)
 
         if (!HistoryCursor.TryDecode(token, out HistoryCursor cursor))
         {
-            throw new ArgumentException(
-                "That is not a cursor this server handed out.",
-                nameof(page));
+            throw HistoryErrors.CursorNotMinted();
         }
 
         return (cursor, hasAfter);

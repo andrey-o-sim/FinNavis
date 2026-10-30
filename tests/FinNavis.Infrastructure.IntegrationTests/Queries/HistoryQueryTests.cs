@@ -2,6 +2,7 @@ using System.Globalization;
 using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Domain.Entities;
 using FinNavis.Domain.Enums;
+using FinNavis.Domain.Errors;
 using FinNavis.Domain.ValueObjects;
 using FinNavis.Infrastructure.IntegrationTests.Repositories;
 using FinNavis.Infrastructure.Persistence;
@@ -172,6 +173,40 @@ public sealed class HistoryQueryTests : IAsyncLifetime
         second.PrevCursor.Should().NotBeNull();
     }
 
+    // A flag promising a neighbouring page is only usable with the cursor that reaches it, and
+    // that cursor is minted from a row on this page. An empty page has no row to mint one from.
+    [Fact]
+    public async Task History_ReadBackwardsFromTheNewestMovement_PromisesNoNeighbouringPage()
+    {
+        await SeedSevenMovementsAsync();
+
+        HistoryPage newest = await ReadPageAsync(NoFilter, Request(limit: 1));
+        HistoryPage beyondIt = await ReadPageAsync(NoFilter, Request(before: newest.NextCursor, limit: 3));
+
+        beyondIt.Items.Should().BeEmpty();
+        beyondIt.HasNext.Should().BeFalse();
+        beyondIt.NextCursor.Should().BeNull();
+        beyondIt.HasPrev.Should().BeFalse();
+        beyondIt.PrevCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task History_ReadForwardsFromTheOldestMovement_PromisesNoNeighbouringPage()
+    {
+        await SeedSevenMovementsAsync();
+
+        HistoryPage first = await ReadPageAsync(NoFilter, Request(limit: 6));
+        HistoryPage last = await ReadPageAsync(NoFilter, Request(after: first.NextCursor, limit: 6));
+        HistoryPage beyondIt = await ReadPageAsync(NoFilter, Request(after: last.PrevCursor, limit: 3));
+
+        last.Items.Should().ContainSingle();
+        beyondIt.Items.Should().BeEmpty();
+        beyondIt.HasNext.Should().BeFalse();
+        beyondIt.NextCursor.Should().BeNull();
+        beyondIt.HasPrev.Should().BeFalse();
+        beyondIt.PrevCursor.Should().BeNull();
+    }
+
     // The cursor is a token the server mints. A client that tried to build one out of a row id
     // gets it refused, so the encoding is free to change later.
     [Fact]
@@ -181,7 +216,9 @@ public sealed class HistoryQueryTests : IAsyncLifetime
 
         Func<Task> read = () => ReadPageAsync(NoFilter, Request(after: newestFirst[0].ToString()));
 
-        await read.Should().ThrowAsync<ArgumentException>();
+        var refusal = (await read.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+
+        refusal.Code.Should().Be("History.InvalidFilter");
     }
 
     [Fact]
@@ -205,7 +242,9 @@ public sealed class HistoryQueryTests : IAsyncLifetime
 
         Func<Task> read = () => ReadPageAsync(NoFilter, Request(limit: limit));
 
-        await read.Should().ThrowAsync<ArgumentOutOfRangeException>();
+        var refusal = (await read.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+
+        refusal.Code.Should().Be("History.InvalidFilter");
     }
 
     [Fact]
@@ -231,7 +270,9 @@ public sealed class HistoryQueryTests : IAsyncLifetime
             NoFilter,
             Request(after: first.NextCursor, before: first.NextCursor, limit: 3));
 
-        await read.Should().ThrowAsync<ArgumentException>();
+        var refusal = (await read.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+
+        refusal.Code.Should().Be("History.InvalidFilter");
     }
 
     // Seven movements on seven days, so the walk crosses page boundaries at 3, 6 and 7.
