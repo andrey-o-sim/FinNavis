@@ -23,8 +23,8 @@ public sealed class RecordTransferTests
         _unitOfWork = new FakeUnitOfWork(_transfers.Commit);
     }
 
-    // AC-04, AC-15. One row carries both sides and one amount, so the two halves cannot disagree
-    // and the total across the accounts cannot drift.
+    // One row carries both sides and one amount, so the two halves cannot disagree and the
+    // total across the accounts cannot drift.
     [Fact]
     public async Task RecordTransfer_TwoAccounts_SourceFallsDestinationRises_TotalUnchanged()
     {
@@ -48,7 +48,7 @@ public sealed class RecordTransferTests
         _unitOfWork.Commits.Should().Be(1);
     }
 
-    // AC-05. The entity owns the rule, and it runs before anything is staged.
+    // The entity owns the rule, and it runs before anything is staged.
     [Fact]
     public async Task RecordTransfer_SameAccountBothSides_IsRefused()
     {
@@ -64,7 +64,7 @@ public sealed class RecordTransferTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-06. A half-applied transfer is not representable: one row carries both sides, so a commit
+    // A half-applied transfer is not representable: one row carries both sides, so a commit
     // that did not go through left both accounts where they were.
     [Fact]
     public async Task RecordTransfer_CommitFails_NeitherAccountChanges()
@@ -111,8 +111,7 @@ public sealed class RecordTransferTests
         await record.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    // AC-25, and the half of docs/adr/0004 that keeps the role: the owner has to know which of the
-    // two accounts to correct.
+    // The refusal keeps the role: the owner has to know which of the two accounts to correct.
     [Fact]
     public async Task RecordTransfer_UnknownSourceAccount_IsRefusedAndWritesNothing()
     {
@@ -159,7 +158,7 @@ public sealed class RecordTransferTests
         _transfers.Stored.Should().BeEmpty();
     }
 
-    // ADR-0005: the id is minted here, in the Application layer, and it is a UUID v7.
+    // The id is minted here, in the Application layer, and it is a UUID v7.
     [Fact]
     public async Task RecordTransfer_TwoAccounts_MintsATimeOrderedUuidV7()
     {

@@ -23,7 +23,7 @@ public sealed class BreakdownQueryTests : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    // AC-18: spending and earning are totalled apart and never added together.
+    // Spending and earning are totalled apart and never added together.
     [Fact]
     public async Task Breakdown_PeriodWithSpendingAndEarning_KeepsSidesApart()
     {
@@ -51,8 +51,8 @@ public sealed class BreakdownQueryTests : IAsyncLifetime
         Row(rows, salary.Id).Total.Should().Be(new Money(500m));
     }
 
-    // AC-20: a transfer is not spending and not earning. The statement cannot reach the transfers
-    // table at all, so this holds structurally rather than by a filter (ADR-0001).
+    // A transfer is not spending and not earning. The statement cannot reach the transfers
+    // table at all, so this holds structurally rather than by a filter.
     [Fact]
     public async Task Breakdown_PeriodWithTransfers_CountsNoTransfer()
     {
@@ -73,8 +73,8 @@ public sealed class BreakdownQueryTests : IAsyncLifetime
         LedgerBreakdownQueries.Sql.Should().NotContain("transfers");
     }
 
-    // AC-19, the query half: every category of the period comes back exactly once, so the group
-    // totals the use case builds plus the ungrouped total add up to the period total per side.
+    // The query half: every category of the period comes back exactly once, so the group totals
+    // the use case builds plus the ungrouped total add up to the period total per side.
     [Fact]
     public async Task Breakdown_PeriodWithGroupedAndUngroupedCategories_TotalsAddUpPerSide()
     {
@@ -107,7 +107,7 @@ public sealed class BreakdownQueryTests : IAsyncLifetime
     }
 
     // A category with no group is not in a group called Default. The row carries no group at all,
-    // and the Default bucket is produced later, by the use case (sad.md §12).
+    // and the Default bucket is produced later, by the use case.
     [Fact]
     public async Task Breakdown_CategoryWithNoGroup_CarriesNoGroupRatherThanADefaultOne()
     {
@@ -122,7 +122,7 @@ public sealed class BreakdownQueryTests : IAsyncLifetime
         row.CategoryGroupName.Should().BeNull();
     }
 
-    // AC-13: the mapping is read at query time, so a move changes the group figures at once and
+    // The mapping is read at query time, so a move changes the group figures at once and
     // leaves the category's own figure for the closed period alone.
     [Fact]
     public async Task Breakdown_AfterACategoryMovesToAnotherGroup_FollowsTheCurrentMapping()

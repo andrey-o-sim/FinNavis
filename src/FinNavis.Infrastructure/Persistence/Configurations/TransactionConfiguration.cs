@@ -5,18 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FinNavis.Infrastructure.Persistence.Configurations;
 
-/// <summary>
-/// Maps <see cref="Transaction"/> to <c>transactions</c> (<c>data-model.md</c>).
-/// </summary>
-/// <remarks>
-/// <b>No <c>CHECK</c> on the amount.</b> AC-02 is a domain invariant the entity refuses, and
-/// direction comes from <c>categories.kind</c>, so a stored negative would contradict the
-/// acceptance criterion the amount is meant to satisfy (<c>data-model.md</c> decisions 3 and 6).
-/// <para>
-/// <b>No <c>deleted_at</c> and no audit table.</b> Rows are edited and deleted in place (ADR-0003):
-/// AC-22 says a removed entry disappears from history, which is a hard delete.
-/// </para>
-/// </remarks>
 public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
 {
     public void Configure(EntityTypeBuilder<Transaction> builder)
@@ -25,7 +13,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
 
         builder.HasKey(transaction => transaction.Id).HasName("pk_transactions");
 
-        // The id is a UUID v7 minted in the Application layer (ADR-0005), never by the provider.
+        // The id is a UUID v7 minted in the Application layer, never by the provider.
         // Being time-ordered, it doubles as the history tiebreaker on (occurred_on, id).
         builder.Property(transaction => transaction.Id)
             .HasColumnName("id")
@@ -48,8 +36,8 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasConversion<MoneyConverter>()
             .IsRequired();
 
-        // A calendar day with no time and no timezone (data-model.md decision 1), so a
-        // late-evening purchase cannot slide into the next month.
+        // A calendar day with no time and no timezone, so a late-evening purchase cannot slide
+        // into the next month.
         builder.Property(transaction => transaction.OccurredOn)
             .HasColumnName("occurred_on")
             .HasColumnType("date")
@@ -59,7 +47,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasColumnName("note")
             .HasMaxLength(Transaction.MaxNoteLength);
 
-        // Always null in this feature. csv-import and message capture fill it later (ADR-0006).
+        // Always null in this feature. csv-import and message capture fill it later.
         builder.Property(transaction => transaction.ExternalRef)
             .HasColumnName("external_ref")
             .HasMaxLength(Transaction.MaxExternalRefLength);
@@ -69,30 +57,30 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasColumnType("timestamptz")
             .HasDefaultValueSql("now()");
 
-        // Flow 3 filters the breakdown on the period alone (leading column); flow 8 filters the
-        // history page on period and account. One index covers both — AC-18, AC-16.
+        // The breakdown filters on the period alone (leading column); the history page filters on
+        // period and account. One index covers both.
         builder.HasIndex(transaction => new { transaction.OccurredOn, transaction.AccountId })
             .HasDatabaseName("idx_transactions_occurred_on_account_id");
 
-        // Flow 7 sums every transaction per account over all time, and flow 5 asks whether any
-        // transaction names an account before deleting it (AC-14, AC-09). Neither filters by date,
-        // so the composite above cannot serve them. Also the FK index on account_id.
+        // The balance sums every transaction per account over all time, and the account delete
+        // asks whether any transaction names it. Neither filters by date, so the composite above
+        // cannot serve them. Also the FK index on account_id.
         builder.HasIndex(transaction => transaction.AccountId)
             .HasDatabaseName("idx_transactions_account_id");
 
-        // Flow 6 asks whether any transaction names a category before deleting it (AC-12).
-        // Also the FK index on category_id.
+        // The category delete asks whether any transaction names it. Also the FK index on
+        // category_id.
         builder.HasIndex(transaction => transaction.CategoryId)
             .HasDatabaseName("idx_transactions_category_id");
 
-        // Required by ADR-0006, unused here. PostgreSQL treats nulls as distinct in a unique
-        // index, so any number of null rows is allowed — which is every row this feature writes.
+        // Unused here. PostgreSQL treats nulls as distinct in a unique index, so any number of
+        // null rows is allowed — which is every row this feature writes.
         builder.HasIndex(transaction => transaction.ExternalRef)
             .IsUnique()
             .HasDatabaseName("ux_transactions_external_ref");
 
-        // No navigation on either side, and no cascade: AC-09 and AC-12 refuse the delete in the
-        // Application layer, and a cascade would do the opposite of what they ask for.
+        // No navigation on either side, and no cascade: the Application layer refuses to delete an
+        // account or a category that any movement still names, and a cascade would do the opposite.
         builder.HasOne<Account>()
             .WithMany()
             .HasForeignKey(transaction => transaction.AccountId)

@@ -16,11 +16,6 @@ public sealed class ContainerResolutionTests
 
     public ContainerResolutionTests(PostgresFixture database) => _database = database;
 
-    /// <summary>
-    /// Every port both inner rings declare. Found by reflection rather than listed by hand, so a
-    /// port added later and never registered fails this test instead of failing at the first
-    /// request that needs it.
-    /// </summary>
     public static TheoryData<Type> Ports =>
     [
         .. PortsIn(typeof(Domain.AssemblyMarker).Assembly, DomainPortNamespace)

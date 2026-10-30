@@ -19,8 +19,8 @@ public sealed class DeleteAccountTests
         _ledger = new FakeLedgerQueries(_accounts);
     }
 
-    // AC-09: the account cannot see its own history, so the question goes to the read path. A
-    // transfer counts from either side, which the query behind that port already covers.
+    // The account cannot see its own history, so the question goes to the read path. A transfer
+    // counts from either side, which the query behind that port already covers.
     [Fact]
     public async Task DeleteAccount_WithRecordedHistory_IsRefused()
     {

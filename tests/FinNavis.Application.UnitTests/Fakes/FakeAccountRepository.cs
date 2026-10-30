@@ -3,17 +3,12 @@ using FinNavis.Domain.Entities;
 
 namespace FinNavis.Application.UnitTests.Fakes;
 
-/// <summary>
-/// An in-memory stand-in for the account store. Staged changes become visible only when
-/// <see cref="Commit"/> runs, so a use case that refuses before committing leaves nothing behind.
-/// </summary>
 internal sealed class FakeAccountRepository : IAccountRepository
 {
     private readonly Dictionary<Guid, Account> _stored = [];
     private readonly List<Account> _staged = [];
     private readonly List<Account> _stagedForRemoval = [];
 
-    /// <summary>Every token the use case passed in, so a test can check it was carried through.</summary>
     public List<CancellationToken> TokensSeen { get; } = [];
 
     public IReadOnlyCollection<Account> Stored => _stored.Values;

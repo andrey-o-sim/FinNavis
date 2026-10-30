@@ -23,8 +23,8 @@ public sealed class HistoryQueryTests : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    // AC-16: a page carries both kinds of movement, each marked as what it is, and a transaction
-    // shows the note the owner wrote.
+    // A page carries both kinds of movement, each marked as what it is, and a transaction shows
+    // the note the owner wrote.
     [Fact]
     public async Task History_FilteredByPeriodAccountAndCategory_ReturnsMatchingRows()
     {
@@ -102,7 +102,7 @@ public sealed class HistoryQueryTests : IAsyncLifetime
         page.Items.Should().ContainSingle().Which.Should().BeOfType<HistoryTransactionRow>();
     }
 
-    // AC-17: a period that recorded nothing is an empty page, not a failure.
+    // A period that recorded nothing is an empty page, not a failure.
     [Fact]
     public async Task History_EmptyPeriod_ReturnsEmptyPageNotFailure()
     {

@@ -3,13 +3,6 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace FinNavis.Infrastructure.Persistence;
 
-/// <summary>
-/// Builds the context for <c>dotnet ef</c> only. The running API gets its context from DI.
-/// </summary>
-/// <remarks>
-/// Without this, <c>dotnet ef</c> would have to resolve the context out of the API's service
-/// collection, which is not wired yet — that registration is its own task.
-/// </remarks>
 public sealed class FinNavisDbContextFactory : IDesignTimeDbContextFactory<FinNavisDbContext>
 {
     private const string ConnectionStringVariable = "ConnectionStrings__FinNavisDb";

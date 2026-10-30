@@ -56,7 +56,7 @@ public sealed class CategoryGroupRepositoryTests : IAsyncLifetime
     }
 
     // ux_category_groups_name_kind is scoped to the name and the side together, so the same name
-    // on the other side is a different group (AC-31).
+    // on the other side is a different group.
     [Fact]
     public async Task ExistsWithNameAsync_WithTheSameNameOnTheOtherSide_IsFalse()
     {

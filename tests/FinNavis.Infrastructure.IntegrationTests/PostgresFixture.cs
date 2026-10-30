@@ -8,9 +8,6 @@ using Testcontainers.PostgreSql;
 
 namespace FinNavis.Infrastructure.IntegrationTests;
 
-/// <summary>
-/// Starts one PostgreSQL 18 container for the whole test run and hands out its connection string.
-/// </summary>
 public sealed class PostgresFixture : IAsyncLifetime
 {
     private const string PostgresImage = "postgres:18-alpine";
@@ -52,9 +49,6 @@ public sealed class PostgresFixture : IAsyncLifetime
         return connection;
     }
 
-    /// <summary>
-    /// Empties every table so the next test cannot read rows another test wrote.
-    /// </summary>
     public async Task ResetAsync(CancellationToken cancellationToken = default)
     {
         await using var connection = await OpenConnectionAsync(cancellationToken);

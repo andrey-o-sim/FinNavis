@@ -78,7 +78,7 @@ public sealed class CategoryGroupTests
 
         group.Rename("Home bills");
 
-        // AC-28: a category points at its group by id, so the rename rewrites no category row and
+        // A category points at its group by id, so the rename rewrites no category row and
         // no transaction row. The figure for every category in the group is unchanged.
         group.Id.Should().Be(id);
         group.Name.Should().Be("Home bills");
@@ -115,8 +115,8 @@ public sealed class CategoryGroupTests
     [Fact]
     public void CategoryGroup_HasNoOperationThatChangesTheSide()
     {
-        // data-model.md decision 7: the entity owns the matching-sides rule, so moving a group to
-        // the other side would leave every category in it on the wrong one.
+        // The entity owns the matching-sides rule, so moving a group to the other side would
+        // leave every category in it on the wrong one.
         PropertyInfo kind = typeof(CategoryGroup).GetProperty(nameof(CategoryGroup.Kind))!;
 
         kind.SetMethod!.IsPublic.Should().BeFalse();
@@ -125,9 +125,8 @@ public sealed class CategoryGroupTests
     [Fact]
     public void Domain_CreatesNoDefaultCategoryGroup()
     {
-        // sad.md §12 and data-model.md decision 8: the Default group is a bucket the breakdown
-        // produces at read time. It is never a row and never an object. An implementer who creates
-        // a real Default group has misread it.
+        // The Default group is a bucket the breakdown produces at read time. It is never a row
+        // and never an object. An implementer who creates a real Default group has misread it.
         Type[] domainTypes = typeof(CategoryGroup).Assembly
             .GetTypes()
             .Where(type => type.Namespace?.StartsWith("FinNavis.Domain", StringComparison.Ordinal) == true)

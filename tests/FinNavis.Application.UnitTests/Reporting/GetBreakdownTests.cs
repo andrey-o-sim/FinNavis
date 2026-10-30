@@ -14,7 +14,7 @@ public sealed class GetBreakdownTests
 
     private readonly FakeLedgerQueries _ledger = new();
 
-    // AC-18. Spending and earning are kept apart and never added together.
+    // Spending and earning are kept apart and never added together.
     [Fact]
     public async Task GetBreakdown_Period_ReturnsGroupAndCategoryTotalsSidesApart()
     {
@@ -45,8 +45,8 @@ public sealed class GetBreakdownTests
         breakdown.Income.Groups.Should().ContainSingle().Which.Name.Should().Be("Earnings");
     }
 
-    // AC-19, on both sides. The side total and the group totals are summed from the same rows in
-    // one pass, so they cannot fail to agree — the Default bucket included.
+    // On both sides the side total and the group totals are summed from the same rows in one
+    // pass, so they cannot fail to agree — the Default bucket included.
     [Fact]
     public async Task GetBreakdown_GroupTotalsPlusDefaultGroup_EqualPeriodTotal()
     {
@@ -69,7 +69,7 @@ public sealed class GetBreakdownTests
     }
 
     // The Default group is produced here and is not a row: it has no id, and the one thing that
-    // puts a category in it is having no group at all (sad.md §12).
+    // puts a category in it is having no group at all.
     [Fact]
     public async Task GetBreakdown_CategoriesWithNoGroup_AreBucketedUnderTheDefaultGroup()
     {
@@ -102,8 +102,8 @@ public sealed class GetBreakdownTests
             .Should().ContainInOrder("Utilities", "Default group");
     }
 
-    // AC-20. The query never reads transfers, so there is nothing here to filter out — the test
-    // states what the raw rows can never contain.
+    // The query never reads transfers, so there is nothing here to filter out — the test states
+    // what the raw rows can never contain.
     [Fact]
     public async Task GetBreakdown_PeriodWithTransfers_CountsNoTransfer()
     {

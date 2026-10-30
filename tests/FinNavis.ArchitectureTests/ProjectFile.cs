@@ -2,14 +2,6 @@ using System.Xml.Linq;
 
 namespace FinNavis.ArchitectureTests;
 
-/// <summary>
-/// The references declared in one .csproj file.
-/// </summary>
-/// <remarks>
-/// We read the project file instead of the compiled assembly on purpose.
-/// An unused PackageReference leaves no trace in the assembly, so reflection cannot see it,
-/// but it still breaks the dependency rule. The project file always shows the truth.
-/// </remarks>
 internal sealed class ProjectFile
 {
     private ProjectFile(
@@ -22,13 +14,10 @@ internal sealed class ProjectFile
         PackageReferences = packageReferences;
     }
 
-    /// <summary>File name without the extension, for example "FinNavis.Domain".</summary>
     public string Name { get; }
 
-    /// <summary>Referenced project names, without path or extension. Sorted.</summary>
     public IReadOnlyList<string> ProjectReferences { get; }
 
-    /// <summary>Referenced NuGet package ids. Sorted.</summary>
     public IReadOnlyList<string> PackageReferences { get; }
 
     public static ProjectFile Load(string absolutePath)
@@ -59,7 +48,6 @@ internal sealed class ProjectFile
             .ToArray();
     }
 
-    /// <summary>Turns "..\FinNavis.Domain\FinNavis.Domain.csproj" into "FinNavis.Domain".</summary>
     private static string ToProjectName(string include)
     {
         // MSBuild writes Windows separators. Normalise so this works on Linux too.

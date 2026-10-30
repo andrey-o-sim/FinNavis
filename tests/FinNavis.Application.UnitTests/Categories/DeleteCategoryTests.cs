@@ -16,7 +16,7 @@ public sealed class DeleteCategoryTests
 
     public DeleteCategoryTests() => _unitOfWork = new FakeUnitOfWork(_categories.Commit);
 
-    // AC-12: the category cannot see its own history, so the question goes to the read path. The
+    // The category cannot see its own history, so the question goes to the read path. The
     // foreign key carries no cascade, so the refusal is what keeps a recorded entry from being
     // taken away with the label.
     [Fact]
@@ -46,8 +46,8 @@ public sealed class DeleteCategoryTests
         _unitOfWork.Commits.Should().Be(1);
     }
 
-    // A category sitting in a group is removed like any other — the group is not touched, and the
-    // group is not what refuses (AC-29 is the other direction).
+    // A category sitting in a group is removed like any other — the group is not touched, and
+    // the group is not what refuses. Deleting the group is the other direction.
     [Fact]
     public async Task DeleteCategory_SittingInAGroup_IsRemoved()
     {

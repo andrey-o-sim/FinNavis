@@ -36,7 +36,7 @@ public sealed class TransactionRepositoryTests : IAsyncLifetime
         stored.OccurredOn.Should().Be(LedgerData.OccurredOn);
         stored.Note.Should().Be("Bread");
 
-        // numeric(19,4): the fourth decimal place has to survive the round trip (CLAUDE.md).
+        // numeric(19,4): the fourth decimal place has to survive the round trip.
         stored.Amount.Should().Be(new Money(12.3456m));
     }
 

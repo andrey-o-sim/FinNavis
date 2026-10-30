@@ -5,16 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinNavis.Infrastructure.Repositories;
 
-/// <summary>
-/// The EF Core adapter behind <see cref="IAccountRepository"/> (sad.md §5).
-/// </summary>
-/// <remarks>
-/// Write path only. Nothing here reaches PostgreSQL until <c>IUnitOfWork</c> commits.
-/// <para>
-/// A method that hands back an entity the caller may change keeps it tracked; a method that only
-/// answers a question does not need tracking at all.
-/// </para>
-/// </remarks>
 public sealed class AccountRepository(FinNavisDbContext context) : IAccountRepository
 {
     public Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>

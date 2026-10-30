@@ -16,7 +16,7 @@ public sealed class RenameCategoryGroupTests
 
     public RenameCategoryGroupTests() => _unitOfWork = new FakeUnitOfWork(Commit);
 
-    // AC-28. A transaction names its category by id and a category names its group by id, so a
+    // A transaction names its category by id and a category names its group by id, so a
     // group's new name reaches the breakdown without a single category row being rewritten. That
     // is why every category figure is unchanged: the ids the figures are summed over did not move.
     [Fact]
@@ -41,7 +41,6 @@ public sealed class RenameCategoryGroupTests
             ]);
     }
 
-    // AC-31, on the rename side.
     [Fact]
     public async Task RenameCategoryGroup_NameTakenOnSameSide_IsRefused()
     {
@@ -58,7 +57,7 @@ public sealed class RenameCategoryGroupTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // The other half of AC-31: the same name on the other side belongs to another group.
+    // The other half: the same name on the other side belongs to another group.
     [Fact]
     public async Task RenameCategoryGroup_NameTakenOnTheOtherSide_IsAccepted()
     {

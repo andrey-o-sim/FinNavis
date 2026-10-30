@@ -12,7 +12,7 @@ public sealed class ListCategoryGroupsTests
     private readonly FakeCategoryGroupRepository _groups = new();
     private readonly FakeCategoryRepository _categories = new();
 
-    // AC-27. The list reads category_groups alone and never joins categories, so a group holding
+    // The list reads category_groups alone and never joins categories, so a group holding
     // nothing cannot fall out of it.
     [Fact]
     public async Task ListCategoryGroups_ReturnsNameAndSide_IncludingEmptyGroups()

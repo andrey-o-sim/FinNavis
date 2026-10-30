@@ -20,7 +20,7 @@ public sealed class BalanceQueryTests : IAsyncLifetime
 
     public Task DisposeAsync() => Task.CompletedTask;
 
-    // AC-14: spending lowers the balance, earning raises it, and a transfer moves it between two
+    // Spending lowers the balance, earning raises it, and a transfer moves it between two
     // accounts. 500 earned - 120.25 spent - 80 sent away = 299.75.
     [Fact]
     public async Task Balance_AccountWithExpensesIncomeAndTransfers_EqualsSumOfMovements()
@@ -47,7 +47,7 @@ public sealed class BalanceQueryTests : IAsyncLifetime
         rows[0].Balance.Should().Be(new Money(299.75m));
     }
 
-    // AC-15: a transfer between the owner's own accounts moves money, it does not create or
+    // A transfer between the owner's own accounts moves money, it does not create or
     // destroy any. The total over every account is the same before and after.
     [Fact]
     public async Task Balance_TransferBetweenOwnAccounts_TotalUnchanged()
@@ -95,7 +95,7 @@ public sealed class BalanceQueryTests : IAsyncLifetime
         (await AnyMovementNamesAccountAsync(wallet.Id)).Should().BeTrue();
     }
 
-    // AC-09: a transfer names an account from either side, so either side has to refuse the delete.
+    // A transfer names an account from either side, so either side has to refuse the delete.
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -157,7 +157,7 @@ public sealed class BalanceQueryTests : IAsyncLifetime
     }
 
     // A transfer carries no category, so a category a transfer "touched" does not exist — the
-    // closest case is a category no transaction names while transfers are recorded (AC-12).
+    // closest case is a category no transaction names while transfers are recorded.
     [Fact]
     public async Task AnyTransactionNamesCategoryAsync_WithOnlyTransfersRecorded_IsFalse()
     {

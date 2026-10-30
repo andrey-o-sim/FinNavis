@@ -4,19 +4,6 @@ using FinNavis.Domain.Errors;
 
 namespace FinNavis.Application.Categories;
 
-/// <summary>
-/// The refusals the category use cases raise, in one place.
-/// </summary>
-/// <remarks>
-/// Five use cases share four of these, and two of them name a group rather than a category, so
-/// writing them once is what keeps the wording identical wherever the same rule refuses. The
-/// wording itself is the PRD acceptance criterion, not invented (sad.md §8).
-/// <para>
-/// <b><c>Category.GroupNotFound</c> does not exist.</b> It was merged into
-/// <c>CategoryGroup.NotFound</c> — one refusal, one code — and <c>docs/adr/0004</c> made that the
-/// rule: the module of a <c>*.NotFound</c> code names the aggregate that was not found.
-/// </para>
-/// </remarks>
 internal static class CategoryErrors
 {
     public static DomainRuleViolationException NotFound(Guid categoryId) =>

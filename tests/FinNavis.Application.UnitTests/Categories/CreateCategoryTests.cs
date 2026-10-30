@@ -16,7 +16,7 @@ public sealed class CreateCategoryTests
 
     public CreateCategoryTests() => _unitOfWork = new FakeUnitOfWork(_categories.Commit);
 
-    // AC-11: both shapes are allowed, and both become available to file a transaction under.
+    // Both shapes are allowed, and both become available to file a transaction under.
     [Fact]
     public async Task CreateCategory_WithAndWithoutGroup_BecomesAvailableToName()
     {
@@ -28,14 +28,14 @@ public sealed class CreateCategoryTests
         grouped.CategoryGroupId.Should().Be(utilities.Id);
         grouped.CreatedAt.Should().Be(Now);
 
-        // Not a group called Default — the link is simply empty (sad.md §12).
+        // Not a group called Default — the link is simply empty.
         loose.CategoryGroupId.Should().BeNull();
 
         _categories.Stored.Select(category => category.Id)
             .Should().BeEquivalentTo([grouped.Id, loose.Id]);
     }
 
-    // AC-32: the group is named back and it is not created on the way.
+    // The group is named back and it is not created on the way.
     [Fact]
     public async Task CreateCategory_UnknownGroup_IsRefusedAndCreatesNothing()
     {
@@ -52,8 +52,8 @@ public sealed class CreateCategoryTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-30, on the create side. The entity owns this refusal — it is the one rule a category can
-    // check on its own, because both sides are in front of it.
+    // On the create side the entity owns this refusal — it is the one rule a category can check
+    // on its own, because both sides are in front of it.
     [Fact]
     public async Task PlaceCategory_GroupOnOtherSide_IsRefused()
     {
@@ -69,8 +69,8 @@ public sealed class CreateCategoryTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-36. The check is scoped exactly as ux_categories_name_kind is, and the index stays the
-    // last guard — this refusal is only what gives the owner the PRD's wording.
+    // The check is scoped exactly as ux_categories_name_kind is, and the index stays the last
+    // guard — this refusal is only what gives the owner the wording.
     [Fact]
     public async Task CreateCategory_NameTakenOnSameSide_IsRefused()
     {
@@ -85,7 +85,7 @@ public sealed class CreateCategoryTests
         _categories.Stored.Should().ContainSingle();
     }
 
-    // The other half of AC-36: the name stays free on the other side of the ledger.
+    // The other half: the name stays free on the other side of the ledger.
     [Fact]
     public async Task CreateCategory_SameNameOnTheOtherSide_IsAccepted()
     {
@@ -109,7 +109,7 @@ public sealed class CreateCategoryTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // ADR-0005: the id is minted here, in the Application layer, and it is a UUID v7.
+    // The id is minted here, in the Application layer, and it is a UUID v7.
     [Fact]
     public async Task CreateCategory_NewName_MintsATimeOrderedUuidV7()
     {

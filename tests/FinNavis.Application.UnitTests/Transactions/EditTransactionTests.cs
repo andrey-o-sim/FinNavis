@@ -19,8 +19,8 @@ public sealed class EditTransactionTests
 
     public EditTransactionTests() => _unitOfWork = new FakeUnitOfWork(_transactions.Commit);
 
-    // AC-21. The row itself changes — one entry before, one entry after, and no reversing entry
-    // beside it (ADR-0003).
+    // The row itself changes — one entry before, one entry after, and no reversing entry beside
+    // it.
     [Fact]
     public async Task EditTransaction_NewAmount_AppliedInPlace()
     {
@@ -35,7 +35,7 @@ public sealed class EditTransactionTests
         _unitOfWork.Commits.Should().Be(1);
     }
 
-    // AC-24. The owner's way through is to remove the entry and record it again as a transfer.
+    // The owner's way through is to remove the entry and record it again as a transfer.
     [Fact]
     public async Task EditTransaction_SecondAccount_IsRefused()
     {
@@ -110,7 +110,7 @@ public sealed class EditTransactionTests
         _transactions.Committed(entry.Id).CategoryId.Should().Be(eatingOut.Id);
     }
 
-    // AC-25, on the category the edit moves onto. Nothing is created and the entry is untouched.
+    // On the category the edit moves onto: nothing is created and the entry is untouched.
     [Fact]
     public async Task EditTransaction_UnknownCategory_IsRefusedAndChangesNothing()
     {
@@ -146,7 +146,6 @@ public sealed class EditTransactionTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-25, on the entry itself.
     [Fact]
     public async Task EditTransaction_UnknownTransactionId_IsRefusedAsNotFound()
     {
@@ -161,8 +160,8 @@ public sealed class EditTransactionTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-02 on the edit path: the entity refuses before it assigns the first field, so the entry
-    // keeps every value it had.
+    // On the edit path the entity refuses before it assigns the first field, so the entry keeps
+    // every value it had.
     [Fact]
     public async Task EditTransaction_AmountNotAboveZero_IsRefusedAndChangesNothing()
     {

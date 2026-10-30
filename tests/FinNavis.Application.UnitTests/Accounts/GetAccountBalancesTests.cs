@@ -15,8 +15,8 @@ public sealed class GetAccountBalancesTests
 
     public GetAccountBalancesTests() => _ledger = new FakeLedgerQueries(_accounts);
 
-    // AC-15: the total is the per-account figures added up, so an amount that left one account
-    // and arrived in another cancels itself out — there is no second query to disagree.
+    // The total is the per-account figures added up, so an amount that left one account and
+    // arrived in another cancels itself out — there is no second query to disagree.
     [Fact]
     public async Task GetAccountBalances_OverEveryAccount_TotalsThePerAccountFigures()
     {
@@ -54,8 +54,8 @@ public sealed class GetAccountBalancesTests
         balances.Total.Should().Be(new Money(279.5m));
     }
 
-    // AC-25: an account the ledger does not hold is reported as unknown. No zero is invented for
-    // it, and nothing is created on the way.
+    // An account the ledger does not hold is reported as unknown. No zero is invented for it,
+    // and nothing is created on the way.
     [Fact]
     public async Task GetAccountBalances_UnknownAccountId_IsRefusedAndInventsNoBalance()
     {

@@ -3,10 +3,6 @@ using FinNavis.Domain.Entities;
 
 namespace FinNavis.Application.UnitTests.Fakes;
 
-/// <summary>
-/// An in-memory stand-in for the transaction store. Staged changes become visible only when
-/// <see cref="Commit"/> runs, so a use case that refuses before committing leaves nothing behind.
-/// </summary>
 internal sealed class FakeTransactionRepository : ITransactionRepository
 {
     private readonly Dictionary<Guid, Transaction> _stored = [];
@@ -14,7 +10,6 @@ internal sealed class FakeTransactionRepository : ITransactionRepository
     private readonly List<Transaction> _staged = [];
     private readonly List<Transaction> _stagedForRemoval = [];
 
-    /// <summary>Every token the use case passed in, so a test can check it was carried through.</summary>
     public List<CancellationToken> TokensSeen { get; } = [];
 
     public IReadOnlyCollection<Transaction> Stored => _stored.Values;
@@ -28,11 +23,6 @@ internal sealed class FakeTransactionRepository : ITransactionRepository
         }
     }
 
-    /// <summary>
-    /// The entry as PostgreSQL would hold it. An edit changes the entity in memory straight away,
-    /// exactly as EF Core's change tracking does, so only this view can tell a committed edit from
-    /// one that was rolled back.
-    /// </summary>
     public Snapshot Committed(Guid transactionId) => _committed[transactionId];
 
     public Task<Transaction?> GetByIdAsync(Guid id, CancellationToken cancellationToken)

@@ -3,22 +3,6 @@ using NetArchTest.Rules;
 
 namespace FinNavis.ArchitectureTests;
 
-/// <summary>
-/// Checks the dependency rule against the compiled code, type by type.
-/// </summary>
-/// <remarks>
-/// <para>
-/// <see cref="ProjectReferenceTests"/> checks what a project is <em>allowed</em> to see.
-/// These tests check what the code <em>actually</em> touches, which catches the cases a project
-/// reference cannot: a type reached through a transitive reference, or an Infrastructure type
-/// used somewhere in Presentation outside the composition root.
-/// </para>
-/// <para>
-/// While the scaffold has no entities or use cases these tests pass because there is nothing to
-/// fail. That is fine. They start doing real work with the first feature, and they are here now
-/// so nobody has to remember to add them later.
-/// </para>
-/// </remarks>
 public sealed class LayerDependencyTests
 {
     private static readonly Assembly DomainAssembly = typeof(Domain.AssemblyMarker).Assembly;

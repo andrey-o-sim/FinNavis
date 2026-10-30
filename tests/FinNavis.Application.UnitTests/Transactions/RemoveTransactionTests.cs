@@ -25,8 +25,8 @@ public sealed class RemoveTransactionTests
         _unitOfWork = new FakeUnitOfWork(_transactions.Commit);
     }
 
-    // AC-22. A hard delete (ADR-0003): the entry is gone from history, and the balance it affected
-    // returns to what it would have been — at no cost, because no balance is stored.
+    // A hard delete: the entry is gone from history, and the balance it affected returns to
+    // what it would have been — at no cost, because no balance is stored.
     [Fact]
     public async Task RemoveTransaction_Entry_DisappearsFromHistory()
     {
@@ -64,7 +64,6 @@ public sealed class RemoveTransactionTests
         after.Accounts.Should().ContainSingle().Which.Balance.Should().Be(new Money(-17.2500m));
     }
 
-    // AC-25.
     [Fact]
     public async Task RemoveTransaction_UnknownTransactionId_IsRefusedAsNotFound()
     {

@@ -7,25 +7,12 @@ using NpgsqlTypes;
 
 namespace FinNavis.Infrastructure.Queries;
 
-/// <summary>
-/// The balance half of the ledger's read path: what every account holds, and whether anything
-/// recorded still names an account or a category (sad.md §6 flows 5, 6 and 7).
-/// </summary>
-/// <remarks>
-/// <b>Nothing is stored and nothing is cached</b> (ADR-0002). Every figure is summed from the
-/// movements at read time, which is what makes an edit or a removal free — there is no stored
-/// total to correct (AC-21, AC-22).
-/// <para>
-/// <b>No entity is loaded</b> (ADR-0004). PostgreSQL does the summing and only the result rows
-/// travel back.
-/// </para>
-/// </remarks>
 public sealed class LedgerBalanceQueries(FinNavisDbContext context)
 {
-    // The three-part sum of ADR-0001, one correlated subquery per part so each one is answered by
-    // its own index: idx_transactions_account_id, idx_transfers_source_account_id and
+    // A three-part sum, one correlated subquery per part so each one is answered by its own index:
+    // idx_transactions_account_id, idx_transfers_source_account_id and
     // idx_transfers_destination_account_id. A transaction joins its category because the amount is
-    // always positive and the direction comes from the category's side (data-model.md decision 3).
+    // always positive and the direction comes from the category's side.
     private const string BalancesSql = """
         SELECT a.id,
                a.name,
@@ -44,15 +31,15 @@ public sealed class LedgerBalanceQueries(FinNavisDbContext context)
         ORDER BY a.name
         """;
 
-    // A transfer names an account from either side, so all three are asked (AC-09). EXISTS stops at
-    // the first row, so none of this aggregates.
+    // A transfer names an account from either side, so all three are asked. EXISTS stops at the
+    // first row, so none of this aggregates.
     private const string AnyMovementNamesAccountSql = """
         SELECT EXISTS (SELECT 1 FROM transactions WHERE account_id = @account_id)
             OR EXISTS (SELECT 1 FROM transfers WHERE source_account_id = @account_id)
             OR EXISTS (SELECT 1 FROM transfers WHERE destination_account_id = @account_id)
         """;
 
-    // Only transactions is read: a transfer carries no category, so it can never name one (AC-12).
+    // Only transactions is read: a transfer carries no category, so it can never name one.
     private const string AnyTransactionNamesCategorySql = """
         SELECT EXISTS (SELECT 1 FROM transactions WHERE category_id = @category_id)
         """;

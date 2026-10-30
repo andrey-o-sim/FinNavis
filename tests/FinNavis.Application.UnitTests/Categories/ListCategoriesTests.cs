@@ -13,8 +13,8 @@ public sealed class ListCategoriesTests
     private readonly FakeCategoryRepository _categories = new();
     private readonly FakeCategoryGroupRepository _groups = new();
 
-    // AC-33: both shapes of the read, each category with its name, its side and the group it sits
-    // in right now — empty when it sits in none.
+    // Both shapes of the read, each category with its name, its side and the group it sits in
+    // right now — empty when it sits in none.
     [Fact]
     public async Task ListCategories_AllAndNarrowedToOneGroup_ReturnsNameSideAndGroup()
     {
@@ -48,7 +48,7 @@ public sealed class ListCategoriesTests
         narrowed.Should().BeEmpty();
     }
 
-    // AC-32. An empty list would say "this group holds nothing", which is a different fact from
+    // An empty list would say "this group holds nothing", which is a different fact from
     // "there is no such group".
     [Fact]
     public async Task ListCategories_UnknownGroup_IsRefused()

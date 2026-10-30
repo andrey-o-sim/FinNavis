@@ -20,8 +20,8 @@ public sealed class RenameAccountTests
         _ledger = new FakeLedgerQueries(_accounts);
     }
 
-    // AC-08: every movement points at the account by id, so a rename rewrites nothing and the
-    // balance the ledger reports is the same figure under the new name.
+    // Every movement points at the account by id, so a rename rewrites nothing and the balance
+    // the ledger reports is the same figure under the new name.
     [Fact]
     public async Task RenameAccount_AccountWithHistory_KeepsEveryMovement()
     {
@@ -59,7 +59,7 @@ public sealed class RenameAccountTests
     }
 
     // The name check answers true for the account's own row, so renaming it to what it already
-    // carries would look like a clash. AC-35 is about another account holding the name.
+    // carries would look like a clash. The refusal is about another account holding the name.
     [Fact]
     public async Task RenameAccount_ToTheNameItAlreadyCarries_IsAccepted()
     {

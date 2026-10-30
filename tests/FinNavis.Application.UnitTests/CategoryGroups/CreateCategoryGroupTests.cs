@@ -16,7 +16,7 @@ public sealed class CreateCategoryGroupTests
 
     public CreateCategoryGroupTests() => _unitOfWork = new FakeUnitOfWork(_groups.Commit);
 
-    // AC-26. Nothing is written to make the group empty: a category joins a group by pointing at
+    // Nothing is written to make the group empty: a category joins a group by pointing at
     // it, and no category can already point at an id minted a moment ago.
     [Fact]
     public async Task CreateCategoryGroup_NamedSide_CreatedEmpty()
@@ -32,8 +32,8 @@ public sealed class CreateCategoryGroupTests
         held.Should().BeEmpty();
     }
 
-    // AC-31. The check is scoped exactly as ux_category_groups_name_kind is, and the index stays
-    // the last guard — this refusal is only what gives the owner the PRD's wording.
+    // The check is scoped exactly as ux_category_groups_name_kind is, and the index stays the
+    // last guard — this refusal is only what gives the owner the wording.
     [Fact]
     public async Task CreateCategoryGroup_NameTakenOnSameSide_IsRefused()
     {
@@ -49,7 +49,7 @@ public sealed class CreateCategoryGroupTests
         _unitOfWork.Commits.Should().Be(1);
     }
 
-    // The other half of AC-31: the name stays free on the other side of the ledger.
+    // The other half: the name stays free on the other side of the ledger.
     [Fact]
     public async Task CreateCategoryGroup_SameNameOnTheOtherSide_IsAccepted()
     {
@@ -86,7 +86,7 @@ public sealed class CreateCategoryGroupTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // ADR-0005: the id is minted here, in the Application layer, and it is a UUID v7.
+    // The id is minted here, in the Application layer, and it is a UUID v7.
     [Fact]
     public async Task CreateCategoryGroup_NewName_MintsATimeOrderedUuidV7()
     {

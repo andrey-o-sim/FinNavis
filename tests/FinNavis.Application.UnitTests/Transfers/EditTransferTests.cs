@@ -17,8 +17,8 @@ public sealed class EditTransferTests
 
     public EditTransferTests() => _unitOfWork = new FakeUnitOfWork(_transfers.Commit);
 
-    // AC-23. The entity has no category field at all, so the attempt is refused with the sentence
-    // the owner reads rather than being dropped on the way in.
+    // The entity has no category field at all, so the attempt is refused with the sentence the
+    // owner reads rather than being dropped on the way in.
     [Fact]
     public async Task EditTransfer_GivenACategory_IsRefused()
     {
@@ -35,7 +35,7 @@ public sealed class EditTransferTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-21: the row itself changes, with no reversing entry beside it.
+    // The row itself changes, with no reversing entry beside it.
     [Fact]
     public async Task EditTransfer_NewAmount_AppliedInPlace()
     {
@@ -79,7 +79,7 @@ public sealed class EditTransferTests
         edited.SourceAccountId.Should().Be(transfer.SourceAccountId);
     }
 
-    // AC-05 on the edit path: the entity refuses before it assigns the first field.
+    // On the edit path the entity refuses before it assigns the first field.
     [Fact]
     public async Task EditTransfer_IntoTheSourceAccount_IsRefusedAndChangesNothing()
     {
@@ -130,7 +130,6 @@ public sealed class EditTransferTests
             .Should().Be(transfer.DestinationAccountId);
     }
 
-    // AC-25, on the transfer itself.
     [Fact]
     public async Task EditTransfer_UnknownTransferId_IsRefusedAsNotFound()
     {
@@ -145,7 +144,7 @@ public sealed class EditTransferTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-06 holds on the edit path too: one row, so a failed commit moved neither account.
+    // On the edit path too: one row, so a failed commit moved neither account.
     [Fact]
     public async Task EditTransfer_CommitFails_ReportsTheRecordingFailedAndChangesNothing()
     {

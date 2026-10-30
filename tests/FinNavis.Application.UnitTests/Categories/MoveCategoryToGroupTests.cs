@@ -18,7 +18,7 @@ public sealed class MoveCategoryToGroupTests
 
     public MoveCategoryToGroupTests() => _unitOfWork = new FakeUnitOfWork(Commit);
 
-    // AC-13. Only the category's group link changes, so every entry already filed under it keeps
+    // Only the category's group link changes, so every entry already filed under it keeps
     // its amount and its category id — the figure is the same sum before and after. What moves is
     // where the breakdown rolls that figure up from the next read on.
     [Fact]
@@ -38,8 +38,8 @@ public sealed class MoveCategoryToGroupTests
         _unitOfWork.Commits.Should().Be(1);
     }
 
-    // The other half of AC-13: out of every group. Nothing is assigned — the link is cleared, and
-    // the category does not join a group called Default, because there is no such row.
+    // The other half: out of every group. Nothing is assigned — the link is cleared, and the
+    // category does not join a group called Default, because there is no such row.
     [Fact]
     public async Task MoveCategoryToGroup_WithNoGroupNamed_TakesItOutOfEveryGroup()
     {
@@ -53,7 +53,6 @@ public sealed class MoveCategoryToGroupTests
         _groups.Stored.Should().ContainSingle().Which.Id.Should().Be(utilities.Id);
     }
 
-    // AC-30, on the move side.
     [Fact]
     public async Task MoveCategoryToGroup_GroupOnOtherSide_IsRefused()
     {
@@ -70,7 +69,7 @@ public sealed class MoveCategoryToGroupTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-32, on the move side: the group is named back and it is not created on the way.
+    // On the move side the group is named back and it is not created on the way.
     [Fact]
     public async Task MoveCategoryToGroup_UnknownGroup_IsRefusedAndCreatesNothing()
     {

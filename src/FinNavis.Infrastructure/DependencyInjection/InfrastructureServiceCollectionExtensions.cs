@@ -10,13 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FinNavis.Infrastructure.DependencyInjection;
 
-/// <summary>
-/// Infrastructure registers its own services here, and Presentation calls this one method
-/// (<c>CLAUDE.md</c> §Dependency injection). The composition root never names an adapter.
-/// </summary>
 public static class InfrastructureServiceCollectionExtensions
 {
-    /// <summary>The configuration key the ledger's connection string is read from.</summary>
     public const string ConnectionStringName = "FinNavisDb";
 
     public static IServiceCollection AddInfrastructure(

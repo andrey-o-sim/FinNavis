@@ -23,8 +23,8 @@ public sealed class RemoveTransferTests
         _unitOfWork = new FakeUnitOfWork(_transfers.Commit);
     }
 
-    // AC-22, AC-15. Both balances return to what they would have been, and the owner's total was
-    // unchanged either way.
+    // Both balances return to what they would have been, and the owner's total was unchanged
+    // either way.
     [Fact]
     public async Task RemoveTransfer_Entry_DisappearsFromHistory()
     {
@@ -64,7 +64,6 @@ public sealed class RemoveTransferTests
         BalanceOf(after, savings).Should().Be(new Money(150.0000m));
     }
 
-    // AC-25.
     [Fact]
     public async Task RemoveTransfer_UnknownTransferId_IsRefusedAsNotFound()
     {

@@ -26,8 +26,8 @@ public sealed class TransferTests
         Transfer transfer = Transfer.Record(
             id, sourceAccountId, destinationAccountId, new Money(180.0000m), OccurredOn, CreatedAt);
 
-        // AC-04: one amount for both sides, so the source falls and the destination rises by the
-        // same figure and the total across accounts cannot change.
+        // One amount for both sides, so the source falls and the destination rises by the same
+        // figure and the total across accounts cannot change.
         transfer.Id.Should().Be(id);
         transfer.SourceAccountId.Should().Be(sourceAccountId);
         transfer.DestinationAccountId.Should().Be(destinationAccountId);
@@ -49,8 +49,8 @@ public sealed class TransferTests
             OccurredOn,
             CreatedAt);
 
-        // AC-05: the refusal carries the acceptance criterion's wording, and it comes from the
-        // entity — there is no CHECK constraint (data-model.md decision 6).
+        // The refusal carries the wording the owner reads, and it comes from the entity — there
+        // is no CHECK constraint.
         DomainRuleViolationException refusal = act.Should()
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(SameAccount);
@@ -83,10 +83,9 @@ public sealed class TransferTests
     [Fact]
     public void Transfer_CarriesBothSidesOnOneEntity()
     {
-        // AC-06: a half-applied transfer is unrepresentable rather than merely prevented. There is
-        // no per-side leg to construct — Record returns one object that names both accounts and one
-        // amount, so no test can build a transfer that landed on one side only (data-model.md →
-        // transfers, sad.md §6 flow 2).
+        // A half-applied transfer is unrepresentable rather than merely prevented. There is no
+        // per-side leg to construct — Record returns one object that names both accounts and
+        // one amount, so no test can build a transfer that landed on one side only.
         Transfer transfer = Record();
 
         transfer.SourceAccountId.Should().NotBe(Guid.Empty);
@@ -101,9 +100,9 @@ public sealed class TransferTests
     [Fact]
     public void Transfer_HasNoCategoryField()
     {
-        // AC-23: a transfer carries no category (sad.md §12), so giving it one is unrepresentable
-        // rather than validated — the field it would need does not exist. The Application layer
-        // turns an attempt coming off the wire into Transfer.CategoryNotAllowed.
+        // A transfer carries no category, so giving it one is unrepresentable rather than
+        // validated — the field it would need does not exist. The Application layer turns an
+        // attempt coming off the wire into Transfer.CategoryNotAllowed.
         typeof(Transfer).GetProperties()
             .Select(property => property.Name)
             .Should().NotContain(name => name.Contains("Category", StringComparison.Ordinal));
@@ -128,8 +127,8 @@ public sealed class TransferTests
             new Money(150.0000m),
             OccurredOn);
 
-        // AC-21 and ADR-0003: the same row carries the new amount. There is no reversing entry, and
-        // both balances follow on the next read because neither is stored.
+        // The same row carries the new amount. There is no reversing entry, and both balances
+        // follow on the next read because neither is stored.
         transfer.Id.Should().Be(id);
         transfer.Amount.Should().Be(new Money(150.0000m));
         transfer.CreatedAt.Should().Be(CreatedAt);
@@ -161,8 +160,7 @@ public sealed class TransferTests
         Action act = () => transfer.Edit(
             sourceAccountId, sourceAccountId, transfer.Amount, OccurredOn);
 
-        // AC-05 holds on an edit too, and sad.md §6 flow 4: a refused change leaves the entry as it
-        // was.
+        // The rule holds on an edit too: a refused change leaves the entry as it was.
         act.Should().Throw<DomainRuleViolationException>()
             .Which.Code.Should().Be(SameAccount);
         transfer.SourceAccountId.Should().Be(sourceAccountId);

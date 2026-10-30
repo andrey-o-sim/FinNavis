@@ -5,22 +5,6 @@ using FinNavis.Domain.ValueObjects;
 
 namespace FinNavis.Application.Reporting;
 
-/// <summary>
-/// Reads one page of recorded movements, transactions and transfers together (AC-16, AC-17,
-/// sad.md §6 flow 8).
-/// </summary>
-/// <remarks>
-/// <b>Every filter is optional.</b> A request with none asks for the whole history. Only the pair
-/// of days is checked here, because only that pair can contradict itself.
-/// <para>
-/// <b>An empty period is an empty page, never a failure</b> (AC-17). A period the owner recorded
-/// nothing in is an ordinary answer — the question was valid and the answer is "nothing".
-/// </para>
-/// <para>
-/// <b>No entity is loaded</b> (ADR-0004). The page is read rows from one <c>UNION ALL</c>, so
-/// nothing here touches a repository and nothing is written.
-/// </para>
-/// </remarks>
 public sealed class GetHistory(ILedgerQueries ledger)
 {
     public Task<HistoryPage> ExecuteAsync(

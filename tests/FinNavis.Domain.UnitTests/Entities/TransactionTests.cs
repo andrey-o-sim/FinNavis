@@ -25,7 +25,7 @@ public sealed class TransactionTests
         Transaction transaction = Transaction.Record(
             id, accountId, categoryId, new Money(42.5000m), OccurredOn, "Weekly shop", CreatedAt);
 
-        // AC-01: the entry names one account and one category, and the note is kept with it.
+        // The entry names one account and one category, and the note is kept with it.
         transaction.Id.Should().Be(id);
         transaction.AccountId.Should().Be(accountId);
         transaction.CategoryId.Should().Be(categoryId);
@@ -46,8 +46,8 @@ public sealed class TransactionTests
     [Fact]
     public void Record_Always_LeavesTheExternalReferenceNull()
     {
-        // ADR-0006: the column ships unused, so csv-import needs no migration later. Nothing in
-        // this feature sets it.
+        // The column ships unused, so csv-import needs no migration later. Nothing in this
+        // feature sets it.
         Transaction transaction = Record();
 
         transaction.ExternalRef.Should().BeNull();
@@ -70,8 +70,8 @@ public sealed class TransactionTests
     {
         Func<Transaction> act = () => Record(amount: new Money(amount));
 
-        // AC-02: the refusal carries the acceptance criterion's wording, and it comes from the
-        // entity — there is no CHECK constraint (.claude/rules/migrations.md).
+        // The refusal carries the wording the owner reads, and it comes from the entity — there
+        // is no CHECK constraint.
         DomainRuleViolationException refusal = act.Should()
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(AmountNotPositive);
@@ -118,9 +118,9 @@ public sealed class TransactionTests
             OccurredOn,
             "Weekly shop");
 
-        // AC-21 and ADR-0003: the same row carries the new amount. There is no reversing entry —
-        // the only Transaction here is still the one that was recorded, with the same identity and
-        // the same created_at. Every balance follows on the next read, because none is stored.
+        // The same row carries the new amount. There is no reversing entry — the only
+        // Transaction here is still the one that was recorded, with the same identity and the
+        // same created_at. Every balance follows on the next read, because none is stored.
         transaction.Id.Should().Be(id);
         transaction.Amount.Should().Be(new Money(38.0000m));
         transaction.CreatedAt.Should().Be(CreatedAt);
@@ -174,8 +174,8 @@ public sealed class TransactionTests
             OccurredOn,
             note: null);
 
-        // AC-24: a transaction that touched two accounts would be a transfer, and the two are
-        // separate entities (ADR-0001). The refusal names the way through.
+        // A transaction that touched two accounts would be a transfer, and the two are separate
+        // entities. The refusal names the way through.
         DomainRuleViolationException refusal = act.Should()
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(KindChangeNotAllowed);
@@ -183,7 +183,7 @@ public sealed class TransactionTests
             "A transaction and a transfer are different kinds of entry. "
                 + "Remove this entry and record it again as a transfer.");
 
-        // sad.md §6 flow 9: the entry is unchanged, so nothing the same call also asked for landed.
+        // The entry is unchanged, so nothing the same call also asked for landed.
         transaction.AccountId.Should().Be(accountId);
         transaction.Amount.Should().Be(new Money(42.0000m));
     }
@@ -227,8 +227,8 @@ public sealed class TransactionTests
     [Fact]
     public void Transaction_HasNoCategoryGroupField()
     {
-        // data-model.md: a transaction names its category and never its group, which is what makes
-        // AC-13 and AC-34 free — moving or renaming a category rewrites no movement row.
+        // A transaction names its category and never its group, so moving or renaming a
+        // category rewrites no movement row.
         typeof(Transaction).GetProperties()
             .Select(property => property.Name)
             .Should().NotContain(name => name.Contains("Group", StringComparison.Ordinal));

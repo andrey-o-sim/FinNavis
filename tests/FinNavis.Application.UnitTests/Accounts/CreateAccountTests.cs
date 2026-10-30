@@ -20,8 +20,8 @@ public sealed class CreateAccountTests
         _ledger = new FakeLedgerQueries(_accounts);
     }
 
-    // AC-07: nothing is written to make the balance zero. Zero is what the sum of no movements
-    // comes to, so a new account reads back at zero on its own (ADR-0002).
+    // Nothing is written to make the balance zero. Zero is what the sum of no movements comes
+    // to, so a new account reads back at zero on its own.
     [Fact]
     public async Task CreateAccount_NewName_CreatedWithZeroBalance()
     {
@@ -37,8 +37,8 @@ public sealed class CreateAccountTests
         balances.Total.Should().Be(Money.Zero);
     }
 
-    // AC-35. The check is scoped exactly as ux_accounts_name is, and the index stays the last
-    // guard — this refusal is only what gives the owner the PRD's wording.
+    // The check is scoped exactly as ux_accounts_name is, and the index stays the last guard —
+    // this refusal is only what gives the owner the wording.
     [Fact]
     public async Task CreateAccount_NameAlreadyTaken_IsRefused()
     {
@@ -78,7 +78,7 @@ public sealed class CreateAccountTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // ADR-0005: the id is minted here, in the Application layer, and it is a UUID v7.
+    // The id is minted here, in the Application layer, and it is a UUID v7.
     [Fact]
     public async Task CreateAccount_NewName_MintsATimeOrderedUuidV7()
     {

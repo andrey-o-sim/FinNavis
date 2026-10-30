@@ -4,10 +4,6 @@ using FinNavis.Domain.Enums;
 
 namespace FinNavis.Application.UnitTests.Fakes;
 
-/// <summary>
-/// An in-memory stand-in for the category store. Staged changes become visible only when
-/// <see cref="Commit"/> runs, so a use case that refuses before committing leaves nothing behind.
-/// </summary>
 internal sealed class FakeCategoryRepository : ICategoryRepository
 {
     private readonly Dictionary<Guid, Category> _stored = [];
@@ -15,16 +11,10 @@ internal sealed class FakeCategoryRepository : ICategoryRepository
     private readonly List<Category> _staged = [];
     private readonly List<Category> _stagedForRemoval = [];
 
-    /// <summary>Every token the use case passed in, so a test can check it was carried through.</summary>
     public List<CancellationToken> TokensSeen { get; } = [];
 
     public IReadOnlyCollection<Category> Stored => _stored.Values;
 
-    /// <summary>
-    /// The group links as PostgreSQL would hold them. Clearing a link changes the entity in memory
-    /// straight away, exactly as EF Core's change tracking does, so only this view can tell a
-    /// committed unlink from one that was rolled back.
-    /// </summary>
     public IReadOnlyDictionary<Guid, Guid?> CommittedGroupLinks => _committedGroupLinks;
 
     public void Seed(params Category[] categories)

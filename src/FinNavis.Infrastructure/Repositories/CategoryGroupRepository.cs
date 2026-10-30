@@ -6,12 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinNavis.Infrastructure.Repositories;
 
-/// <summary>
-/// The EF Core adapter behind <see cref="ICategoryGroupRepository"/> (sad.md §5).
-/// </summary>
-/// <remarks>
-/// Write path only. Nothing here reaches PostgreSQL until <c>IUnitOfWork</c> commits.
-/// </remarks>
 public sealed class CategoryGroupRepository(FinNavisDbContext context) : ICategoryGroupRepository
 {
     public Task<CategoryGroup?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
@@ -24,7 +18,7 @@ public sealed class CategoryGroupRepository(FinNavisDbContext context) : ICatego
             .ToListAsync(cancellationToken);
 
     // Scoped exactly as ux_category_groups_name_kind is scoped: the name and the side together,
-    // so a spending "Gifts" and an earning "Gifts" are two groups (AC-31).
+    // so a spending "Gifts" and an earning "Gifts" are two groups.
     public Task<bool> ExistsWithNameAsync(
         string name,
         CategoryKind kind,

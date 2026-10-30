@@ -64,8 +64,8 @@ public sealed class CategoryRepositoryTests : IAsyncLifetime
         categories.Should().ContainSingle().Which.Id.Should().Be(inGroup.Id);
     }
 
-    // AC-29: the link is cleared on every category of the group, in the same unit of work that
-    // removes the group row. The rows ListByGroupAsync hands back have to be tracked for that.
+    // The link is cleared on every category of the group, in the same unit of work that removes
+    // the group row. The rows ListByGroupAsync hands back have to be tracked for that.
     [Fact]
     public async Task ListByGroupAsync_WhenTheLoadedCategoriesAreCleared_CommitsTheClearedLink()
     {
@@ -116,7 +116,7 @@ public sealed class CategoryRepositoryTests : IAsyncLifetime
     }
 
     // ux_categories_name_kind is scoped to the name and the side together, so the same name on the
-    // other side is a different category (AC-36).
+    // other side is a different category.
     [Fact]
     public async Task ExistsWithNameAsync_WithTheSameNameOnTheOtherSide_IsFalse()
     {

@@ -4,16 +4,6 @@ using FinNavis.Domain.ValueObjects;
 
 namespace FinNavis.Infrastructure.Queries;
 
-/// <summary>
-/// The adapter behind <see cref="ILedgerQueries"/>: one port, three statements that have nothing
-/// in common beyond belonging to the read path (sad.md §5, ADR-0004).
-/// </summary>
-/// <remarks>
-/// The port is one interface because a use case asks the ledger for a figure, not three different
-/// services. The statements are three classes because a balance, a history page and a period
-/// breakdown are unrelated pieces of SQL, and keeping them apart is what stops one file from
-/// holding every query in the feature.
-/// </remarks>
 public sealed class LedgerQueries(
     LedgerBalanceQueries balances,
     LedgerHistoryQueries history,

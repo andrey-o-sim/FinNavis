@@ -3,11 +3,6 @@ using FinNavis.Domain.Entities;
 
 namespace FinNavis.Application.UnitTests.Fakes;
 
-/// <summary>
-/// An in-memory stand-in for the transfer store. Staged changes become visible only when
-/// <see cref="Commit"/> runs, so a use case that refuses before committing leaves nothing behind —
-/// and a commit that throws leaves nothing behind either, which is what AC-06 is about.
-/// </summary>
 internal sealed class FakeTransferRepository : ITransferRepository
 {
     private readonly Dictionary<Guid, Transfer> _stored = [];
@@ -15,10 +10,8 @@ internal sealed class FakeTransferRepository : ITransferRepository
     private readonly List<Transfer> _staged = [];
     private readonly List<Transfer> _stagedForRemoval = [];
 
-    /// <summary>Every token the use case passed in, so a test can check it was carried through.</summary>
     public List<CancellationToken> TokensSeen { get; } = [];
 
-    /// <summary>The transfers a balance should count. Only committed ones are here.</summary>
     public IReadOnlyCollection<Transfer> Stored => _stored.Values;
 
     public void Seed(params Transfer[] transfers)
@@ -30,11 +23,6 @@ internal sealed class FakeTransferRepository : ITransferRepository
         }
     }
 
-    /// <summary>
-    /// The transfer as PostgreSQL would hold it. An edit changes the entity in memory straight
-    /// away, exactly as EF Core's change tracking does, so only this view can tell a committed
-    /// edit from one that was rolled back.
-    /// </summary>
     public Snapshot Committed(Guid transferId) => _committed[transferId];
 
     public Task<Transfer?> GetByIdAsync(Guid id, CancellationToken cancellationToken)

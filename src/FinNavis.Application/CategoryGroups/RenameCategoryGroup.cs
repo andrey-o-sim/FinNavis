@@ -7,18 +7,6 @@ using FinNavis.Domain.Errors;
 
 namespace FinNavis.Application.CategoryGroups;
 
-/// <summary>
-/// Gives a group a new name and keeps its identity and its side (AC-28, AC-31, AC-32).
-/// </summary>
-/// <remarks>
-/// <b>No category row is touched.</b> A category points at its group by id, never by name, so the
-/// breakdown reports the group under the new name on its own and the figure for every category in
-/// it is unchanged (AC-28).
-/// <para>
-/// <b>Every check runs before the group is touched</b>, so a refused rename leaves the row exactly
-/// as it was.
-/// </para>
-/// </remarks>
 public sealed class RenameCategoryGroup(ICategoryGroupRepository categoryGroups, IUnitOfWork unitOfWork)
 {
     public async Task<CategoryGroup> ExecuteAsync(
@@ -33,7 +21,7 @@ public sealed class RenameCategoryGroup(ICategoryGroupRepository categoryGroups,
         string requestedName = (name ?? string.Empty).Trim();
 
         // The check answers true for the group's own row, so keeping its current name is not a
-        // clash — AC-31 is about another group on that side already carrying the name.
+        // clash — the refusal is about another group on that side already carrying the name.
         bool nameChanges = !string.Equals(requestedName, group.Name, StringComparison.Ordinal);
 
         if (nameChanges

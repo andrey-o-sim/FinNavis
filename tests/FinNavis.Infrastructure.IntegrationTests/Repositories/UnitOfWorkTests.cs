@@ -41,8 +41,8 @@ public sealed class UnitOfWorkTests : IAsyncLifetime
             .Should().NotBeNull();
     }
 
-    // AC-06: a commit that fails leaves nothing half-written. The transaction names a category
-    // that was never staged, so the foreign key refuses the last statement of the batch — and the
+    // A commit that fails leaves nothing half-written. The transaction names a category that
+    // was never staged, so the foreign key refuses the last statement of the batch — and the
     // account staged before it has to go with it.
     [Fact]
     public async Task SaveChangesAsync_WhenOneChangeIsRefused_RollsBackEveryChangeInTheUnit()

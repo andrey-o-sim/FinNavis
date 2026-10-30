@@ -70,7 +70,7 @@ public sealed class AccountTests
 
         account.Rename("Pocket money");
 
-        // AC-08: every movement points at the account by id, so a rename rewrites nothing.
+        // Every movement points at the account by id, so a rename rewrites nothing.
         account.Id.Should().Be(id);
         account.Name.Should().Be("Pocket money");
         account.CreatedAt.Should().Be(CreatedAt);
@@ -103,8 +103,8 @@ public sealed class AccountTests
     [Fact]
     public void Account_HasNoBalanceField()
     {
-        // AC-14 is computed at read time (ADR-0002). A stored balance would have nothing to keep
-        // it honest, so the entity must never grow one.
+        // The balance is computed at read time. A stored balance would have nothing to keep it
+        // honest, so the entity must never grow one.
         IEnumerable<string> members = typeof(Account)
             .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             .Select(member => member.Name);

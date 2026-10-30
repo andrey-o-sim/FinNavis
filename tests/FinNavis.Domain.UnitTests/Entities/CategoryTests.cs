@@ -101,7 +101,7 @@ public sealed class CategoryTests
 
         category.Rename("Food");
 
-        // AC-34: a transaction names its category by id, so every recorded movement, balance and
+        // A transaction names its category by id, so every recorded movement, balance and
         // breakdown follows the new name with nothing rewritten.
         category.Id.Should().Be(id);
         category.Name.Should().Be("Food");
@@ -157,8 +157,8 @@ public sealed class CategoryTests
 
         Action act = () => category.PlaceInGroup(group);
 
-        // AC-30: the entity refuses, not the schema (data-model.md decision 7), so the owner reads
-        // the acceptance criterion's wording instead of a foreign key violation.
+        // The entity refuses, not the schema, so the owner reads the refusal wording instead of
+        // a foreign key violation.
         DomainRuleViolationException refusal = act.Should()
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(GroupKindMismatch);
@@ -183,8 +183,8 @@ public sealed class CategoryTests
     [Fact]
     public void MoveToGroup_CategoryWithHistory_KeepsSameIdentity()
     {
-        // AC-13. The move is PlaceInGroup — placing a category and moving one between groups are
-        // the same change to the same row.
+        // The move is PlaceInGroup — placing a category and moving one between groups are the
+        // same change to the same row.
         Guid id = Guid.CreateVersion7();
         CategoryGroup from = Group(CategoryKind.Expense);
         CategoryGroup to = Group(CategoryKind.Expense);
@@ -204,8 +204,8 @@ public sealed class CategoryTests
     [Fact]
     public void ClearGroup_CategoryKeepsIdentityAndKind()
     {
-        // AC-29, the domain half. The group is removed, the category stays with all of its
-        // history, and the breakdown reports it under the Default group from then on.
+        // The domain half: the group is removed, the category stays with all of its history,
+        // and the breakdown reports it under the Default group from then on.
         Guid id = Guid.CreateVersion7();
         CategoryGroup group = Group(CategoryKind.Expense);
         Category category = Category.Create(id, "Groceries", CategoryKind.Expense, group, CreatedAt);
@@ -217,8 +217,8 @@ public sealed class CategoryTests
         category.Kind.Should().Be(CategoryKind.Expense);
         category.CreatedAt.Should().Be(CreatedAt);
 
-        // No Default group is assigned. It is produced by the breakdown and never stored
-        // (sad.md §12, data-model.md decision 8), so the category simply has no group.
+        // No Default group is assigned. It is produced by the breakdown and never stored, so
+        // the category simply has no group.
         category.CategoryGroupId.Should().BeNull();
     }
 

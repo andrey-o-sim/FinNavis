@@ -1,21 +1,7 @@
 namespace FinNavis.ArchitectureTests;
 
-/// <summary>
-/// Checks the dependency rule against what the .csproj files declare.
-/// This is the machine-readable form of the table in ARCHITECTURE.md and of the
-/// second acceptance criterion in SPEC.md.
-/// </summary>
-/// <remarks>
-/// These tests work on an empty scaffold. They catch a wrong reference the moment it is added,
-/// before any code uses it. <see cref="LayerDependencyTests"/> covers the other half:
-/// what the compiled code actually touches.
-/// </remarks>
 public sealed class ProjectReferenceTests
 {
-    /// <summary>
-    /// The dependency rule, one row per project. Copied from the table in ARCHITECTURE.md.
-    /// Keep the two in step: if this changes, that table changes too.
-    /// </summary>
     public static TheoryData<string, string[]> AllowedProjectReferences => new()
     {
         { "FinNavis.Domain", [] },
@@ -24,10 +10,6 @@ public sealed class ProjectReferenceTests
         { "FinNavis.Presentation", ["FinNavis.Application", "FinNavis.Infrastructure"] },
     };
 
-    /// <summary>
-    /// Packages that would put the outside world inside the Application ring.
-    /// Application says what it needs. Infrastructure says how it is done.
-    /// </summary>
     public static TheoryData<string> PackagesBannedFromApplication =>
     [
         "Microsoft.EntityFrameworkCore",

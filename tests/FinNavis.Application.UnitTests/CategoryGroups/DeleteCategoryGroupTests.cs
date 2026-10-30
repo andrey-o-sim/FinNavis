@@ -16,7 +16,7 @@ public sealed class DeleteCategoryGroupTests
 
     public DeleteCategoryGroupTests() => _unitOfWork = new FakeUnitOfWork(Commit);
 
-    // AC-29. No category is deleted: only the link is cleared, so each one keeps its id, its name
+    // No category is deleted: only the link is cleared, so each one keeps its id, its name
     // and its side — and with its id, every entry recorded against it.
     [Fact]
     public async Task DeleteCategoryGroup_StillHoldingCategories_ClearsLinksAndRemovesGroup()
@@ -38,7 +38,7 @@ public sealed class DeleteCategoryGroupTests
             ]);
 
         // Every link is empty, and none of them points at a group called Default — there is no
-        // such row. The breakdown produces that bucket at read time (sad.md §12).
+        // such row. The breakdown produces that bucket at read time.
         _categories.CommittedGroupLinks.Values.Should().AllSatisfy(
             link => link.Should().BeNull());
     }

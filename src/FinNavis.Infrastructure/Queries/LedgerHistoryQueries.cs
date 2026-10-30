@@ -7,25 +7,6 @@ using NpgsqlTypes;
 
 namespace FinNavis.Infrastructure.Queries;
 
-/// <summary>
-/// The history half of the ledger's read path: one page of recorded movements, transactions and
-/// transfers together, newest first (AC-16, AC-17, sad.md §6 flow 8).
-/// </summary>
-/// <remarks>
-/// <b>One <c>UNION ALL</c> over two tables</b> (ADR-0001), paged by keyset over
-/// <c>(occurred_on, id)</c> — <c>id</c> is a time-ordered UUID v7 (ADR-0005), which is what makes
-/// it a stable tiebreaker inside one day across both tables.
-/// <para>
-/// <b>No entity is loaded</b> (ADR-0004). The rows that travel back are read rows: a transaction
-/// row carries its category and its note, a transfer row carries its two accounts, and neither can
-/// carry the other's fields.
-/// </para>
-/// <para>
-/// <b>A category filter drops the transfers branch of the union entirely</b> (settled at the
-/// api-forge gate). A transfer carries no category, so a page that included one would not all
-/// match what was asked.
-/// </para>
-/// </remarks>
 public sealed class LedgerHistoryQueries(FinNavisDbContext context)
 {
     private const string TransactionKind = "transaction";
@@ -226,7 +207,7 @@ public sealed class LedgerHistoryQueries(FinNavisDbContext context)
             conditions.Add("f.occurred_on <= @to");
         }
 
-        // A transfer touches the account from either side, so either side keeps the row (AC-16).
+        // A transfer touches the account from either side, so either side keeps the row.
         if (filter.AccountId is not null)
         {
             conditions.Add("(f.source_account_id = @account_id OR f.destination_account_id = @account_id)");

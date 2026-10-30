@@ -5,23 +5,6 @@ using FinNavis.Domain.ValueObjects;
 
 namespace FinNavis.Application.Transfers;
 
-/// <summary>
-/// Applies the owner's correction to a recorded transfer, in place (AC-21, AC-23, AC-25,
-/// sad.md §6 flow 4).
-/// </summary>
-/// <remarks>
-/// <b>A transfer carries no category</b> (AC-23). The entity has no field for one, so an attempt
-/// to give it a category is refused here with the sentence the owner reads — it cannot be
-/// silently dropped on the way in.
-/// <para>
-/// <b>There is no reversing entry</b> (ADR-0003). The row itself changes, and both balances follow
-/// on the next read because no balance is stored (ADR-0002).
-/// </para>
-/// <para>
-/// <b>Every check runs before the first field is assigned</b>, so a refused edit leaves the
-/// transfer exactly as it was.
-/// </para>
-/// </remarks>
 public sealed class EditTransfer(
     ITransferRepository transfers,
     IAccountRepository accounts,

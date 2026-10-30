@@ -15,9 +15,9 @@ public sealed class GetHistoryTests
 
     private readonly FakeLedgerQueries _ledger = new();
 
-    // AC-16. Each row is marked as a transaction or a transfer by being one record type or the
-    // other, so a transaction can never carry a destination account and a transfer can never
-    // carry a category.
+    // Each row is marked as a transaction or a transfer by being one record type or the other,
+    // so a transaction can never carry a destination account and a transfer can never carry a
+    // category.
     [Fact]
     public async Task GetHistory_FilteredByPeriodAccountAndCategory_ReturnsMarkedRows()
     {
@@ -46,7 +46,7 @@ public sealed class GetHistoryTests
         page.NextCursor.Should().Be("opaque-next");
     }
 
-    // AC-17. The question was valid and the answer is "nothing" — that is not a failure.
+    // The question was valid and the answer is "nothing" — that is not a failure.
     [Fact]
     public async Task GetHistory_EmptyPeriod_ReturnsEmptyPageNotFailure()
     {
@@ -99,7 +99,7 @@ public sealed class GetHistoryTests
         _ledger.HistoryFilterSeen.Should().BeNull();
     }
 
-    // The page size was settled at the api-forge gate: 1 to 200, 50 by default.
+    // The page size runs from 1 to 200, and defaults to 50.
     [Theory]
     [InlineData(0)]
     [InlineData(201)]

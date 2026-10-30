@@ -4,7 +4,7 @@ using FinNavis.Infrastructure.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 // The composition root, and the only place that names a layer's registrations. The connection
-// string comes from configuration — never from a literal here (CLAUDE.md §Safety).
+// string comes from configuration — never from a literal here.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenApi();

@@ -17,7 +17,7 @@ public sealed class RenameCategoryTests
 
     public RenameCategoryTests() => _unitOfWork = new FakeUnitOfWork(_categories.Commit);
 
-    // AC-34. The figure for a closed period is a sum over the transactions filed under the
+    // The figure for a closed period is a sum over the transactions filed under the
     // category id. A rename touches the category row only, so every entry keeps its id, its
     // category and its amount, and the sum cannot move.
     [Fact]
@@ -42,7 +42,6 @@ public sealed class RenameCategoryTests
         Total(closedPeriod).Should().Be(figureBefore);
     }
 
-    // AC-36, on the rename side.
     [Fact]
     public async Task RenameCategory_NameTakenOnSameSide_IsRefused()
     {
@@ -58,7 +57,7 @@ public sealed class RenameCategoryTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // The other half of AC-36: the same name on the other side belongs to another category.
+    // The other half: the same name on the other side belongs to another category.
     [Fact]
     public async Task RenameCategory_NameTakenOnTheOtherSide_IsAccepted()
     {

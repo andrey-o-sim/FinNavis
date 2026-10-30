@@ -25,8 +25,8 @@ public sealed class RecordTransactionTests
         _unitOfWork = new FakeUnitOfWork(_transactions.Commit);
     }
 
-    // AC-01. Nothing is written to make the balance fall: it is summed from the movements at read
-    // time, and the category's side is what makes this entry subtract (ADR-0002).
+    // Nothing is written to make the balance fall: it is summed from the movements at read
+    // time, and the category's side is what makes this entry subtract.
     [Fact]
     public async Task RecordTransaction_ValidInput_RecordedWithNote()
     {
@@ -48,7 +48,7 @@ public sealed class RecordTransactionTests
         _unitOfWork.Commits.Should().Be(1);
     }
 
-    // AC-03: the unknown category is named back, and no category row appears on the way.
+    // The unknown category is named back, and no category row appears on the way.
     [Fact]
     public async Task RecordTransaction_UnknownCategory_IsRefusedAndCreatesNothing()
     {
@@ -66,7 +66,6 @@ public sealed class RecordTransactionTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-25, on the account side.
     [Fact]
     public async Task RecordTransaction_UnknownAccount_IsRefusedAndCreatesNothing()
     {
@@ -83,7 +82,7 @@ public sealed class RecordTransactionTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // AC-01, the other side of the ledger: an earning raises the balance by the same mechanism.
+    // The other side of the ledger: an earning raises the balance by the same mechanism.
     [Fact]
     public async Task RecordTransaction_UnderAnIncomeCategory_RaisesTheBalance()
     {
@@ -108,7 +107,7 @@ public sealed class RecordTransactionTests
         recorded.Note.Should().BeNull();
     }
 
-    // AC-02 belongs to the entity; this layer only surfaces the refusal and writes nothing.
+    // The rule belongs to the entity; this layer only surfaces the refusal and writes nothing.
     [Fact]
     public async Task RecordTransaction_AmountNotAboveZero_IsRefusedAndWritesNothing()
     {
@@ -125,7 +124,7 @@ public sealed class RecordTransactionTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
-    // ADR-0006: nothing in this feature fills the outside reference. csv-import does, later.
+    // Nothing in this feature fills the outside reference. csv-import does, later.
     [Fact]
     public async Task RecordTransaction_ValidInput_LeavesExternalRefNull()
     {
@@ -137,7 +136,7 @@ public sealed class RecordTransactionTests
         recorded.ExternalRef.Should().BeNull();
     }
 
-    // ADR-0005: the id is minted here, in the Application layer, and it is a UUID v7.
+    // The id is minted here, in the Application layer, and it is a UUID v7.
     [Fact]
     public async Task RecordTransaction_ValidInput_MintsATimeOrderedUuidV7()
     {
