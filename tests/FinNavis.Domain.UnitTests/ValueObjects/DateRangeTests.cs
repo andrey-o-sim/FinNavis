@@ -8,53 +8,12 @@ public sealed class DateRangeTests
     private static readonly DateOnly Last = new(2026, 3, 31);
 
     [Fact]
-    public void Contains_FirstDay_IsTrue()
-    {
-        DateRange range = DateRange.Create(First, Last);
-
-        range.Contains(First).Should().BeTrue();
-    }
-
-    [Fact]
-    public void Contains_LastDay_IsTrue()
-    {
-        DateRange range = DateRange.Create(First, Last);
-
-        range.Contains(Last).Should().BeTrue();
-    }
-
-    [Fact]
-    public void Contains_DayBeforeTheFirstDay_IsFalse()
-    {
-        DateRange range = DateRange.Create(First, Last);
-
-        range.Contains(First.AddDays(-1)).Should().BeFalse();
-    }
-
-    [Fact]
-    public void Contains_DayAfterTheLastDay_IsFalse()
-    {
-        DateRange range = DateRange.Create(First, Last);
-
-        range.Contains(Last.AddDays(1)).Should().BeFalse();
-    }
-
-    [Fact]
-    public void Contains_DayInside_IsTrue()
-    {
-        DateRange range = DateRange.Create(First, Last);
-
-        range.Contains(new DateOnly(2026, 3, 15)).Should().BeTrue();
-    }
-
-    [Fact]
-    public void Create_BothEndsOnTheSameDay_CoversThatOneDay()
+    public void Create_BothEndsOnTheSameDay_KeepsThatOneDay()
     {
         DateRange range = DateRange.Create(First, First);
 
-        range.Contains(First).Should().BeTrue();
-        range.Contains(First.AddDays(1)).Should().BeFalse();
-        range.Contains(First.AddDays(-1)).Should().BeFalse();
+        range.From.Should().Be(First);
+        range.To.Should().Be(First);
     }
 
     [Fact]

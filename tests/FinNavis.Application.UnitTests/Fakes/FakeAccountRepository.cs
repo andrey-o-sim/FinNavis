@@ -28,13 +28,6 @@ internal sealed class FakeAccountRepository : IAccountRepository
         return Task.FromResult(_stored.GetValueOrDefault(id));
     }
 
-    public Task<IReadOnlyList<Account>> ListAsync(CancellationToken cancellationToken)
-    {
-        TokensSeen.Add(cancellationToken);
-
-        return Task.FromResult<IReadOnlyList<Account>>([.. _stored.Values]);
-    }
-
     // Scoped as ux_accounts_name is: the name alone, and the account's own row counts.
     public Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken)
     {

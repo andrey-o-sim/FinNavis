@@ -36,6 +36,4 @@ public readonly record struct DateRange
         range = new DateRange(from, to);
         return true;
     }
-
-    public bool Contains(DateOnly day) => day >= From && day <= To;
 }

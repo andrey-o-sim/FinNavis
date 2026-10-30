@@ -10,12 +10,6 @@ public sealed class AccountRepository(FinNavisDbContext context) : IAccountRepos
     public Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
         context.Accounts.FirstOrDefaultAsync(account => account.Id == id, cancellationToken);
 
-    public async Task<IReadOnlyList<Account>> ListAsync(CancellationToken cancellationToken) =>
-        await context.Accounts
-            .AsNoTracking()
-            .OrderBy(account => account.Name)
-            .ToListAsync(cancellationToken);
-
     // Scoped exactly as ux_accounts_name is scoped: the name alone, with no second column.
     public Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken) =>
         context.Accounts.AnyAsync(account => account.Name == name, cancellationToken);

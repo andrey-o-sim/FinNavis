@@ -6,8 +6,6 @@ public interface IAccountRepository
 {
     Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<Account>> ListAsync(CancellationToken cancellationToken);
-
     Task<bool> ExistsWithNameAsync(string name, CancellationToken cancellationToken);
 
     void Add(Account account);
