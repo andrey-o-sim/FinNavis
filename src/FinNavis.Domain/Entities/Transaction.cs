@@ -53,6 +53,7 @@ public sealed class Transaction
         DateTimeOffset createdAt)
     {
         RequirePositiveAmount(amount);
+        RequireAmountTheLedgerCanHold(amount);
         RequireNoteWithinBound(note);
 
         return new Transaction(id, accountId, categoryId, amount, occurredOn, note, createdAt);
@@ -75,6 +76,7 @@ public sealed class Transaction
         }
 
         RequirePositiveAmount(amount);
+        RequireAmountTheLedgerCanHold(amount);
         RequireNoteWithinBound(note);
 
         AccountId = accountId;
@@ -91,6 +93,18 @@ public sealed class Transaction
             throw new DomainRuleViolationException(
                 "Transaction.AmountNotPositive",
                 "The amount must be above zero.");
+        }
+    }
+
+    // Refused here rather than left to the database, where it arrives as a write failure the
+    // owner cannot act on.
+    private static void RequireAmountTheLedgerCanHold(Money amount)
+    {
+        if (!amount.FitsLedgerColumn)
+        {
+            throw new DomainRuleViolationException(
+                "Transaction.AmountOutOfRange",
+                "The amount must not be above 999999999999999.9999.");
         }
     }
 

@@ -10,6 +10,7 @@ public sealed class TransferTests
 {
     private const string SameAccount = "Transfer.SameAccount";
     private const string AmountNotPositive = "Transfer.AmountNotPositive";
+    private const string AmountOutOfRange = "Transfer.AmountOutOfRange";
 
     private static readonly DateTimeOffset CreatedAt =
         new(2026, 3, 1, 9, 0, 0, TimeSpan.Zero);
@@ -69,6 +70,27 @@ public sealed class TransferTests
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(AmountNotPositive);
         refusal.Message.Should().Be("The amount must be above zero.");
+    }
+
+    // The column is numeric(19,4). A larger figure would come back from the database as a write
+    // failure the owner can do nothing with, so the entity refuses it in words instead.
+    [Fact]
+    public void Record_AmountAboveWhatTheLedgerHolds_IsRefused()
+    {
+        Func<Transfer> act = () => Record(amount: new Money(Money.Largest + 0.0001m));
+
+        DomainRuleViolationException refusal = act.Should()
+            .Throw<DomainRuleViolationException>().Which;
+        refusal.Code.Should().Be(AmountOutOfRange);
+        refusal.Message.Should().Be("The amount must not be above 999999999999999.9999.");
+    }
+
+    [Fact]
+    public void Record_TheLargestAmountTheLedgerHolds_IsAccepted()
+    {
+        Transfer transfer = Record(amount: new Money(Money.Largest));
+
+        transfer.Amount.Should().Be(new Money(Money.Largest));
     }
 
     [Fact]
@@ -180,6 +202,22 @@ public sealed class TransferTests
 
         act.Should().Throw<DomainRuleViolationException>()
             .Which.Code.Should().Be(AmountNotPositive);
+        transfer.Amount.Should().Be(new Money(180.0000m));
+    }
+
+    [Fact]
+    public void Edit_AmountAboveWhatTheLedgerHolds_IsRefusedAndKeepsTheOldAmount()
+    {
+        Transfer transfer = Record(amount: new Money(180.0000m));
+
+        Action act = () => transfer.Edit(
+            transfer.SourceAccountId,
+            transfer.DestinationAccountId,
+            new Money(Money.Largest + 0.0001m),
+            OccurredOn);
+
+        act.Should().Throw<DomainRuleViolationException>()
+            .Which.Code.Should().Be(AmountOutOfRange);
         transfer.Amount.Should().Be(new Money(180.0000m));
     }
 

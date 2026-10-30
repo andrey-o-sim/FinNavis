@@ -787,6 +787,11 @@ paths:
                     message: "A transaction and a transfer are different kinds of entry. Remove this entry and record it again as a transfer."
                     details:
                       rejected_property: "destination_account_id"
+                amount_out_of_range:
+                  summary: The amount is larger than `NUMERIC(19,4)` holds
+                  value:
+                    code: "Transaction.AmountOutOfRange"
+                    message: "The amount must not be above 999999999999999.9999."
         "404":
           description: |
             AC-25 — the entry, or an account or category it now names, is not part of this
@@ -936,6 +941,11 @@ paths:
                   value:
                     code: "Transfer.AmountNotPositive"
                     message: "The amount must be above zero."
+                amount_out_of_range:
+                  summary: The amount is larger than `NUMERIC(19,4)` holds
+                  value:
+                    code: "Transfer.AmountOutOfRange"
+                    message: "The amount must not be above 999999999999999.9999."
         "404":
           description: |
             AC-25 — the transfer, or an account it now names, is not part of this ledger.
@@ -1361,6 +1371,11 @@ components:
               value:
                 code: "Transaction.NoteTooLong"
                 message: "A note may be at most 500 characters."
+            amount_out_of_range:
+              summary: The amount is larger than `NUMERIC(19,4)` holds
+              value:
+                code: "Transaction.AmountOutOfRange"
+                message: "The amount must not be above 999999999999999.9999."
 
     TransactionReferenceNotFound:
       description: |
@@ -1401,6 +1416,11 @@ components:
               value:
                 code: "Transfer.AmountNotPositive"
                 message: "The amount must be above zero."
+            amount_out_of_range:
+              summary: The amount is larger than `NUMERIC(19,4)` holds
+              value:
+                code: "Transfer.AmountOutOfRange"
+                message: "The amount must not be above 999999999999999.9999."
 
     TransferAccountNotFound:
       description: AC-25 — the source or the destination account is not part of this ledger.
@@ -1486,6 +1506,12 @@ components:
         **Must be above zero.** AC-02 is a domain invariant enforced in the entity, not a
         database `CHECK` (data-model.md decision 6), so a zero or negative value is refused with
         `Transaction.AmountNotPositive` or `Transfer.AmountNotPositive` rather than by this pattern.
+
+        The pattern caps the figure at fifteen digits before the point, which is what the column
+        holds. The entity checks the same bound and refuses with `Transaction.AmountOutOfRange`
+        or `Transfer.AmountOutOfRange`, so a caller that reaches the domain another way still
+        gets a refusal it can read instead of a write failure. More than four decimal places is
+        rounded to four, the same way the column rounds it.
       pattern: "^\\d{1,15}(\\.\\d{1,4})?$"
       example: "42.5000"
 

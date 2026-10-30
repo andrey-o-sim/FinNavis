@@ -107,4 +107,41 @@ public sealed class MoneyTests
     {
         new Money(-0.0001m).IsPositive.Should().BeFalse();
     }
+
+    // Without this the column rounds the figure on the way in while the entity still holds the
+    // one it was handed, so the answer to a write and the next read disagree.
+    [Fact]
+    public void Amount_WithMoreDecimalsThanTheColumnHolds_IsRoundedToFour()
+    {
+        new Money(10.00004m).Amount.Should().Be(10.0000m);
+        new Money(10.00006m).Amount.Should().Be(10.0001m);
+    }
+
+    // The rule PostgreSQL applies, so both sides land on the same value.
+    [Fact]
+    public void Amount_HalfwayBetweenTwoFourthDecimals_RoundsAwayFromZero()
+    {
+        new Money(0.00005m).Amount.Should().Be(0.0001m);
+        new Money(-0.00005m).Amount.Should().Be(-0.0001m);
+    }
+
+    [Fact]
+    public void Amount_RoundedDownToZero_IsNotPositive()
+    {
+        new Money(0.00004m).IsPositive.Should().BeFalse();
+    }
+
+    [Fact]
+    public void FitsLedgerColumn_TheLargestFigureTheColumnHolds_IsTrue()
+    {
+        new Money(Money.Largest).FitsLedgerColumn.Should().BeTrue();
+        new Money(-Money.Largest).FitsLedgerColumn.Should().BeTrue();
+    }
+
+    [Fact]
+    public void FitsLedgerColumn_AFigureAboveTheColumn_IsFalse()
+    {
+        new Money(Money.Largest + 0.0001m).FitsLedgerColumn.Should().BeFalse();
+        new Money(-Money.Largest - 0.0001m).FitsLedgerColumn.Should().BeFalse();
+    }
 }

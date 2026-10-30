@@ -7,6 +7,7 @@ namespace FinNavis.Domain.UnitTests.Entities;
 public sealed class TransactionTests
 {
     private const string AmountNotPositive = "Transaction.AmountNotPositive";
+    private const string AmountOutOfRange = "Transaction.AmountOutOfRange";
     private const string NoteTooLong = "Transaction.NoteTooLong";
     private const string KindChangeNotAllowed = "Transaction.KindChangeNotAllowed";
 
@@ -76,6 +77,27 @@ public sealed class TransactionTests
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(AmountNotPositive);
         refusal.Message.Should().Be("The amount must be above zero.");
+    }
+
+    // The column is numeric(19,4). A larger figure would come back from the database as a write
+    // failure the owner can do nothing with, so the entity refuses it in words instead.
+    [Fact]
+    public void Record_AmountAboveWhatTheLedgerHolds_IsRefused()
+    {
+        Func<Transaction> act = () => Record(amount: new Money(Money.Largest + 0.0001m));
+
+        DomainRuleViolationException refusal = act.Should()
+            .Throw<DomainRuleViolationException>().Which;
+        refusal.Code.Should().Be(AmountOutOfRange);
+        refusal.Message.Should().Be("The amount must not be above 999999999999999.9999.");
+    }
+
+    [Fact]
+    public void Record_TheLargestAmountTheLedgerHolds_IsAccepted()
+    {
+        Transaction transaction = Record(amount: new Money(Money.Largest));
+
+        transaction.Amount.Should().Be(new Money(Money.Largest));
     }
 
     [Fact]
@@ -203,6 +225,24 @@ public sealed class TransactionTests
 
         act.Should().Throw<DomainRuleViolationException>()
             .Which.Code.Should().Be(AmountNotPositive);
+        transaction.Amount.Should().Be(new Money(42.0000m));
+    }
+
+    [Fact]
+    public void Edit_AmountAboveWhatTheLedgerHolds_IsRefusedAndKeepsTheOldAmount()
+    {
+        Transaction transaction = Record(amount: new Money(42.0000m));
+
+        Action act = () => transaction.Edit(
+            transaction.AccountId,
+            secondAccountId: null,
+            transaction.CategoryId,
+            new Money(Money.Largest + 0.0001m),
+            OccurredOn,
+            note: null);
+
+        act.Should().Throw<DomainRuleViolationException>()
+            .Which.Code.Should().Be(AmountOutOfRange);
         transaction.Amount.Should().Be(new Money(42.0000m));
     }
 

@@ -43,6 +43,7 @@ public sealed class Transfer
     {
         RequireTwoDifferentAccounts(sourceAccountId, destinationAccountId);
         RequirePositiveAmount(amount);
+        RequireAmountTheLedgerCanHold(amount);
 
         return new Transfer(
             id, sourceAccountId, destinationAccountId, amount, occurredOn, createdAt);
@@ -56,6 +57,7 @@ public sealed class Transfer
     {
         RequireTwoDifferentAccounts(sourceAccountId, destinationAccountId);
         RequirePositiveAmount(amount);
+        RequireAmountTheLedgerCanHold(amount);
 
         SourceAccountId = sourceAccountId;
         DestinationAccountId = destinationAccountId;
@@ -82,6 +84,18 @@ public sealed class Transfer
             throw new DomainRuleViolationException(
                 "Transfer.AmountNotPositive",
                 "The amount must be above zero.");
+        }
+    }
+
+    // Refused here rather than left to the database, where it arrives as a write failure the
+    // owner cannot act on.
+    private static void RequireAmountTheLedgerCanHold(Money amount)
+    {
+        if (!amount.FitsLedgerColumn)
+        {
+            throw new DomainRuleViolationException(
+                "Transfer.AmountOutOfRange",
+                "The amount must not be above 999999999999999.9999.");
         }
     }
 }
