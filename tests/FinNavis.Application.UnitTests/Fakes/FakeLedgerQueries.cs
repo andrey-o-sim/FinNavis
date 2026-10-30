@@ -12,9 +12,9 @@ namespace FinNavis.Application.UnitTests.Fakes;
 /// balance of no movements — zero — without a test having to say so (AC-07).
 /// </summary>
 /// <remarks>
-/// The history page and the breakdown are not part of the account or category use cases. They
-/// refuse rather than answer, so a test that reaches one by accident fails loudly instead of
-/// reading a made-up figure.
+/// The history page and the breakdown answer with whatever the test put in them, and record what
+/// they were asked for — those two use cases are pass-through and assembly, so what matters is
+/// that the filters arrive unchanged and the rows are assembled right.
 /// <para>
 /// A use case that never reads balances passes no repository and leaves the ledger empty.
 /// </para>
@@ -50,6 +50,25 @@ internal sealed class FakeLedgerQueries(
     /// <summary>Every token the use case passed in, so a test can check it was carried through.</summary>
     public List<CancellationToken> TokensSeen { get; } = [];
 
+    /// <summary>The page history answers with. An empty one by default, which AC-17 asks for.</summary>
+    public HistoryPage HistoryPageResult { get; set; } =
+        new([], HasNext: false, HasPrev: false, NextCursor: null, PrevCursor: null);
+
+    /// <summary>The filter the use case handed over, so a test can check it arrived unchanged.</summary>
+    public HistoryFilter? HistoryFilterSeen { get; private set; }
+
+    /// <summary>The page request the use case handed over, for the same reason.</summary>
+    public HistoryPageRequest? HistoryPageSeen { get; private set; }
+
+    /// <summary>The raw rows the breakdown is assembled from. Empty means the period recorded nothing.</summary>
+    public List<BreakdownCategoryRow> BreakdownRows { get; } = [];
+
+    /// <summary>The period the use case handed over, so a test can check the range it built.</summary>
+    public DateRange? BreakdownPeriodSeen { get; private set; }
+
+    /// <summary>The account filter the use case handed over.</summary>
+    public Guid? BreakdownAccountIdSeen { get; private set; }
+
     public Task<IReadOnlyList<AccountBalanceRow>> GetAccountBalancesAsync(
         Guid? accountId,
         CancellationToken cancellationToken)
@@ -84,14 +103,26 @@ internal sealed class FakeLedgerQueries(
     public Task<HistoryPage> GetHistoryPageAsync(
         HistoryFilter filter,
         HistoryPageRequest page,
-        CancellationToken cancellationToken) =>
-        throw new NotSupportedException("No use case tested here reads history.");
+        CancellationToken cancellationToken)
+    {
+        TokensSeen.Add(cancellationToken);
+        HistoryFilterSeen = filter;
+        HistoryPageSeen = page;
+
+        return Task.FromResult(HistoryPageResult);
+    }
 
     public Task<IReadOnlyList<BreakdownCategoryRow>> GetBreakdownAsync(
         DateRange period,
         Guid? accountId,
-        CancellationToken cancellationToken) =>
-        throw new NotSupportedException("No use case tested here reads the breakdown.");
+        CancellationToken cancellationToken)
+    {
+        TokensSeen.Add(cancellationToken);
+        BreakdownPeriodSeen = period;
+        BreakdownAccountIdSeen = accountId;
+
+        return Task.FromResult<IReadOnlyList<BreakdownCategoryRow>>([.. BreakdownRows]);
+    }
 
     private AccountBalanceRow ToRow(Account account) =>
         new(

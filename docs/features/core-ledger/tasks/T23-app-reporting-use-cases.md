@@ -7,7 +7,8 @@ acs: ["AC-16", "AC-17", "AC-18", "AC-19", "AC-20"]
 files_hint: ["src/FinNavis.Application/Reporting/", "tests/FinNavis.Application.UnitTests/Reporting/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T23 — Write the history and breakdown use cases
@@ -32,15 +33,15 @@ current tool can never give (PRD §1) — *"one request, group totals and catego
 
 ## Definition of Done
 
-- [ ] `GetHistory_FilteredByPeriodAccountAndCategory_ReturnsMarkedRows` passes (AC-16)
-- [ ] `GetHistory_EmptyPeriod_ReturnsEmptyPageNotFailure` passes (AC-17)
-- [ ] `GetBreakdown_Period_ReturnsGroupAndCategoryTotalsSidesApart` passes (AC-18)
-- [ ] `GetBreakdown_GroupTotalsPlusDefaultGroup_EqualPeriodTotal` passes on the spending side and
+- [x] `GetHistory_FilteredByPeriodAccountAndCategory_ReturnsMarkedRows` passes (AC-16)
+- [x] `GetHistory_EmptyPeriod_ReturnsEmptyPageNotFailure` passes (AC-17)
+- [x] `GetBreakdown_Period_ReturnsGroupAndCategoryTotalsSidesApart` passes (AC-18)
+- [x] `GetBreakdown_GroupTotalsPlusDefaultGroup_EqualPeriodTotal` passes on the spending side and
       the earning side alike (AC-19)
-- [ ] `GetBreakdown_PeriodWithTransfers_CountsNoTransfer` passes (AC-20)
-- [ ] the Default group bucket is **assembled, never stored** — no repository write happens in
+- [x] `GetBreakdown_PeriodWithTransfers_CountsNoTransfer` passes (AC-20)
+- [x] the Default group bucket is **assembled, never stored** — no repository write happens in
       either use case
-- [ ] unit tests touch no database and no network
+- [x] unit tests touch no database and no network
 
 ## Notes
 
