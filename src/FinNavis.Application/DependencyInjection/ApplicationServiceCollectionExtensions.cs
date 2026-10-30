@@ -2,6 +2,7 @@ using FinNavis.Application.Accounts;
 using FinNavis.Application.Categories;
 using FinNavis.Application.CategoryGroups;
 using FinNavis.Application.Transactions;
+using FinNavis.Application.Transfers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FinNavis.Application.DependencyInjection;
@@ -38,6 +39,10 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<RecordTransaction>();
         services.AddScoped<EditTransaction>();
         services.AddScoped<RemoveTransaction>();
+
+        services.AddScoped<RecordTransfer>();
+        services.AddScoped<EditTransfer>();
+        services.AddScoped<RemoveTransfer>();
 
         return services;
     }

@@ -7,7 +7,8 @@ acs: ["AC-04", "AC-05", "AC-06", "AC-23", "AC-25"]
 files_hint: ["src/FinNavis.Application/Transfers/", "tests/FinNavis.Application.UnitTests/Transfers/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T22 — Write the three transfer use cases
@@ -34,16 +35,16 @@ Derives from [PRD US-02, US-08, §AC-04 to §AC-06, §AC-23, §AC-25](../PRD.md)
 
 ## Definition of Done
 
-- [ ] `RecordTransfer_TwoAccounts_SourceFallsDestinationRises_TotalUnchanged` passes (AC-04)
-- [ ] `RecordTransfer_SameAccountBothSides_IsRefused` returns `Transfer.SameAccount` with the AC-05
+- [x] `RecordTransfer_TwoAccounts_SourceFallsDestinationRises_TotalUnchanged` passes (AC-04)
+- [x] `RecordTransfer_SameAccountBothSides_IsRefused` returns `Transfer.SameAccount` with the AC-05
       wording (AC-05)
-- [ ] `RecordTransfer_CommitFails_NeitherAccountChanges` passes — the transfer is never applied to
+- [x] `RecordTransfer_CommitFails_NeitherAccountChanges` passes — the transfer is never applied to
       one side only (AC-06)
-- [ ] `EditTransfer_GivenACategory_IsRefused` returns `Transfer.CategoryNotAllowed` with the AC-23
+- [x] `EditTransfer_GivenACategory_IsRefused` returns `Transfer.CategoryNotAllowed` with the AC-23
       wording (AC-23)
-- [ ] an unknown transfer or account id returns the matching `*.NotFound` and changes nothing
+- [x] an unknown transfer or account id returns the matching `*.NotFound` and changes nothing
       (AC-25)
-- [ ] unit tests touch no database and no network
+- [x] unit tests touch no database and no network
 
 ## Notes
 

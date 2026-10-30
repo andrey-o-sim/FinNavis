@@ -22,18 +22,21 @@ namespace FinNavis.Application.UnitTests.Fakes;
 /// Given the transaction and category stores it also sums the recorded movements into each
 /// balance, the way ADR-0002 says a balance is produced: nothing is stored, and the direction of
 /// an entry comes from its category's side rather than from a sign on the amount
-/// (<c>data-model.md</c> decision 3). That is what lets a test read a balance fall after a
-/// recording instead of being told it did.
+/// (<c>data-model.md</c> decision 3). Given the transfer store it sums those too, taking the
+/// amount off the source and putting it on the destination. That is what lets a test read a
+/// balance move after a recording instead of being told it did.
 /// </para>
 /// </remarks>
 internal sealed class FakeLedgerQueries(
     FakeAccountRepository? accounts = null,
     FakeTransactionRepository? transactions = null,
-    FakeCategoryRepository? categories = null) : ILedgerQueries
+    FakeCategoryRepository? categories = null,
+    FakeTransferRepository? transfers = null) : ILedgerQueries
 {
     private readonly FakeAccountRepository _accounts = accounts ?? new FakeAccountRepository();
     private readonly FakeTransactionRepository _transactions = transactions ?? new FakeTransactionRepository();
     private readonly FakeCategoryRepository _categories = categories ?? new FakeCategoryRepository();
+    private readonly FakeTransferRepository _transfers = transfers ?? new FakeTransferRepository();
 
     /// <summary>What each account holds. An account with no entry here holds nothing.</summary>
     public Dictionary<Guid, decimal> Balances { get; } = [];
@@ -96,10 +99,14 @@ internal sealed class FakeLedgerQueries(
             account.Name,
             new Money(Balances.GetValueOrDefault(account.Id) + RecordedMovement(account.Id)));
 
+    // The three-part sum of ADR-0001: the transactions on the account, minus the transfers out of
+    // it, plus the transfers into it.
     private decimal RecordedMovement(Guid accountId) =>
-        _transactions.Stored
-            .Where(transaction => transaction.AccountId == accountId)
-            .Sum(Signed);
+        _transactions.Stored.Where(transaction => transaction.AccountId == accountId).Sum(Signed)
+        - _transfers.Stored.Where(transfer => transfer.SourceAccountId == accountId)
+            .Sum(transfer => transfer.Amount.Amount)
+        + _transfers.Stored.Where(transfer => transfer.DestinationAccountId == accountId)
+            .Sum(transfer => transfer.Amount.Amount);
 
     // The amount is always positive; the category's side is what makes the entry add or subtract.
     private decimal Signed(Transaction transaction)
