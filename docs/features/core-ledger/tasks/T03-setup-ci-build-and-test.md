@@ -7,7 +7,8 @@ acs: []
 files_hint: [".github/workflows/ci.yml"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T03 — Add the CI job that builds the solution and runs every test
@@ -29,10 +30,10 @@ ledger code.
 
 ## Definition of Done
 
-- [ ] the workflow runs `./build.sh build` and `./build.sh test` and both steps are required
-- [ ] a deliberately failing test turns the job red
-- [ ] the Testcontainers integration tests run (not skipped) on the runner
-- [ ] no secret, connection string or key appears in the workflow file (`CLAUDE.md` Safety)
+- [x] the workflow runs `./build.sh build` and `./build.sh test` and both steps are required
+- [x] a deliberately failing test turns the job red
+- [x] the Testcontainers integration tests run (not skipped) on the runner
+- [x] no secret, connection string or key appears in the workflow file (`CLAUDE.md` Safety)
 
 ## Notes
 

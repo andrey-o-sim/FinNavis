@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|---|
 | T01 | Compose stack with PostgreSQL 18 | wiring | Andrey Simonenko | S | — | done |
 | T02 | Testcontainers PostgreSQL 18 fixture | tests | Andrey Simonenko | M | — | done |
-| T03 | CI job: build + test | wiring | Andrey Simonenko | S | T02 | todo |
+| T03 | CI job: build + test | wiring | Andrey Simonenko | S | T02 | done |
 | T04 | ADR for the `*.NotFound` module | docs | Andrey Simonenko | S | — | done |
 | T05 | Domain primitives | domain | Andrey Simonenko | S | — | done |
 | T06 | `Account` + `IAccountRepository` | domain | Andrey Simonenko | S | T05 | done |

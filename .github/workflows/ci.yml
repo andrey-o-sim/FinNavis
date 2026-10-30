@@ -1,0 +1,44 @@
+name: CI
+
+# Every change reaches master through a pull request (.claude/rules/git.md), so scoping both
+# triggers to master covers the whole flow: the pull request before the merge, the push after it.
+# A branch with no pull request open yet is still built locally by the same two tasks.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install the .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # The integration suite starts a real PostgreSQL 18 container through Testcontainers. If the
+      # runner image ever drops Docker, this fails here with a clear message instead of failing
+      # inside the first test that tries to start the container.
+      - name: Check that Docker is available
+        run: docker version
+
+      # Warnings are errors in Directory.Build.props, so a warning fails this step.
+      - name: Build
+        run: ./build.sh build
+
+      # Runs every test project: domain, application, architecture and the Testcontainers
+      # integration suite. The architecture tests guard the dependency rule and are not excluded.
+      - name: Test
+        run: ./build.sh test
