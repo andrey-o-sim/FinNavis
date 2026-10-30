@@ -7,7 +7,8 @@ acs: ["AC-01", "AC-03", "AC-21", "AC-22", "AC-24", "AC-25"]
 files_hint: ["src/FinNavis.Application/Transactions/", "tests/FinNavis.Application.UnitTests/Transactions/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T21 — Write the three transaction use cases
@@ -34,17 +35,17 @@ Derives from [PRD US-01, US-08, §AC-01 to §AC-03, §AC-21, §AC-22, §AC-24, �
 
 ## Definition of Done
 
-- [ ] `RecordTransaction_ValidInput_RecordedWithNote` passes, and the account balance falls by the
+- [x] `RecordTransaction_ValidInput_RecordedWithNote` passes, and the account balance falls by the
       amount on the next read (AC-01)
-- [ ] `RecordTransaction_UnknownCategory_IsRefusedAndCreatesNothing` returns
+- [x] `RecordTransaction_UnknownCategory_IsRefusedAndCreatesNothing` returns
       `Category.NotFound`, and no category row appears (AC-03)
-- [ ] `EditTransaction_NewAmount_AppliedInPlace` passes with no reversing entry (AC-21)
-- [ ] `RemoveTransaction_Entry_DisappearsFromHistory` passes (AC-22)
-- [ ] `EditTransaction_SecondAccount_IsRefused` returns `Transaction.KindChangeNotAllowed` with the
+- [x] `EditTransaction_NewAmount_AppliedInPlace` passes with no reversing entry (AC-21)
+- [x] `RemoveTransaction_Entry_DisappearsFromHistory` passes (AC-22)
+- [x] `EditTransaction_SecondAccount_IsRefused` returns `Transaction.KindChangeNotAllowed` with the
       AC-24 wording (AC-24)
-- [ ] an unknown transaction id returns `Transaction.NotFound` and changes nothing (AC-25)
-- [ ] `external_ref` is left **null** on every write (ADR-0006)
-- [ ] unit tests touch no database and no network
+- [x] an unknown transaction id returns `Transaction.NotFound` and changes nothing (AC-25)
+- [x] `external_ref` is left **null** on every write (ADR-0006)
+- [x] unit tests touch no database and no network
 
 ## Notes
 
