@@ -4,7 +4,9 @@ WORKDIR /src
 
 # Restore before the sources are copied, so an edit that leaves the csproj files untouched
 # reuses the restore layer.
-COPY Directory.Build.props ./
+# .editorconfig carries the analyser rules, and Directory.Build.props turns warnings into errors.
+# Without it the image compiles under a different ruleset than ./build.sh and CI.
+COPY Directory.Build.props .editorconfig ./
 COPY src/FinNavis.Domain/FinNavis.Domain.csproj src/FinNavis.Domain/
 COPY src/FinNavis.Application/FinNavis.Application.csproj src/FinNavis.Application/
 COPY src/FinNavis.Infrastructure/FinNavis.Infrastructure.csproj src/FinNavis.Infrastructure/
