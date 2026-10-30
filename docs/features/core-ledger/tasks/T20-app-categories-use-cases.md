@@ -7,7 +7,8 @@ acs: ["AC-11", "AC-12", "AC-13", "AC-30", "AC-32", "AC-33", "AC-34", "AC-36"]
 files_hint: ["src/FinNavis.Application/Categories/", "tests/FinNavis.Application.UnitTests/Categories/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T20 — Write the five category use cases
@@ -38,18 +39,18 @@ Derives from [PRD US-04, US-10, §AC-11 to §AC-13, §AC-30, §AC-32 to §AC-34,
 
 ## Definition of Done
 
-- [ ] `CreateCategory_WithAndWithoutGroup_BecomesAvailableToName` passes (AC-11)
-- [ ] `DeleteCategory_NamedByATransaction_IsRefused` returns `Category.HasRecordedHistory` (AC-12)
-- [ ] `MoveCategoryToGroup_CategoryWithHistory_FigureUnchanged` passes, and moving out of every
+- [x] `CreateCategory_WithAndWithoutGroup_BecomesAvailableToName` passes (AC-11)
+- [x] `DeleteCategory_NamedByATransaction_IsRefused` returns `Category.HasRecordedHistory` (AC-12)
+- [x] `MoveCategoryToGroup_CategoryWithHistory_FigureUnchanged` passes, and moving out of every
       group works too (AC-13)
-- [ ] `PlaceCategory_GroupOnOtherSide_IsRefused` returns `Category.GroupKindMismatch` (AC-30)
-- [ ] `CreateCategory_UnknownGroup_IsRefusedAndCreatesNothing` returns `CategoryGroup.NotFound`
+- [x] `PlaceCategory_GroupOnOtherSide_IsRefused` returns `Category.GroupKindMismatch` (AC-30)
+- [x] `CreateCategory_UnknownGroup_IsRefusedAndCreatesNothing` returns `CategoryGroup.NotFound`
       (AC-32)
-- [ ] `ListCategories_AllAndNarrowedToOneGroup_ReturnsNameSideAndGroup` passes (AC-33)
-- [ ] `RenameCategory_CategoryWithHistory_KeepsClosedPeriodFigure` passes (AC-34)
-- [ ] `CreateCategory_NameTakenOnSameSide_IsRefused` returns `Category.DuplicateName`, and the same
+- [x] `ListCategories_AllAndNarrowedToOneGroup_ReturnsNameSideAndGroup` passes (AC-33)
+- [x] `RenameCategory_CategoryWithHistory_KeepsClosedPeriodFigure` passes (AC-34)
+- [x] `CreateCategory_NameTakenOnSameSide_IsRefused` returns `Category.DuplicateName`, and the same
       name on the other side is accepted (AC-36)
-- [ ] unit tests touch no database and no network
+- [x] unit tests touch no database and no network
 
 ## Notes
 

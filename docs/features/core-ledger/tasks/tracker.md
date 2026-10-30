@@ -26,7 +26,7 @@
 | T17 | DI registration, composition root | wiring | Andrey Simonenko | S | T01, T13, T14, T15, T16 | done |
 | T18 | 4 account use cases | app | Andrey Simonenko | M | T13, T14 | done |
 | T19 | 4 category-group use cases | app | Andrey Simonenko | M | T13 | done |
-| T20 | 5 category use cases | app | Andrey Simonenko | L | T13, T14 | todo |
+| T20 | 5 category use cases | app | Andrey Simonenko | L | T13, T14 | done |
 | T21 | 3 transaction use cases | app | Andrey Simonenko | M | T13 | todo |
 | T22 | 3 transfer use cases | app | Andrey Simonenko | M | T13 | todo |
 | T23 | History + breakdown use cases | app | Andrey Simonenko | M | T15, T16 | todo |
