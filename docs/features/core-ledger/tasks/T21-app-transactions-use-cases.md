@@ -37,7 +37,7 @@ Derives from [PRD US-01, US-08, §AC-01 to §AC-03, §AC-21, §AC-22, §AC-24, �
 - [ ] `RecordTransaction_ValidInput_RecordedWithNote` passes, and the account balance falls by the
       amount on the next read (AC-01)
 - [ ] `RecordTransaction_UnknownCategory_IsRefusedAndCreatesNothing` returns
-      `Transaction.CategoryNotFound`, and no category row appears (AC-03)
+      `Category.NotFound`, and no category row appears (AC-03)
 - [ ] `EditTransaction_NewAmount_AppliedInPlace` passes with no reversing entry (AC-21)
 - [ ] `RemoveTransaction_Entry_DisappearsFromHistory` passes (AC-22)
 - [ ] `EditTransaction_SecondAccount_IsRefused` returns `Transaction.KindChangeNotAllowed` with the

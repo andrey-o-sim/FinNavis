@@ -35,7 +35,7 @@ One consequence to carry into the report every run until `src/` handles it: **AS
 | `201` | Created. `Location` header to the new resource | — |
 | `204` | Done, nothing to return (a delete) | — |
 | `400` | The request shape or a value is wrong | `Transaction.AmountOutOfRange` |
-| `404` | It does not exist. **Plain not-found, not existence-hiding** — there is nobody to hide it from | `Transaction.CategoryNotFound` |
+| `404` | It does not exist. **Plain not-found, not existence-hiding** — there is nobody to hide it from | `Category.NotFound` |
 | `409` | It exists but the state or a uniqueness rule refuses | `Account.HasRecordedHistory` |
 | `5xx` | The server broke. No code catalogued; it is not a domain outcome | — |
 
@@ -56,15 +56,15 @@ Every code traces to something. In order of strength:
 | Source | Shape | Example |
 |---|---|---|
 | A `UNIQUE` constraint in `data-model.md` | `<Entity>.Duplicate<Field>` | `Account.DuplicateName` |
-| A foreign key | `<Entity>.<Ref>NotFound` | `Transaction.CategoryNotFound` |
+| A foreign key | `<Ref>.NotFound` — the module is the aggregate **not found**, not the one being operated on (`docs/adr/0004`). A role qualifier only when one request can miss the same aggregate twice | `Category.NotFound`; `Account.SourceNotFound` |
 | A domain invariant named by an AC | named after the rule, not the code path | `Account.HasRecordedHistory` |
 | An `alt`-branch label in `sad.md` §6 | named after the branch | `Import.UnknownAccount` |
 | A validation bound (`varchar(N)`, a range) | `<Entity>.<Field>Invalid` or `OutOfRange` | `Transaction.AmountOutOfRange` |
 
 `Module` is the aggregate in the **singular**, PascalCase, from `docs/GLOSSARY.md`: `Account`,
 `Transaction`, `Transfer`, `Category`, `CategoryGroup`, `Import`, `MappingProfile`. It reads like a
-C# class because the registry makes it one — `CategoryErrors.GroupNotFound` returns
-`"Category.GroupNotFound"` — but it is still the domain word, not the table name and not the path
+C# class because the registry makes it one — `CategoryGroupErrors.NotFound` returns
+`"CategoryGroup.NotFound"` — but it is still the domain word, not the table name and not the path
 segment.
 
 A code with no source in that table is invented. Ask the user where the refusal comes from, or drop

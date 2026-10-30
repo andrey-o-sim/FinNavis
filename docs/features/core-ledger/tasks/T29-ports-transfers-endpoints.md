@@ -34,8 +34,8 @@ Same per-operation rules as [T25](./T25-ports-accounts-endpoints.md).
 - [ ] source equal to destination returns `400` with `Transfer.SameAccount` and the AC-05 wording
       (AC-05)
 - [ ] a failed commit leaves neither account changed and returns `Transfer.NotRecorded` (AC-06)
-- [ ] an unknown source or destination returns `404` with `Transfer.SourceAccountNotFound` or
-      `Transfer.DestinationAccountNotFound`
+- [ ] an unknown source or destination returns `404` with `Account.SourceNotFound` or
+      `Account.DestinationNotFound`
 - [ ] attempting to set a category on `PATCH` returns the contract's status with
       `Transfer.CategoryNotAllowed` and the AC-23 wording (AC-23)
 - [ ] every `4xx` carries the flat envelope

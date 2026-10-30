@@ -22,7 +22,7 @@ Derives from [PRD US-02, US-08, §AC-04 to §AC-06, §AC-23, §AC-25](../PRD.md)
 `Transfers/Record`, `Transfers/Edit`, `Transfers/Remove`.
 
 - **Record** — loads both accounts. If either is missing, refuse with
-  `Transfer.SourceAccountNotFound` or `Transfer.DestinationAccountNotFound` (AC-25). Build the
+  `Account.SourceNotFound` or `Account.DestinationNotFound` (AC-25). Build the
   `Transfer`; the entity refuses a same-account transfer (AC-05). Add and commit in one unit of
   work: if the commit fails, neither account changes (AC-06).
 - The source falls and the destination rises by the same amount, and the total across all accounts

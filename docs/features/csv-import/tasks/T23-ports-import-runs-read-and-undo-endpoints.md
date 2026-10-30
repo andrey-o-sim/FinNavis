@@ -29,7 +29,7 @@ records:
   default 50. The page wrapper carries `{items, has_next, has_prev, next_cursor, prev_cursor}`.
 - `Undo/` — `POST /api/v1/import-runs/{import_run_id}/undo`. Answers the run as `Undone` (AC-16).
 
-The refusals: `Import.RunNotFound`, `Import.InvalidPaging`, `Import.MovementsChangedByHand` with
+The refusals: `Import.NotFound`, `Import.InvalidPaging`, `Import.MovementsChangedByHand` with
 the changed rows in `details` (AC-18), and `Import.AlreadyUndone` on a second undo.
 
 ## Definition of Done

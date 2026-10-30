@@ -45,7 +45,7 @@ Handlers follow the contract, never the other way round
 - [ ] Confirm answers `201` on a new shape and `200` on a re-confirm, and the rules are found by
       shape key afterwards (AC-01)
 - [ ] A rule pointing at an unknown category returns the flat envelope with
-      `code: MappingProfile.CategoryNotFound` and the PRD §10 wording, with the id and the file's
+      `code: Category.NotFound` and the PRD §10 wording, with the id and the file's
       own category text in `details` (AC-02)
 - [ ] A file naming no date or amount returns `Import.MissingRequiredColumn` naming which (AC-03)
 - [ ] Every JSON key is snake_case, including inside `details`

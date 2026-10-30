@@ -152,16 +152,22 @@ get broken most often.
   operation owns its own shape, so changing one response can never silently change another endpoint.
 - Never return Domain entities from an endpoint.
 - **Every error response is the flat envelope `{code, message, details?}`** — not RFC 9457 Problem
-  Details. `code` is `Module.ErrorName` in PascalCase (`Transaction.CategoryNotFound`,
+  Details. `code` is `Module.ErrorName` in PascalCase (`Category.NotFound`,
   `Account.HasRecordedHistory`) and is what a client switches on; `message` is the refusal wording
   from the PRD acceptance criteria, not invented; `details` is optional and carries field-level
   validation only. One `code` in a contract equals one constant in the error registry, returning the
-  same string — the class is the module and the member is the name, so `CategoryErrors.GroupNotFound`
-  is `"Category.GroupNotFound"`. **The code is the one PascalCase value in a snake_case body:** JSON
+  same string — the class is the module and the member is the name, so `CategoryGroupErrors.NotFound`
+  is `"CategoryGroup.NotFound"`. **The code is the one PascalCase value in a snake_case body:** JSON
   keys, including every key inside `details`, stay snake_case. See
   `docs/adr/0003-spell-an-error-code-in-pascalcase.md` for the spelling,
   `docs/adr/0002-return-a-flat-error-envelope-instead-of-problem-details.md` for the envelope, and
   `.claude/rules/openapi.md`.
+- **In a `*.NotFound` code the module is the aggregate that was not found**, never the aggregate the
+  request was operating on — so a transaction that names an unknown category refuses with
+  `Category.NotFound`, the same code `renameCategory` returns. The name carries a role qualifier
+  only when one request can miss the same aggregate twice: `Account.SourceNotFound` and
+  `Account.DestinationNotFound` on a transfer. See
+  `docs/adr/0004-name-the-not-found-aggregate-in-the-module.md`.
 - **ASP.NET Core produces `application/problem+json` by default** — for routing 404s, model-binding
   failures, `Results.ValidationProblem` and anything under `AddProblemDetails`. Turn that default
   off and route every failure through the one envelope. Otherwise the API answers with two error

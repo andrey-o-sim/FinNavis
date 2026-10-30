@@ -21,6 +21,16 @@
 #   3. Every operation now names its Presentation/Endpoints/<Resource>/<Operation>/ folder, taken
 #      from sad.md §5. The lint checklist asks for it and run 2 had none.
 #   info.version stays 0.1.0 — nothing has shipped against it, so there is no consumer to break.
+#
+# Run 4 (--reconcile, 2026-10-30): docs/adr/0004 settled the finding run 3 parked. In a *.NotFound
+#   code the module names the aggregate that was NOT FOUND, never the aggregate the request was
+#   operating on. Four codes changed and 27 became 25:
+#     Transaction.AccountNotFound          -> Account.NotFound             (merged)
+#     Transaction.CategoryNotFound         -> Category.NotFound            (merged)
+#     Transfer.SourceAccountNotFound       -> Account.SourceNotFound       (renamed)
+#     Transfer.DestinationAccountNotFound  -> Account.DestinationNotFound  (renamed)
+#   csv-import moved in the same change, so the repository carries one convention.
+#   info.version stays 0.1.0 — still nothing shipped against it.
 openapi: 3.1.0
 
 info:
@@ -773,12 +783,12 @@ paths:
                 account_missing:
                   summary: The named account is unknown
                   value:
-                    code: "Transaction.AccountNotFound"
+                    code: "Account.NotFound"
                     message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
                 category_missing:
                   summary: The named category is unknown
                   value:
-                    code: "Transaction.CategoryNotFound"
+                    code: "Category.NotFound"
                     message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000cafe."
 
     delete:
@@ -921,12 +931,12 @@ paths:
                 source_missing:
                   summary: The source account is unknown
                   value:
-                    code: "Transfer.SourceAccountNotFound"
+                    code: "Account.SourceNotFound"
                     message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
                 destination_missing:
                   summary: The destination account is unknown
                   value:
-                    code: "Transfer.DestinationAccountNotFound"
+                    code: "Account.DestinationNotFound"
                     message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000cafe."
         "500":
           $ref: "#/components/responses/TransferNotRecorded"
@@ -1343,12 +1353,12 @@ components:
             account_missing:
               summary: The named account is unknown
               value:
-                code: "Transaction.AccountNotFound"
+                code: "Account.NotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
             category_missing:
               summary: AC-03 — the named category is unknown
               value:
-                code: "Transaction.CategoryNotFound"
+                code: "Category.NotFound"
                 message: "No category in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
                 details:
                   category_id: "01937a1e-0000-7000-8000-00000000beef"
@@ -1381,12 +1391,12 @@ components:
             source_missing:
               summary: The source account is unknown
               value:
-                code: "Transfer.SourceAccountNotFound"
+                code: "Account.SourceNotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000dead."
             destination_missing:
               summary: The destination account is unknown
               value:
-                code: "Transfer.DestinationAccountNotFound"
+                code: "Account.DestinationNotFound"
                 message: "No account in the ledger has id 01937a1e-0000-7000-8000-00000000beef."
 
     TransferNotRecorded:
@@ -1421,15 +1431,21 @@ components:
         `"CategoryGroup.NotFound"`.
 
         **One code per refusal.** Two codes that carry the same message describe one refusal and
-        make a client's `switch` go stale, so they are merged. The module names the aggregate
-        that was **not found**, not the aggregate the request was operating on.
+        make a client's `switch` go stale, so they are merged.
+
+        **In a `*.NotFound` code the module is the aggregate that was not found**, never the
+        aggregate the request was operating on — `docs/adr/0004-name-the-not-found-aggregate-in-the-module.md`
+        (Accepted, 2026-10-30), which fills a gap ADR-0003 left open. The name carries a role
+        qualifier only when one request can fail to find that same aggregate twice, which is why
+        a transfer answers `Account.SourceNotFound` and `Account.DestinationNotFound` while a
+        transaction answers plain `Account.NotFound`.
       required: [code, message]
       additionalProperties: false
       properties:
         code:
           type: string
           pattern: "^[A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*$"
-          example: "Transaction.CategoryNotFound"
+          example: "CategoryGroup.NotFound"
         message:
           type: string
           description: |

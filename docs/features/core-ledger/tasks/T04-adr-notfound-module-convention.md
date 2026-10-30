@@ -7,7 +7,8 @@ acs: []
 files_hint: ["docs/adr/", "docs/features/core-ledger/contracts/openapi.yaml", "docs/features/core-ledger/contracts/api-sync-report.md", "docs/features/csv-import/contracts/openapi.yaml"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T04 — Decide by ADR what the module names in a `*.NotFound` error code
@@ -35,11 +36,11 @@ test that asserts a code.
 
 ## Definition of Done
 
-- [ ] the ADR states the rule in one sentence, with the honest cost of the option not taken
-- [ ] every `*.NotFound` code in both contracts matches the rule
-- [ ] both contracts still satisfy the `Error.code` pattern `^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$`
-- [ ] `core-ledger/contracts/api-sync-report.md` no longer lists the convention under Section D
-- [ ] `CLAUDE.md` §API and `.claude/rules/openapi.md` §7 are updated if the rule changes what they
+- [x] the ADR states the rule in one sentence, with the honest cost of the option not taken
+- [x] every `*.NotFound` code in both contracts matches the rule
+- [x] both contracts still satisfy the `Error.code` pattern `^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$`
+- [x] `core-ledger/contracts/api-sync-report.md` no longer lists the convention under Section D
+- [x] `CLAUDE.md` §API and `.claude/rules/openapi.md` §7 are updated if the rule changes what they
       say
 
 ## Notes

@@ -35,7 +35,7 @@ clients and loses the fourth decimal place of `NUMERIC(19,4)` (deviation 2).
       by the amount (AC-01)
 - [ ] an amount of zero or below returns `400` with `Transaction.AmountNotPositive` and the PRD's
       wording (AC-02)
-- [ ] an unknown category returns `404` with `Transaction.CategoryNotFound` and creates no category
+- [ ] an unknown category returns `404` with `Category.NotFound` and creates no category
       (AC-03)
 - [ ] `PATCH` on the amount changes every affected balance on the next read (AC-21)
 - [ ] `DELETE` removes the entry from history and the balances return to what they would have been

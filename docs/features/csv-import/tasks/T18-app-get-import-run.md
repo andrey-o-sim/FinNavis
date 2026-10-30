@@ -41,7 +41,7 @@ aggregate read through its own repository, not an aggregation across the ledger.
 - [ ] Nothing in the use case can turn a set-aside row into a movement (AC-14)
 - [ ] The read goes through `IImportRunRepository` and calls no method on `IImportQueries`
 - [ ] A run id that does not exist produces the not-found outcome the contract maps to
-      `Import.RunNotFound`
+      `Import.NotFound`
 - [ ] `./build.sh test` is green
 
 ## Notes

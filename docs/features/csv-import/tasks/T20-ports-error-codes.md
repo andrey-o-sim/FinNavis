@@ -26,7 +26,7 @@ four refusals whose wording PRD §10 fixes.
 
 Two classes in `src/FinNavis.Presentation/Errors/`, next to the registry `core-ledger` created:
 **`MappingProfileErrors`** and **`ImportErrors`**. The class is the module, the member is the name,
-so `ImportErrors.AccountNotFound` returns `"Import.AccountNotFound"`
+so `MappingProfileErrors.InvalidRule` returns `"MappingProfile.InvalidRule"`
 ([docs/adr/0003](../../../adr/0003-spell-an-error-code-in-pascalcase.md)).
 
 The twelve codes, read from [openapi.yaml](../contracts/openapi.yaml):

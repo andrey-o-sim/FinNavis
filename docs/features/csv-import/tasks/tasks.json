@@ -187,7 +187,7 @@
       "layer": "ports",
       "deps": ["T13", "T15", "T20"],
       "acs": ["AC-01", "AC-02", "AC-03"],
-      "dod": "POST /api/v1/mapping-profiles/inspect and POST /api/v1/mapping-profiles match contracts/openapi.yaml on every request and response field, each operation owns its own records in its own folder shared with nothing, confirm answers 201 on a new shape and 200 on a re-confirm (AC-01), an unknown category returns the flat envelope with code MappingProfile.CategoryNotFound (AC-02), a file with no date or amount returns Import.MissingRequiredColumn (AC-03), and every JSON key is snake_case.",
+      "dod": "POST /api/v1/mapping-profiles/inspect and POST /api/v1/mapping-profiles match contracts/openapi.yaml on every request and response field, each operation owns its own records in its own folder shared with nothing, confirm answers 201 on a new shape and 200 on a re-confirm (AC-01), an unknown category returns the flat envelope with code Category.NotFound (AC-02), a file with no date or amount returns Import.MissingRequiredColumn (AC-03), and every JSON key is snake_case.",
       "files_hint": ["src/FinNavis.Presentation/Endpoints/MappingProfiles/", "src/FinNavis.Presentation/Program.cs"]
     },
     {
@@ -196,7 +196,7 @@
       "layer": "ports",
       "deps": ["T13", "T16", "T17", "T20"],
       "acs": ["AC-05", "AC-09", "AC-13", "AC-22"],
-      "dod": "POST /api/v1/import-runs/statement and POST /api/v1/import-runs/history-migration take the file as multipart and answer 200 with recorded_row_count, already_present_row_count and the full set_aside list (AC-05, AC-13), an unknown named account returns Import.AccountNotFound (AC-09) and an unconfirmed shape returns 409 Import.MappingProfileNotConfirmed, a failed load returns Import.NotRecorded with nothing written (AC-22), each operation owns its own records, and no response is application/problem+json.",
+      "dod": "POST /api/v1/import-runs/statement and POST /api/v1/import-runs/history-migration take the file as multipart and answer 200 with recorded_row_count, already_present_row_count and the full set_aside list (AC-05, AC-13), an unknown named account returns Account.NotFound (AC-09) and an unconfirmed shape returns 409 Import.MappingProfileNotConfirmed, a failed load returns Import.NotRecorded with nothing written (AC-22), each operation owns its own records, and no response is application/problem+json.",
       "files_hint": ["src/FinNavis.Presentation/Endpoints/ImportRuns/LoadStatement/", "src/FinNavis.Presentation/Endpoints/ImportRuns/MigrateHistory/", "src/FinNavis.Presentation/Program.cs"]
     },
     {

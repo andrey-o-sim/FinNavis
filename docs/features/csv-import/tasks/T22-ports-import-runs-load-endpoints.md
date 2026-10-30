@@ -37,7 +37,7 @@ Both answer **`200`** with `recorded_row_count`, `already_present_row_count` and
 because `CLAUDE.md` §API fixes that shape for a batch that finished; only the *read* in T23 pages
 it.
 
-The refusals that stop a whole load: `Import.AccountNotFound` (AC-09),
+The refusals that stop a whole load: `Account.NotFound` (AC-09),
 **`409` `Import.MappingProfileNotConfirmed`**, `Import.MissingRequiredColumn`,
 `Import.FileNotReadable`, and `Import.NotRecorded` when the commit failed (AC-22).
 
@@ -49,7 +49,7 @@ The refusals that stop a whole load: `Import.AccountNotFound` (AC-09),
       responses serialise to the same shape (`CLAUDE.md` §API)
 - [ ] A finished load answers `200` with the counts and every set-aside row with its reason, in
       full (AC-05, AC-13) — a load that set rows aside is **not** an error and not a `207`
-- [ ] An unknown named account returns `Import.AccountNotFound` with the PRD §10 wording and nothing
+- [ ] An unknown named account returns `Account.NotFound` with the PRD §10 wording and nothing
       created (AC-09)
 - [ ] A file whose shape has no confirmed rules returns **`409`**, not `404`
       ([api-sync-report.md](../contracts/api-sync-report.md), decision 4)

@@ -31,6 +31,15 @@
 # drift check against PRD.md, sad.md §5/§6/§8/§11, data-model.md, the nine feature ADRs and
 # GLOSSARY.md, plus the hand lint checks. Only this comment block moved. Verdict holds at
 # PASS (with deferrals); info.version stays 0.1.0.
+#
+# Run 4 (--reconcile, 2026-10-30): docs/adr/0004 settled what the module of a *.NotFound code
+# names — the aggregate that was NOT FOUND, never the aggregate the request was operating on.
+# Three codes were re-spelled; the count stays 12 and no field, bound, path or status moved:
+#     Import.AccountNotFound           -> Account.NotFound
+#     MappingProfile.CategoryNotFound  -> Category.NotFound
+#     Import.RunNotFound               -> Import.NotFound    (the run IS the Import aggregate)
+# The first two are now the same code core-ledger returns, which is the point: the repository
+# carries one convention, so both contracts moved in one change. info.version stays 0.1.0.
 openapi: 3.1.0
 
 info:
@@ -242,7 +251,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "MappingProfile.CategoryNotFound"
+                code: "Category.NotFound"
                 message: "There is no category with that name, so a rule cannot point at it."
                 details:
                   source_category: "TEST GROCERIES"
@@ -356,7 +365,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
-                code: "Import.AccountNotFound"
+                code: "Account.NotFound"
                 message: "You do not have an account with that name, so there was nothing to load this file onto. Nothing was recorded and no account was created."
                 details:
                   account_id: "01937a1e-0000-7000-8000-00000000dead"
@@ -692,7 +701,7 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
-            code: "Import.RunNotFound"
+            code: "Import.NotFound"
             message: "No load in this installation has id 01937a1e-0000-7000-8000-00000000dead."
 
     ImportInvalidPaging:
@@ -739,8 +748,15 @@ components:
         (Accepted, 2026-10-22), which supersedes the spelling clause of ADR-0002 and nothing else.
         It is the one PascalCase value in this API: every JSON key, including the keys inside
         `details`, stays snake_case. The code maps to one constant in the registry — the class is
-        the module, the member is the name, so `ImportErrors.AccountNotFound` returns
-        `"Import.AccountNotFound"`.
+        the module, the member is the name, so `MappingProfileErrors.InvalidRule` returns
+        `"MappingProfile.InvalidRule"`.
+
+        **In a `*.NotFound` code the module is the aggregate that was not found**, never the
+        aggregate the request was operating on — `docs/adr/0004-name-the-not-found-aggregate-in-the-module.md`
+        (Accepted, 2026-10-30), which fills a gap ADR-0003 left open. That is why a missing
+        account is `Account.NotFound` here and in `core-ledger`: one refusal, one code, in both
+        features. The `message` is still each feature's own PRD §10 wording — the code is what a
+        client switches on, the sentence is what the owner reads.
 
         This envelope describes a refusal that **stopped** the whole operation. A load that
         finished with rows set aside is a `200` carrying those rows, not an error
@@ -751,7 +767,7 @@ components:
         code:
           type: string
           pattern: "^[A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*$"
-          example: "Import.AccountNotFound"
+          example: "MappingProfile.InvalidRule"
         message:
           type: string
           description: |
