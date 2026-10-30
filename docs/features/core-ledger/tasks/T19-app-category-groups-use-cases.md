@@ -7,7 +7,8 @@ acs: ["AC-26", "AC-27", "AC-28", "AC-29", "AC-31"]
 files_hint: ["src/FinNavis.Application/CategoryGroups/", "tests/FinNavis.Application.UnitTests/CategoryGroups/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
+attempts: 1
 ---
 
 # T19 — Write the four category-group use cases
@@ -34,16 +35,16 @@ name.
 
 ## Definition of Done
 
-- [ ] `CreateCategoryGroup_NamedSide_CreatedEmpty` passes (AC-26)
-- [ ] `ListCategoryGroups_ReturnsNameAndSide_IncludingEmptyGroups` passes (AC-27)
-- [ ] `RenameCategoryGroup_GroupWithCategories_KeepsEveryCategoryFigure` passes (AC-28)
-- [ ] `DeleteCategoryGroup_StillHoldingCategories_ClearsLinksAndRemovesGroup` passes — **no
+- [x] `CreateCategoryGroup_NamedSide_CreatedEmpty` passes (AC-26)
+- [x] `ListCategoryGroups_ReturnsNameAndSide_IncludingEmptyGroups` passes (AC-27)
+- [x] `RenameCategoryGroup_GroupWithCategories_KeepsEveryCategoryFigure` passes (AC-28)
+- [x] `DeleteCategoryGroup_StillHoldingCategories_ClearsLinksAndRemovesGroup` passes — **no
       category is deleted** and every one keeps all of its recorded history (AC-29)
-- [ ] the clear-and-delete runs in one unit of work; a failure part way leaves the group and every
+- [x] the clear-and-delete runs in one unit of work; a failure part way leaves the group and every
       link as they were
-- [ ] `CreateCategoryGroup_NameTakenOnSameSide_IsRefused` returns `CategoryGroup.DuplicateName`,
+- [x] `CreateCategoryGroup_NameTakenOnSameSide_IsRefused` returns `CategoryGroup.DuplicateName`,
       and the same name on the other side is accepted (AC-31)
-- [ ] unit tests touch no database and no network
+- [x] unit tests touch no database and no network
 
 ## Notes
 

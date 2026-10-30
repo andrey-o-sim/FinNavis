@@ -1,4 +1,5 @@
 using FinNavis.Application.Accounts;
+using FinNavis.Application.CategoryGroups;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FinNavis.Application.DependencyInjection;
@@ -20,6 +21,11 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<RenameAccount>();
         services.AddScoped<DeleteAccount>();
         services.AddScoped<GetAccountBalances>();
+
+        services.AddScoped<CreateCategoryGroup>();
+        services.AddScoped<ListCategoryGroups>();
+        services.AddScoped<RenameCategoryGroup>();
+        services.AddScoped<DeleteCategoryGroup>();
 
         return services;
     }
