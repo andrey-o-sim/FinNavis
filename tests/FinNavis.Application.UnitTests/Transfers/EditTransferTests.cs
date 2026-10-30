@@ -35,6 +35,23 @@ public sealed class EditTransferTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
+    // An id that is not there is answered the same way whatever else the request carries, the
+    // same order the transaction edit follows.
+    [Fact]
+    public async Task EditTransfer_UnknownIdAndACategory_IsRefusedAsNotFound()
+    {
+        Guid unknownId = Guid.CreateVersion7();
+
+        Func<Task> edit = () => EditAsync(
+            unknownId,
+            new EditTransferChanges(CategoryId: Guid.CreateVersion7()));
+
+        var refusal = (await edit.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+
+        refusal.Code.Should().Be("Transfer.NotFound");
+        _unitOfWork.Commits.Should().Be(0);
+    }
+
     // The row itself changes, with no reversing entry beside it.
     [Fact]
     public async Task EditTransfer_NewAmount_AppliedInPlace()

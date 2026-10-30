@@ -15,13 +15,15 @@ public sealed class EditTransfer(
         EditTransferChanges changes,
         CancellationToken cancellationToken)
     {
+        // Existence comes first, the same order the transaction edit follows: a request naming an
+        // id that is not there is answered the same way whatever else it carries.
+        Transfer transfer = await transfers.GetByIdAsync(transferId, cancellationToken)
+            ?? throw TransferErrors.NotFound(transferId);
+
         if (changes.CategoryId is not null)
         {
             throw TransferErrors.CategoryNotAllowed();
         }
-
-        Transfer transfer = await transfers.GetByIdAsync(transferId, cancellationToken)
-            ?? throw TransferErrors.NotFound(transferId);
 
         if (changes.SourceAccountId is Guid sourceAccountId)
         {
