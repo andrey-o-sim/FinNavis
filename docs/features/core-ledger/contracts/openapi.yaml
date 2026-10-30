@@ -542,13 +542,23 @@ paths:
                 kind: "Expense"
                 created_at: "2026-10-20T09:15:00Z"
         "400":
-          description: The name is empty or longer than 100 characters, or `kind` is not a known value
+          description: |
+            The name is empty, longer than 100 characters, or the reserved **Default group**
+            name; or `kind` is not a known value.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-              example:
-                code: "CategoryGroup.NameInvalid"
-                message: "A category group name must be between 1 and 100 characters."
+              examples:
+                name_invalid:
+                  summary: The name is empty or longer than 100 characters
+                  value:
+                    code: "CategoryGroup.NameInvalid"
+                    message: "A category group name must be between 1 and 100 characters."
+                name_reserved:
+                  summary: The breakdown already produces a bucket under this name
+                  value:
+                    code: "CategoryGroup.NameReserved"
+                    message: "'Default group' is the breakdown's own bucket, so a group cannot carry that name."
         "409":
           $ref: "#/components/responses/CategoryGroupDuplicateName"
 
@@ -613,13 +623,23 @@ paths:
                 kind: "Expense"
                 created_at: "2026-10-20T09:15:00Z"
         "400":
-          description: The name is empty or longer than 100 characters
+          description: |
+            The name is empty, longer than 100 characters, or the reserved **Default group**
+            name.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-              example:
-                code: "CategoryGroup.NameInvalid"
-                message: "A category group name must be between 1 and 100 characters."
+              examples:
+                name_invalid:
+                  summary: The name is empty or longer than 100 characters
+                  value:
+                    code: "CategoryGroup.NameInvalid"
+                    message: "A category group name must be between 1 and 100 characters."
+                name_reserved:
+                  summary: The breakdown already produces a bucket under this name
+                  value:
+                    code: "CategoryGroup.NameReserved"
+                    message: "'Default group' is the breakdown's own bucket, so a group cannot carry that name."
         "404":
           $ref: "#/components/responses/CategoryGroupNotFound"
         "409":

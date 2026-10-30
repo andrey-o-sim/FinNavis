@@ -1,9 +1,7 @@
 using FinNavis.Application.Abstractions;
-using FinNavis.Application.Common;
 using FinNavis.Domain.Abstractions;
 using FinNavis.Domain.Entities;
 using FinNavis.Domain.Enums;
-using FinNavis.Domain.Errors;
 
 namespace FinNavis.Application.CategoryGroups;
 
@@ -21,9 +19,11 @@ public sealed class CreateCategoryGroup(
         // name the entity settled on — the stored name is trimmed.
         CategoryGroup group = CategoryGroup.Create(Guid.CreateVersion7(), name, kind, clock.UtcNow);
 
+        CategoryGroupName.RequireNotReserved(group.Name);
+
         if (await categoryGroups.ExistsWithNameAsync(group.Name, group.Kind, cancellationToken))
         {
-            throw DuplicateName(group.Name, group.Kind);
+            throw CategoryGroupErrors.DuplicateName(group.Name, group.Kind);
         }
 
         categoryGroups.Add(group);
@@ -31,9 +31,4 @@ public sealed class CreateCategoryGroup(
 
         return group;
     }
-
-    private static DomainRuleViolationException DuplicateName(string name, CategoryKind kind) =>
-        new(
-            "CategoryGroup.DuplicateName",
-            $"An {kind.AsLedgerSide()} category group named '{name}' already exists.");
 }

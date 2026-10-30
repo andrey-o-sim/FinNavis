@@ -86,6 +86,25 @@ public sealed class CreateCategoryGroupTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
+    // The breakdown produces a bucket under this name for every ungrouped category. A row of the
+    // same name would show twice in the breakdown under one name, once with no id.
+    [Theory]
+    [InlineData("Default group")]
+    [InlineData("  Default group  ")]
+    [InlineData("default GROUP")]
+    public async Task CreateCategoryGroup_NamedAfterTheBreakdownBucket_IsRefused(string name)
+    {
+        Func<Task> create = () => CreateAsync(name, CategoryKind.Expense);
+
+        var refusal = (await create.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+
+        refusal.Code.Should().Be("CategoryGroup.NameReserved");
+        refusal.Message.Should().Be(
+            "'Default group' is the breakdown's own bucket, so a group cannot carry that name.");
+        _groups.Stored.Should().BeEmpty();
+        _unitOfWork.Commits.Should().Be(0);
+    }
+
     // The id is minted here, in the Application layer, and it is a UUID v7.
     [Fact]
     public async Task CreateCategoryGroup_NewName_MintsATimeOrderedUuidV7()

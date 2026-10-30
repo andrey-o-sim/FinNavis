@@ -111,6 +111,26 @@ public sealed class RenameCategoryGroupTests
         _unitOfWork.Commits.Should().Be(0);
     }
 
+    // Same reason as on create: the breakdown already produces a bucket under this name.
+    [Theory]
+    [InlineData("Default group")]
+    [InlineData("  Default group  ")]
+    [InlineData("default GROUP")]
+    public async Task RenameCategoryGroup_ToTheBreakdownBucketName_IsRefused(string name)
+    {
+        CategoryGroup group = SeedGroup("Utilities", CategoryKind.Expense);
+
+        Func<Task> rename = () => RenameAsync(group.Id, name);
+
+        var refusal = (await rename.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+
+        refusal.Code.Should().Be("CategoryGroup.NameReserved");
+        refusal.Message.Should().Be(
+            "'Default group' is the breakdown's own bucket, so a group cannot carry that name.");
+        _groups.CommittedNames[group.Id].Should().Be("Utilities");
+        _unitOfWork.Commits.Should().Be(0);
+    }
+
     [Fact]
     public async Task RenameCategoryGroup_WhenCalled_PassesTheCancellationTokenThrough()
     {
