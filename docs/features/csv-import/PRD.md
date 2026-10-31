@@ -411,3 +411,4 @@ Two, and both answer themselves — the owner learns the answer by living a mont
 | AC-09 | You do not have an account with that name, so there was nothing to load this file onto. Nothing was recorded and no account was created. |
 | AC-14 | No rule covers this row, so it was set aside instead of being recorded without one. |
 | AC-18 | Some rows from this load were changed by hand afterwards, so the load cannot be undone as a whole. |
+| — (`MappingProfile.ShapeKeyInvalid`) | A file header must be between 1 and 1000 characters. |

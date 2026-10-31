@@ -40,6 +40,11 @@
 #     Import.RunNotFound               -> Import.NotFound    (the run IS the Import aggregate)
 # The first two are now the same code core-ledger returns, which is the point: the repository
 # carries one convention, so both contracts moved in one change. info.version stays 0.1.0.
+#
+# Hand edit (2026-10-31): one code added, the count goes from 12 to 13 —
+# MappingProfile.ShapeKeyInvalid, a 400 on confirmMappingProfile. The MappingProfile entity
+# refuses a shape key that is empty or over the 1000 characters of mapping_profiles.shape_key.
+# The wording is a new PRD §10 row. api-sync-report.md is not re-run yet: run --reconcile.
 openapi: 3.1.0
 
 info:
@@ -223,6 +228,9 @@ paths:
             A rule is not usable as written. `target_category_id` must be set exactly when
             `target` is `Category`, and must be absent otherwise — a domain invariant refused in
             the `MappingRule` entity, never by a database `CHECK` (data-model.md decision 12).
+
+            Or the `shape_key` passed back is empty or longer than 1000 characters — refused in
+            the `MappingProfile` entity (`mapping_profiles.shape_key` is `VARCHAR(1000)`).
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -243,6 +251,11 @@ paths:
                     details:
                       source_category: "TEST TRANSFER"
                       target: "TransferBetweenOwnAccounts"
+                shape_key_invalid:
+                  summary: A `shape_key` that is empty or longer than 1000 characters
+                  value:
+                    code: "MappingProfile.ShapeKeyInvalid"
+                    message: "A file header must be between 1 and 1000 characters."
         "404":
           description: |
             AC-02 — a rule points at a category that is not in the ledger. No rule is remembered
