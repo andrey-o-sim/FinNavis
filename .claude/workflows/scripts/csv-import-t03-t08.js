@@ -82,6 +82,16 @@ const TASK_NOTES = {
 - Do not edit the generated migration to make the diff pass.`,
 }
 
+// Owner decisions made after a gate stopped. Appended to that task's review prompt only, so the
+// prompts of tasks that already passed stay byte-identical and replay from the cache.
+const REVIEW_NOTES = {
+  T07: `
+Owner decision (2026-10-31): CLAUDE.md wins over the T07 DoD line "Both link configurations carry
+a comment naming ADR-0008 and its field list". CLAUDE.md forbids document pointers in source, so a
+comment that gives the field list in order and the full reason meets that DoD item without the
+text "ADR-0008". ADR-0008 goes in the commit message instead. Judge the item on that basis.`,
+}
+
 const AUTHOR_SCHEMA = {
   type: 'object',
   properties: {
@@ -249,7 +259,7 @@ Check:
 
 passed = true only if: no file outside the hint, every DoD item met, build ok with 0 warnings, tests
 ok as defined above, and no convention issue that breaks a CLAUDE.md "never/must" rule. Minor style
-remarks go to convention_issues but do not fail the gate.${SAFETY}`
+remarks go to convention_issues but do not fail the gate.${REVIEW_NOTES[id] || ''}${SAFETY}`
 }
 
 const FULL_TESTS = `"bash ./build.sh test" (all .NET tests, Docker is available). It must be fully green.`
