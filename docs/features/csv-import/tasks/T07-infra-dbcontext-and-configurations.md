@@ -7,7 +7,7 @@ acs: []
 files_hint: ["src/FinNavis.Infrastructure/Persistence/FinNavisDbContext.cs", "src/FinNavis.Infrastructure/Persistence/Configurations/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T07 — Add the DbContext sets and the eight entity configurations
