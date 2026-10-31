@@ -7,7 +7,7 @@ acs: []
 files_hint: ["src/FinNavis.Application/Abstractions/IStatementReader.cs", "src/FinNavis.Application/Abstractions/IImportQueries.cs", "src/FinNavis.Application/Abstractions/Reads/"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
 ---
 
 # T06 — Declare IStatementReader and IImportQueries in Application/Abstractions

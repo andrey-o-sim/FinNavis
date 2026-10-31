@@ -7,7 +7,7 @@ acs: ["AC-13", "AC-14", "AC-17", "AC-18"]
 files_hint: ["src/FinNavis.Domain/Entities/ImportRun.cs", "src/FinNavis.Domain/Entities/ImportTransactionLink.cs", "src/FinNavis.Domain/Entities/ImportTransferLink.cs", "src/FinNavis.Domain/Entities/ImportCreatedAccountLink.cs", "src/FinNavis.Domain/Entities/ImportCreatedCategoryLink.cs", "src/FinNavis.Domain/Entities/SetAsideRow.cs", "src/FinNavis.Domain/Abstractions/IImportRunRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/ImportRunTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T05 — Add the ImportRun aggregate with its five child types and IImportRunRepository
