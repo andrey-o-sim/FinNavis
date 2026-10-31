@@ -9,12 +9,12 @@
 |---|---|---|---|---|---|
 | T01 | Answer PRD §8's four file questions and fix ADR-0002's proximity parameters | docs | M | — | todo |
 | T02 | Add the three missing refusal messages to PRD §10 | docs | S | — | todo |
-| T03 | Add the four import enums and the `MovementFingerprint` value object | domain | M | — | todo |
-| T04 | Add the `MappingProfile` aggregate, its rules and `IMappingProfileRepository` | domain | M | T03 | todo |
-| T05 | Add the `ImportRun` aggregate with its five child types and `IImportRunRepository` | domain | L | T03 | todo |
-| T06 | Declare `IStatementReader` and `IImportQueries` in `Application/Abstractions` | app | S | T03 | todo |
-| T07 | Add the `DbContext` sets and the eight entity configurations | infra | L | T04, T05 | todo |
-| T08 | Generate the import migration and diff it against the staged spec | migration | M | T07 | todo |
+| T03 | Add the four import enums and the `MovementFingerprint` value object | domain | M | — | done |
+| T04 | Add the `MappingProfile` aggregate, its rules and `IMappingProfileRepository` | domain | M | T03 | done |
+| T05 | Add the `ImportRun` aggregate with its five child types and `IImportRunRepository` | domain | L | T03 | done |
+| T06 | Declare `IStatementReader` and `IImportQueries` in `Application/Abstractions` | app | S | T03 | done |
+| T07 | Add the `DbContext` sets and the eight entity configurations | infra | L | T04, T05 | done |
+| T08 | Generate the import migration and diff it against the staged spec | migration | M | T07 | done |
 | T09 | Add `EfImportRunRepository` and `EfMappingProfileRepository` | infra | M | T08 | todo |
 | T10 | Implement the candidate snapshot in `EfImportQueries` | infra | L | T06, T08 | todo |
 | T11 | Implement the AC-17 still-in-use check in `EfImportQueries` | infra | M | T06, T08 | todo |

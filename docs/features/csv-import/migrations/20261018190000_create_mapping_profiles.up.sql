@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS mapping_profiles (
     shape_key  VARCHAR(1000) NOT NULL,
     created_at TIMESTAMPTZ   NOT NULL DEFAULT now(),
 
-    CONSTRAINT pk_mapping_profiles           PRIMARY KEY (id),
-    CONSTRAINT ux_mapping_profiles_shape_key UNIQUE (shape_key)
+    CONSTRAINT pk_mapping_profiles PRIMARY KEY (id)
 );
 
 -- shape_key is the normalised header row of the file, stored readable rather than hashed
@@ -30,5 +29,9 @@ CREATE TABLE IF NOT EXISTS mapping_profiles (
 -- No updated_at. Re-confirming a shape replaces its rules; the profile row itself is never edited.
 
 -- Query it serves: flows 1 and 2 look up one profile by the file's header row, once per load
--- (AC-01, AC-05). The UNIQUE constraint above is backed by this index — PostgreSQL creates it, so
--- nothing further is added for the lookup.
+-- (AC-01, AC-05). The unique index serves the lookup, so nothing further is added for it.
+-- Uniqueness is a unique index rather than a UNIQUE table constraint. EF Core writes an index for
+-- HasIndex().IsUnique(), and PostgreSQL enforces the two the same way. Same convention as
+-- core-ledger's ux_accounts_name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_mapping_profiles_shape_key
+    ON mapping_profiles (shape_key);

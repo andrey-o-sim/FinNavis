@@ -16,6 +16,22 @@ public sealed class FinNavisDbContext(DbContextOptions<FinNavisDbContext> option
 
     public DbSet<Transfer> Transfers => Set<Transfer>();
 
+    public DbSet<MappingProfile> MappingProfiles => Set<MappingProfile>();
+
+    public DbSet<MappingRule> MappingRules => Set<MappingRule>();
+
+    public DbSet<ImportRun> ImportRuns => Set<ImportRun>();
+
+    public DbSet<ImportTransactionLink> ImportTransactionLinks => Set<ImportTransactionLink>();
+
+    public DbSet<ImportTransferLink> ImportTransferLinks => Set<ImportTransferLink>();
+
+    public DbSet<ImportCreatedAccountLink> ImportCreatedAccountLinks => Set<ImportCreatedAccountLink>();
+
+    public DbSet<ImportCreatedCategoryLink> ImportCreatedCategoryLinks => Set<ImportCreatedCategoryLink>();
+
+    public DbSet<SetAsideRow> SetAsideRows => Set<SetAsideRow>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinNavisDbContext).Assembly);

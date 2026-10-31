@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS import_created_category_links (
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_import_created_category_links PRIMARY KEY (id),
-    CONSTRAINT ux_import_created_category_links_category_id UNIQUE (category_id),
     CONSTRAINT fk_import_created_category_links_import_run
         FOREIGN KEY (import_run_id) REFERENCES import_runs (id),
     CONSTRAINT fk_import_created_category_links_category
@@ -39,4 +38,9 @@ CREATE INDEX IF NOT EXISTS idx_import_created_category_links_import_run_id
     ON import_created_category_links (import_run_id);
 
 -- Query it serves: the FK index on category_id, needed by ON DELETE CASCADE on every category
--- delete. Backed by the UNIQUE constraint above, so nothing is added here.
+-- delete. The unique index below serves it, so no second index is added.
+-- Uniqueness is a unique index rather than a UNIQUE table constraint. EF Core writes an index for
+-- HasIndex().IsUnique(), and PostgreSQL enforces the two the same way. Same convention as
+-- core-ledger's ux_accounts_name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_import_created_category_links_category_id
+    ON import_created_category_links (category_id);

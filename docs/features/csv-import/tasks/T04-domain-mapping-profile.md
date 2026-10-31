@@ -7,7 +7,7 @@ acs: ["AC-01", "AC-04"]
 files_hint: ["src/FinNavis.Domain/Entities/MappingProfile.cs", "src/FinNavis.Domain/Entities/MappingRule.cs", "src/FinNavis.Domain/Abstractions/IMappingProfileRepository.cs", "tests/FinNavis.Domain.UnitTests/Entities/MappingProfileTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T04 — Add the MappingProfile aggregate, its rules and IMappingProfileRepository

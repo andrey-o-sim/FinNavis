@@ -7,7 +7,7 @@ acs: []
 files_hint: ["src/FinNavis.Infrastructure/Persistence/Migrations/", "docs/features/csv-import/migrations/", "tests/FinNavis.Infrastructure.IntegrationTests/Persistence/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T08 — Generate the import migration and diff it against the staged spec
