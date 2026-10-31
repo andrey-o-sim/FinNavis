@@ -7,7 +7,7 @@ acs: []
 files_hint: ["src/FinNavis.Domain/Enums/", "src/FinNavis.Domain/ValueObjects/MovementFingerprint.cs", "tests/FinNavis.Domain.UnitTests/ValueObjects/MovementFingerprintTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T03 — Add the four import enums and the MovementFingerprint value object

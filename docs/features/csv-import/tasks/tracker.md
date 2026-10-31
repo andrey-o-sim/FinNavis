@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|
 | T01 | Answer PRD §8's four file questions and fix ADR-0002's proximity parameters | docs | M | — | todo |
 | T02 | Add the three missing refusal messages to PRD §10 | docs | S | — | todo |
-| T03 | Add the four import enums and the `MovementFingerprint` value object | domain | M | — | todo |
+| T03 | Add the four import enums and the `MovementFingerprint` value object | domain | M | — | done |
 | T04 | Add the `MappingProfile` aggregate, its rules and `IMappingProfileRepository` | domain | M | T03 | todo |
 | T05 | Add the `ImportRun` aggregate with its five child types and `IImportRunRepository` | domain | L | T03 | todo |
 | T06 | Declare `IStatementReader` and `IImportQueries` in `Application/Abstractions` | app | S | T03 | todo |
