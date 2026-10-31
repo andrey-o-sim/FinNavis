@@ -182,8 +182,14 @@ function authorPrompt(id, baseSha, inWorktree) {
   const t = TASKS[id]
   const where = inWorktree
     ? `You run inside your own isolated git worktree. Work only inside it (your current directory).
-First check the worktree contains the Stage 1 commit: "git merge-base --is-ancestor ${baseSha} HEAD"
-must succeed. If it does not, change nothing and return with not_done = ["worktree base is wrong"].`
+The tool creates the worktree from master, not from ${BRANCH}, so move it onto the Stage 1 commit
+before the first edit:
+  1. "git status --porcelain" must be empty (a fresh worktree). If not, change nothing and return
+     with not_done = ["worktree is not fresh"].
+  2. "git reset --hard ${baseSha}" — the commit is already in the shared object store.
+  3. "git rev-parse HEAD" must print ${baseSha}. If it does not, change nothing and return with
+     not_done = ["worktree base is wrong"].
+Never run git reset, checkout or switch in ${REPO} itself.`
     : `You run in the main checkout ${REPO} on branch ${BRANCH}. Check "git branch --show-current" is
 ${BRANCH} before the first edit. If it is not, change nothing and return with not_done = ["wrong branch"].`
 
