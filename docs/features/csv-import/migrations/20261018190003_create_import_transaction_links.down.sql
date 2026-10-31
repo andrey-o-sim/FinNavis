@@ -3,7 +3,6 @@
 -- Indexes first, then the table.
 
 DROP INDEX IF EXISTS idx_import_transaction_links_import_run_id;
+DROP INDEX IF EXISTS ux_import_transaction_links_transaction_id;
 
 DROP TABLE IF EXISTS import_transaction_links;
-
--- ux_import_transaction_links_transaction_id is a UNIQUE constraint, dropped with the table.

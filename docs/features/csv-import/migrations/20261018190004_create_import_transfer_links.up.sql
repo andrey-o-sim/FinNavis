@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS import_transfer_links (
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_import_transfer_links PRIMARY KEY (id),
-    CONSTRAINT ux_import_transfer_links_transfer_id UNIQUE (transfer_id),
     CONSTRAINT fk_import_transfer_links_import_run
         FOREIGN KEY (import_run_id) REFERENCES import_runs (id),
     CONSTRAINT fk_import_transfer_links_transfer
@@ -47,6 +46,11 @@ CREATE INDEX IF NOT EXISTS idx_import_transfer_links_import_run_id
     ON import_transfer_links (import_run_id);
 
 -- Query it serves: the FK index on transfer_id, needed by ON DELETE CASCADE on every transfer
--- delete. Backed by the UNIQUE constraint above, so nothing is added here. The uniqueness says a
+-- delete. The unique index below serves it, so no second index is added. The uniqueness says a
 -- transfer belongs to at most one run — same reasoning, and the same audit finding, as the
 -- transaction link.
+-- Uniqueness is a unique index rather than a UNIQUE table constraint. EF Core writes an index for
+-- HasIndex().IsUnique(), and PostgreSQL enforces the two the same way. Same convention as
+-- core-ledger's ux_accounts_name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_import_transfer_links_transfer_id
+    ON import_transfer_links (transfer_id);

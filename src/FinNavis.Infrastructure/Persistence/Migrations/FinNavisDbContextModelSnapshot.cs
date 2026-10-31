@@ -125,6 +125,320 @@ namespace FinNavis.Infrastructure.Persistence.Migrations
                     b.ToTable("category_groups", (string)null);
                 });
 
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportCreatedAccountLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("ImportRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_run_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_import_created_account_links");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_import_created_account_links_account_id");
+
+                    b.HasIndex("ImportRunId")
+                        .HasDatabaseName("idx_import_created_account_links_import_run_id");
+
+                    b.ToTable("import_created_account_links", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportCreatedCategoryLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("ImportRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_run_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_import_created_category_links");
+
+                    b.HasIndex("CategoryId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_import_created_category_links_category_id");
+
+                    b.HasIndex("ImportRunId")
+                        .HasDatabaseName("idx_import_created_category_links_import_run_id");
+
+                    b.ToTable("import_created_category_links", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("account_id");
+
+                    b.Property<int>("AlreadyPresentRowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("already_present_row_count");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("kind");
+
+                    b.Property<int>("RecordedRowCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("recorded_row_count");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_import_runs");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("idx_import_runs_account_id");
+
+                    b.ToTable("import_runs", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportTransactionLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<Guid>("ImportRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_run_id");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transaction_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_import_transaction_links");
+
+                    b.HasIndex("ImportRunId")
+                        .HasDatabaseName("idx_import_transaction_links_import_run_id");
+
+                    b.HasIndex("TransactionId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_import_transaction_links_transaction_id");
+
+                    b.ToTable("import_transaction_links", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportTransferLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<Guid>("ImportRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_run_id");
+
+                    b.Property<Guid>("TransferId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transfer_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_import_transfer_links");
+
+                    b.HasIndex("ImportRunId")
+                        .HasDatabaseName("idx_import_transfer_links_import_run_id");
+
+                    b.HasIndex("TransferId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_import_transfer_links_transfer_id");
+
+                    b.ToTable("import_transfer_links", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.MappingProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ShapeKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("shape_key");
+
+                    b.HasKey("Id")
+                        .HasName("pk_mapping_profiles");
+
+                    b.HasIndex("ShapeKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_mapping_profiles_shape_key");
+
+                    b.ToTable("mapping_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.MappingRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("MappingProfileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("mapping_profile_id");
+
+                    b.Property<string>("SourceCategory")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source_category");
+
+                    b.Property<string>("Target")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("target");
+
+                    b.Property<Guid?>("TargetCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_category_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_mapping_profile_rules");
+
+                    b.HasIndex("TargetCategoryId")
+                        .HasDatabaseName("idx_mapping_profile_rules_target_category_id");
+
+                    b.HasIndex("MappingProfileId", "SourceCategory")
+                        .IsUnique()
+                        .HasDatabaseName("ux_mapping_profile_rules_profile_source_category");
+
+                    b.ToTable("mapping_profile_rules", (string)null);
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.SetAsideRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("ImportRunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("import_run_id");
+
+                    b.Property<string>("RawLine")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("raw_line");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("reason");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("row_number");
+
+                    b.Property<string>("SourceCategory")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source_category");
+
+                    b.HasKey("Id")
+                        .HasName("pk_import_set_aside_rows");
+
+                    b.HasIndex("ImportRunId")
+                        .HasDatabaseName("idx_import_set_aside_rows_import_run_id");
+
+                    b.ToTable("import_set_aside_rows", (string)null);
+                });
+
             modelBuilder.Entity("FinNavis.Domain.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -234,6 +548,109 @@ namespace FinNavis.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_categories_category_group");
                 });
 
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportCreatedAccountLink", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_created_account_links_account");
+
+                    b.HasOne("FinNavis.Domain.Entities.ImportRun", null)
+                        .WithMany("CreatedAccountLinks")
+                        .HasForeignKey("ImportRunId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_created_account_links_import_run");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportCreatedCategoryLink", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.Category", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_created_category_links_category");
+
+                    b.HasOne("FinNavis.Domain.Entities.ImportRun", null)
+                        .WithMany("CreatedCategoryLinks")
+                        .HasForeignKey("ImportRunId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_created_category_links_import_run");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportRun", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_import_runs_account");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportTransactionLink", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.ImportRun", null)
+                        .WithMany("TransactionLinks")
+                        .HasForeignKey("ImportRunId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_transaction_links_import_run");
+
+                    b.HasOne("FinNavis.Domain.Entities.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_transaction_links_transaction");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportTransferLink", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.ImportRun", null)
+                        .WithMany("TransferLinks")
+                        .HasForeignKey("ImportRunId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_transfer_links_import_run");
+
+                    b.HasOne("FinNavis.Domain.Entities.Transfer", null)
+                        .WithMany()
+                        .HasForeignKey("TransferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_transfer_links_transfer");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.MappingRule", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.MappingProfile", null)
+                        .WithMany("Rules")
+                        .HasForeignKey("MappingProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_mapping_profile_rules_mapping_profile");
+
+                    b.HasOne("FinNavis.Domain.Entities.Category", null)
+                        .WithMany()
+                        .HasForeignKey("TargetCategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_mapping_profile_rules_category");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.SetAsideRow", b =>
+                {
+                    b.HasOne("FinNavis.Domain.Entities.ImportRun", null)
+                        .WithMany("SetAsideRows")
+                        .HasForeignKey("ImportRunId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_import_set_aside_rows_import_run");
+                });
+
             modelBuilder.Entity("FinNavis.Domain.Entities.Transaction", b =>
                 {
                     b.HasOne("FinNavis.Domain.Entities.Account", null)
@@ -266,6 +683,24 @@ namespace FinNavis.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_transfers_source_account");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.ImportRun", b =>
+                {
+                    b.Navigation("CreatedAccountLinks");
+
+                    b.Navigation("CreatedCategoryLinks");
+
+                    b.Navigation("SetAsideRows");
+
+                    b.Navigation("TransactionLinks");
+
+                    b.Navigation("TransferLinks");
+                });
+
+            modelBuilder.Entity("FinNavis.Domain.Entities.MappingProfile", b =>
+                {
+                    b.Navigation("Rules");
                 });
 #pragma warning restore 612, 618
         }

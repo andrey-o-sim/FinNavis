@@ -11,8 +11,6 @@ CREATE TABLE IF NOT EXISTS mapping_profile_rules (
     created_at         TIMESTAMPTZ  NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_mapping_profile_rules PRIMARY KEY (id),
-    CONSTRAINT ux_mapping_profile_rules_profile_source_category
-        UNIQUE (mapping_profile_id, source_category),
     CONSTRAINT fk_mapping_profile_rules_mapping_profile
         FOREIGN KEY (mapping_profile_id) REFERENCES mapping_profiles (id) ON DELETE CASCADE,
     CONSTRAINT fk_mapping_profile_rules_category
@@ -51,7 +49,11 @@ CREATE TABLE IF NOT EXISTS mapping_profile_rules (
 -- filter and leads this index. Also the FK index on mapping_profile_id required by
 -- .claude/rules/migrations.md. The uniqueness stops two rules disagreeing about the same file
 -- category (AC-01); no acceptance criterion refuses a duplicate, so it is recorded in the audit.
--- Backed by the UNIQUE constraint above — PostgreSQL creates the index, so none is added here.
+-- Uniqueness is a unique index rather than a UNIQUE table constraint. EF Core writes an index for
+-- HasIndex().IsUnique(), and PostgreSQL enforces the two the same way. Same convention as
+-- core-ledger's ux_accounts_name.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_mapping_profile_rules_profile_source_category
+    ON mapping_profile_rules (mapping_profile_id, source_category);
 
 -- Query it serves: the FK index on target_category_id required by .claude/rules/migrations.md.
 -- Without it, deleting or updating a category scans this table.
