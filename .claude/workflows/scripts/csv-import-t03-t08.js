@@ -73,6 +73,9 @@ const TASK_NOTES = {
   to the CoreLedgerInitial migration through IMigrator and assert the eight tables are gone and the
   five ledger tables are still there. Leave the database migrated to latest at the end, because the
   fixture is shared.
+- Known red test, by plan: ContainerResolutionTests fails for IMappingProfileRepository,
+  IImportRunRepository, IStatementReader and IImportQueries until T13 registers their adapters.
+  Do not try to fix it. Every other test must be green.
 - If the diff shows the configuration (T07) is wrong, you may NOT edit Configurations/. Report it in
   not_done with the exact difference. If the staged spec is wrong, fix the spec file and say why in
   the report.
@@ -250,10 +253,21 @@ remarks go to convention_issues but do not fail the gate.${SAFETY}`
 }
 
 const FULL_TESTS = `"bash ./build.sh test" (all .NET tests, Docker is available). It must be fully green.`
+// The core-ledger test below finds every port by reflection and needs an adapter for each one.
+// The adapters for the new import ports arrive in T09-T12 and their registration in T13, so until
+// then this one test is red by plan, not by a defect.
+const KNOWN_RED = `ONE known failure is allowed, and nothing else:
+ContainerResolutionTests.AddInfrastructureAndAddApplication_ForEveryDeclaredPort_ResolveAnAdapter,
+only for the ports IMappingProfileRepository, IImportRunRepository, IStatementReader and
+IImportQueries, and only with the error "No service for type ... has been registered".
+Open the failure output and confirm each failing case matches exactly this. Any other failing test,
+any other port, or any other error fails the gate. Report the known failures in tests.summary.`
+const GATE_TESTS = `"bash ./build.sh test" (all .NET tests, Docker is available). ${KNOWN_RED}`
 const T07_TESTS = `"bash ./build.sh test". Unit and architecture tests must be fully green. Integration
 tests are allowed to fail ONLY because of EF Core PendingModelChangesWarning at fixture start-up
 (the migration arrives in T08). Open the failure output and confirm that is the only cause; any other
-integration failure fails the gate.`
+integration failure fails the gate. If the fixture does start, the same rule applies as after T08:
+${KNOWN_RED}`
 
 function integratePrompt(stage, ids, items, commitHint) {
   const sources = items.map(x => `- ${x.id}: worktree ${x.author.worktree_path}, files: ${JSON.stringify(x.author.changed_files)}`).join('\n')
@@ -277,7 +291,7 @@ The independent reviewer already passed every task of this stage.
 
 1. In ${REPO} check "git branch --show-current" is ${BRANCH}. If not, STOP (ok=false).
 2. ${mergeSteps}
-3. In ${REPO} run "bash ./build.sh build" (0 warnings) and ${stage.includes('T07') ? T07_TESTS : FULL_TESTS}
+3. In ${REPO} run "bash ./build.sh build" (0 warnings) and ${stage.includes('T07') ? T07_TESTS : stage.includes('T03') ? FULL_TESTS : GATE_TESTS}
    If either fails: STOP, commit nothing, return ok=false with the failure.
 4. Mark the tasks of this stage as done, in two places, and change nothing else in either file:
    a. ${TASKS_DIR}/tracker.md: in the row of each of ${ids.join(', ')}, set the Status column to "done".
@@ -379,7 +393,7 @@ const s2 = await pipeline(
   s2ids,
   id => agent(authorPrompt(id, s1.sha, wtPath(id)), { label: `author:${id}`, phase: S2, schema: AUTHOR_SCHEMA }),
   (author, id) => author
-    ? agent(reviewPrompt(id, author, author.worktree_path, FULL_TESTS), { label: `review:${id}`, phase: S2, schema: REVIEW_SCHEMA })
+    ? agent(reviewPrompt(id, author, author.worktree_path, GATE_TESTS), { label: `review:${id}`, phase: S2, schema: REVIEW_SCHEMA })
         .then(review => ({ id, author, review, worktree: true }))
     : { id, author: null, review: null, worktree: true },
 )
@@ -404,7 +418,7 @@ const s3 = await runMainStage('Stage 3 · T07', 'T07', 'map the import tables in
 if (!s3.ok) return stopWith('Stage 3 · T07', s3.reason)
 
 // ---------- Stage 4 · T08 ----------
-const s4 = await runMainStage('Stage 4 · T08', 'T08', 'add the AddCsvImport migration', FULL_TESTS)
+const s4 = await runMainStage('Stage 4 · T08', 'T08', 'add the AddCsvImport migration', GATE_TESTS)
 if (!s4.ok) return stopWith('Stage 4 · T08', s4.reason)
 
 // ---------- Summary ----------
