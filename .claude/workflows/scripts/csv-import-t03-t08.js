@@ -178,18 +178,13 @@ function hintList(id) {
   return TASKS[id].files_hint.map(p => `  - ${p}`).join('\n')
 }
 
-function authorPrompt(id, baseSha, inWorktree) {
+function authorPrompt(id, baseSha, worktreePath) {
   const t = TASKS[id]
-  const where = inWorktree
-    ? `You run inside your own isolated git worktree. Work only inside it (your current directory).
-The tool creates the worktree from master, not from ${BRANCH}, so move it onto the Stage 1 commit
-before the first edit:
-  1. "git status --porcelain" must be empty (a fresh worktree). If not, change nothing and return
-     with not_done = ["worktree is not fresh"].
-  2. "git reset --hard ${baseSha}" — the commit is already in the shared object store.
-  3. "git rev-parse HEAD" must print ${baseSha}. If it does not, change nothing and return with
-     not_done = ["worktree base is wrong"].
-Never run git reset, checkout or switch in ${REPO} itself.`
+  const where = worktreePath
+    ? `You work in your own git worktree: ${worktreePath}. cd there first and work only inside it.
+Never edit anything in ${REPO} itself, and never run git reset, checkout or switch anywhere.
+Before the first edit, "git rev-parse HEAD" in the worktree must print ${baseSha}. If it does not,
+change nothing and return with not_done = ["worktree base is wrong"].`
     : `You run in the main checkout ${REPO} on branch ${BRANCH}. Check "git branch --show-current" is
 ${BRANCH} before the first edit. If it is not, change nothing and return with not_done = ["wrong branch"].`
 
@@ -297,7 +292,7 @@ The independent reviewer already passed every task of this stage.
 6. Commit with a Conventional Commit (.claude/rules/git.md): type feat, scope csv-import, imperative
    lowercase subject <= 72 chars, body wrapped at 100 that says why and names the ADRs by path that
    the change carries out. Suggested subject: "${commitHint}". No attribution trailer.
-7. ${fromWorktrees ? 'After a successful commit, remove the three worktrees ("git worktree remove --force <path>") and delete their temporary branches if any. If you stopped earlier, leave them in place.' : 'Nothing to clean up.'}
+7. ${fromWorktrees ? 'After a successful commit, remove the three worktrees with "git worktree remove --force <path>" (they are detached, so there is no branch to delete). If a removal is denied, leave it and list it as not removed. If you stopped earlier, leave them all in place.' : 'Nothing to clean up.'}
 Do NOT push. Do NOT open a PR.${SAFETY}`
 }
 
@@ -356,9 +351,33 @@ if (!s1.ok) return stopWith('Stage 1 · T03', s1.reason)
 const S2 = 'Stage 2 · T04–T06'
 phase(S2)
 const s2ids = ['T04', 'T05', 'T06']
+const WT_ROOT = 'F:/Projects/FinNavis/.claude/worktrees'
+const wtPath = id => `${WT_ROOT}/csv-${id}`
+const setup = await agent(
+  `Create three git worktrees for parallel work, from the Stage 1 commit of ${BRANCH}.
+Work in ${REPO}. Do not edit any file. Do not run git reset, checkout or switch.
+1. For each of ${s2ids.map(wtPath).join(', ')}: if the path already exists, STOP (ok=false) and
+   create nothing.
+2. Run, one per task:
+${s2ids.map(id => `   git worktree add --detach ${wtPath(id)} ${s1.sha}`).join('\n')}
+3. In each new worktree, "git rev-parse HEAD" must print ${s1.sha} and "git status --porcelain" must
+   be empty. Otherwise ok=false.
+Return the structured result.`,
+  {
+    label: 'setup:worktrees',
+    phase: S2,
+    effort: 'low',
+    schema: {
+      type: 'object',
+      properties: { ok: { type: 'boolean' }, stop_reason: { type: 'string' }, created: { type: 'array', items: { type: 'string' } } },
+      required: ['ok', 'stop_reason', 'created'],
+    },
+  },
+)
+if (!setup || !setup.ok) return stopWith(S2, `worktree setup failed: ${setup ? setup.stop_reason : 'setup agent died'}`)
 const s2 = await pipeline(
   s2ids,
-  id => agent(authorPrompt(id, s1.sha, true), { label: `author:${id}`, phase: S2, schema: AUTHOR_SCHEMA, isolation: 'worktree' }),
+  id => agent(authorPrompt(id, s1.sha, wtPath(id)), { label: `author:${id}`, phase: S2, schema: AUTHOR_SCHEMA }),
   (author, id) => author
     ? agent(reviewPrompt(id, author, author.worktree_path, FULL_TESTS), { label: `review:${id}`, phase: S2, schema: REVIEW_SCHEMA })
         .then(review => ({ id, author, review, worktree: true }))
