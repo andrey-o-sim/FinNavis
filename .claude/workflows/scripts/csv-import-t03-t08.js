@@ -73,9 +73,9 @@ const TASK_NOTES = {
   to the CoreLedgerInitial migration through IMigrator and assert the eight tables are gone and the
   five ledger tables are still there. Leave the database migrated to latest at the end, because the
   fixture is shared.
-- Known red test, by plan: ContainerResolutionTests fails for IMappingProfileRepository,
-  IImportRunRepository, IStatementReader and IImportQueries until T13 registers their adapters.
-  Do not try to fix it. Every other test must be green.
+- ContainerResolutionTests.AddInfrastructureAndAddApplication_ForPendingPort_ResolveAnAdapter is
+  skipped on purpose until T13 registers the import adapters. Do not unskip it. Every other test
+  must be green.
 - If the diff shows the configuration (T07) is wrong, you may NOT edit Configurations/. Report it in
   not_done with the exact difference. If the staged spec is wrong, fix the spec file and say why in
   the report.
@@ -263,11 +263,16 @@ IImportQueries, and only with the error "No service for type ... has been regist
 Open the failure output and confirm each failing case matches exactly this. Any other failing test,
 any other port, or any other error fails the gate. Report the known failures in tests.summary.`
 const GATE_TESTS = `"bash ./build.sh test" (all .NET tests, Docker is available). ${KNOWN_RED}`
+// Since commit fa5edfc the four import ports sit in their own skipped theory, so from T07 on
+// no failure is known any more: one skipped test is expected, and nothing may fail.
+const SKIPPED_PORTS = `One skipped test is expected:
+ContainerResolutionTests.AddInfrastructureAndAddApplication_ForPendingPort_ResolveAnAdapter
+("unskip when repositories are added"). Do not unskip it. No test may fail.`
+const STRICT_TESTS = `"bash ./build.sh test" (all .NET tests, Docker is available). ${SKIPPED_PORTS}`
 const T07_TESTS = `"bash ./build.sh test". Unit and architecture tests must be fully green. Integration
 tests are allowed to fail ONLY because of EF Core PendingModelChangesWarning at fixture start-up
 (the migration arrives in T08). Open the failure output and confirm that is the only cause; any other
-integration failure fails the gate. If the fixture does start, the same rule applies as after T08:
-${KNOWN_RED}`
+integration failure fails the gate. ${SKIPPED_PORTS.replace('No test may fail.', '')}`
 
 function integratePrompt(stage, ids, items, commitHint) {
   const sources = items.map(x => `- ${x.id}: worktree ${x.author.worktree_path}, files: ${JSON.stringify(x.author.changed_files)}`).join('\n')
@@ -291,7 +296,7 @@ The independent reviewer already passed every task of this stage.
 
 1. In ${REPO} check "git branch --show-current" is ${BRANCH}. If not, STOP (ok=false).
 2. ${mergeSteps}
-3. In ${REPO} run "bash ./build.sh build" (0 warnings) and ${stage.includes('T07') ? T07_TESTS : stage.includes('T03') ? FULL_TESTS : GATE_TESTS}
+3. In ${REPO} run "bash ./build.sh build" (0 warnings) and ${stage.includes('T07') ? T07_TESTS : stage.includes('T03') ? FULL_TESTS : stage.includes('T08') ? STRICT_TESTS : GATE_TESTS}
    If either fails: STOP, commit nothing, return ok=false with the failure.
 4. Mark the tasks of this stage as done, in two places, and change nothing else in either file:
    a. ${TASKS_DIR}/tracker.md: in the row of each of ${ids.join(', ')}, set the Status column to "done".
@@ -404,7 +409,11 @@ if (s2failed.length) {
   const reason = s2failed.map(x => `${x.id}: ${!x.author ? 'author died' : !x.review ? 'reviewer died' : x.review.reasons.join(' | ')}`).join(' ; ')
   return stopWith(S2, `review failed — ${reason}. Worktrees are left in place for inspection.`)
 }
-const integ2 = await agent(
+// Stage 2 was committed by hand (c0bfc7a) after the pre-commit hook blocked the integrator, so a
+// resumed run passes args.stage2Commit and skips the integrator instead of applying the patches twice.
+const integ2 = args && args.stage2Commit
+  ? { ok: true, stop_reason: '', conflicts: [], commit_sha: args.stage2Commit, commit_subject: 'committed by hand', committed_files: [], build_ok: true, tests_summary: 'see the stage 2 reviews', worktrees_removed: [] }
+  : await agent(
   integratePrompt(S2, s2ids, s2record.tasks, 'add the import aggregates and the reader and query ports'),
   { label: 'integrate:T04–T06', phase: S2, schema: INTEGRATE_SCHEMA },
 )
@@ -418,7 +427,7 @@ const s3 = await runMainStage('Stage 3 · T07', 'T07', 'map the import tables in
 if (!s3.ok) return stopWith('Stage 3 · T07', s3.reason)
 
 // ---------- Stage 4 · T08 ----------
-const s4 = await runMainStage('Stage 4 · T08', 'T08', 'add the AddCsvImport migration', GATE_TESTS)
+const s4 = await runMainStage('Stage 4 · T08', 'T08', 'add the AddCsvImport migration', STRICT_TESTS)
 if (!s4.ok) return stopWith('Stage 4 · T08', s4.reason)
 
 // ---------- Summary ----------
