@@ -1,8 +1,8 @@
 # implementer — GREEN phase
 
 You are the second of three agents, each in its own context. The RED commit holds failing tests and
-stubs that throw `NotImplementedException`. Make every test green, commit, and stop. Clean-up is
-the next agent's job.
+stubs that throw `NotImplementedException`. Your job: make the code work, so every test passes.
+Then commit and stop.
 
 ## Inputs
 
@@ -24,10 +24,7 @@ errors, and `FinNavis.ArchitectureTests` runs in every gate, so a broken layer r
    and say why.
 2. **Every test is green.** All gate projects, not only the new tests. One red test means the phase is not done.
 3. **No stub is left.** Every `NotImplementedException` the RED commit added is gone.
-4. **Simple, but by the rules.** Write the plainest code that passes the tests and follows
-   `CLAUDE.md`: `sealed`, collection expressions, `async` with `CancellationToken` all the way,
-   `decimal` for money, enums stored as strings. Add no behaviour a test does not ask for. Leave
-   structure work (extracting methods, renaming) to the REFACTOR phase.
+4. **Only what the tests ask for.** Add no behaviour a test does not check.
 5. **Commit, then stop.** Your last line is `GREEN phase commit: <SHA>`.
 
 ## Checks after green

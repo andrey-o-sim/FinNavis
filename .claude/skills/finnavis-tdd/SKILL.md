@@ -5,7 +5,9 @@ description: >
   isolated agents — a test-writer, an implementer and a refactorer, each with its role file in this
   skill's agents/ folder — and checks a hard gate after each phase: RED = the build is green, every new test fails and every
   old test still passes; GREEN = all tests pass, tests/ is untouched and no NotImplementedException
-  stub is left; REFACTOR = still green, tests/ still untouched. Reads the task from
+  stub is left; REFACTOR = the code is organised by a fixed checklist (architecture rings, DDD,
+  SOLID, patterns only for a named problem, ADRs, CLAUDE.md style), still green, tests/ still
+  untouched. Reads the task from
   docs/features/<slug>/tasks/ (tasks.json, the task file, its Definition of Done and the PRD
   acceptance criteria it names), commits one Conventional Commit per phase, then marks the task done
   in tracker.md. Use this whenever the user wants to implement a single domain, app, infra or wiring
@@ -127,7 +129,7 @@ Run all checks before any phase. On the first failure, stop with the message sho
      Phase 2. Do not stop for `--review-tests` again: a re-run after a review means "continue".
    - subject starts with `feat(` → `GREEN_SHA` = HEAD, find `RED_SHA` with
      `git log --grep='Task: <slug>/<id>' --format=%H`. Go to Gate 2, then Phase 3.
-   - subject starts with `refactor(` → go to Gate 3, then "Mark the task done".
+   - subject starts with `refactor(` → run Gate 3 checks 3–5, then "Mark the task done".
 8. Not resuming: `BASE_SHA` = `git rev-parse HEAD`. Run a gate with `--expect green`.
    It must pass. Else: `The baseline is not green, so Gate 1 cannot tell a new failure from an old
    one. Fix these first:` + the failed lines.
@@ -206,31 +208,30 @@ On failure: `Gate 2 failed: <reason>. GREEN commit: <GREEN_SHA>.` Then stop.
 ```
 Agent(
   subagent_type="general-purpose",
-  description="REFACTOR: clean up <slug> <id>",
+  description="REFACTOR: design the structure of <slug> <id>",
   prompt="Read .claude/skills/finnavis-tdd/agents/refactorer.md in full. It is your role for this run; follow it exactly.
 Use only Read, Write, Edit, Bash, Glob and Grep. Do not start other agents.
 Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>.
 Changed by this task: BASE_SHA=<BASE_SHA>..GREEN_SHA=<GREEN_SHA>.
 Gate test projects: <projects>. Commit trailer: Task: <slug>/<id>.
-Improve the structure of the code this task changed, if it needs it. Commit only if you changed something."
+Go through the R1–R7 checklist, organise the code by it without changing behaviour, then commit and stop."
 )
 ```
 
-The last message is either `REFACTOR phase commit: <SHA>` (`REFACTOR_SHA`) or
-`REFACTOR phase: no change` with a one-line reason.
+Take the `CHECKLIST` block, every `FOLLOW_UP:` line, and the last line: either
+`REFACTOR phase commit: <SHA>` (`REFACTOR_SHA`) or `REFACTOR phase: no change`.
 
-### Gate 3 — still green, behaviour unchanged
+### Gate 3 — structured, still green, behaviour unchanged
 
-With no change: `git rev-parse HEAD` equals `GREEN_SHA` and `git status --porcelain` is empty.
-Nothing else to check.
-
-With a commit:
-
-1. HEAD equals `REFACTOR_SHA`, the tree is clean, the subject starts with `refactor(<slug>):` and
+1. The `CHECKLIST` block has one line for each of R1–R7, and every `changed` or `fine` line names
+   a `file:line`. Else: `Gate 3 failed: the checklist is incomplete.` + the missing items.
+2. With `REFACTOR phase: no change`: `git rev-parse HEAD` equals `GREEN_SHA` and
+   `git status --porcelain` is empty. Then go to "Mark the task done"; checks 3–5 do not apply.
+3. HEAD equals `REFACTOR_SHA`, the tree is clean, the subject starts with `refactor(<slug>):` and
    the trailer is `<slug>/<id>`.
-2. `git diff --name-only GREEN_SHA REFACTOR_SHA` lists only paths under `src/`. Nothing under
+4. `git diff --name-only GREEN_SHA REFACTOR_SHA` lists only paths under `src/`. Nothing under
    `tests/`.
-3. Run a gate with `--expect green`. It must print `PASS`.
+5. Run a gate with `--expect green`. It must print `PASS`.
 
 On failure: `Gate 3 failed: <reason>. REFACTOR commit: <REFACTOR_SHA>.` Then stop.
 
@@ -253,16 +254,19 @@ TDD cycle complete for <slug> <id> — <task title>.
 Commits:
   RED       <RED_SHA>       <subject>
   GREEN     <GREEN_SHA>     <subject>
-  REFACTOR  <REFACTOR_SHA>  <subject>        (or: no change — <reason>)
+  REFACTOR  <REFACTOR_SHA>  <subject>        (or: no change — see the refactor checklist)
   TRACKER   <SHA>           docs(<slug>): mark <id> done
 
 Gates:
   ✓ RED       build green, <n> new tests red, old tests green
   ✓ GREEN     <n> tests green, tests/ untouched, no stub left
-  ✓ REFACTOR  green, tests/ untouched
+  ✓ REFACTOR  checklist complete, green, tests/ untouched
 
 DoD coverage:
   <the DOD COVERAGE block from the test-writer>
+
+Refactor checklist:
+  <the CHECKLIST block from the refactorer>
 
 Follow-ups for the owner:
   <every ALREADY_GREEN and FOLLOW_UP line, or "none">
