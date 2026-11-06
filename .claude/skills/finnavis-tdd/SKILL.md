@@ -2,8 +2,8 @@
 name: finnavis-tdd
 description: >
   Runs one task of a FinNavis feature epic through a full Red-Green-Refactor cycle with three
-  isolated agents — finnavis-tdd-test-writer, finnavis-tdd-implementer, finnavis-tdd-refactorer —
-  and checks a hard gate after each phase: RED = the build is green, every new test fails and every
+  isolated agents — a test-writer, an implementer and a refactorer, each with its role file in this
+  skill's agents/ folder — and checks a hard gate after each phase: RED = the build is green, every new test fails and every
   old test still passes; GREEN = all tests pass, tests/ is untouched and no NotImplementedException
   stub is left; REFACTOR = still green, tests/ still untouched. Reads the task from
   docs/features/<slug>/tasks/ (tasks.json, the task file, its Definition of Done and the PRD
@@ -21,8 +21,27 @@ allowed-tools: Bash, Read, Edit, Agent
 # finnavis-tdd — the Red-Green-Refactor orchestrator
 
 This skill is the orchestrator. It writes no test and no production code itself. It starts three
-agents from `.claude/agents/`, one per phase, each in its own context. Between the phases it runs
-the gates in Bash. When a gate fails, it stops and tells the owner exactly what failed.
+agents, one per phase, each in its own context. Between the phases it runs the gates in Bash. When
+a gate fails, it stops and tells the owner exactly what failed.
+
+Each agent is a `general-purpose` agent that reads its role from this skill's `agents/` folder:
+
+| phase    | role file                                          |
+|----------|----------------------------------------------------|
+| RED      | `.claude/skills/finnavis-tdd/agents/test-writer.md` |
+| GREEN    | `.claude/skills/finnavis-tdd/agents/implementer.md` |
+| REFACTOR | `.claude/skills/finnavis-tdd/agents/refactorer.md`  |
+
+The role files are not in `.claude/agents/`, so Claude Code does not load them as agent types.
+That is why every phase prompt below starts with the same two lines:
+
+```
+Read <role file> in full. It is your role for this run; follow it exactly.
+Use only Read, Write, Edit, Bash, Glob and Grep. Do not start other agents.
+```
+
+The second line replaces the `tools:` list an agent file would have. Without it, a
+`general-purpose` agent could start its own sub-agents and break the isolation.
 
 Why three agents and not three steps in one context: a skill runs inside the main context. The
 agent that wrote the tests would then also write the code, and it would "remember" what it meant
@@ -117,9 +136,11 @@ Run all checks before any phase. On the first failure, stop with the message sho
 
 ```
 Agent(
-  subagent_type="finnavis-tdd-test-writer",
+  subagent_type="general-purpose",
   description="RED: failing tests for <slug> <id>",
-  prompt="Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>.
+  prompt="Read .claude/skills/finnavis-tdd/agents/test-writer.md in full. It is your role for this run; follow it exactly.
+Use only Read, Write, Edit, Bash, Glob and Grep. Do not start other agents.
+Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>.
 Gate test projects: <projects>. Commit trailer: Task: <slug>/<id>.
 Write the failing tests for this task and the stubs they need to compile, then commit and stop."
 )
@@ -155,9 +176,11 @@ To discard:  git reset --hard <BASE_SHA>   (run it yourself; this repo denies it
 
 ```
 Agent(
-  subagent_type="finnavis-tdd-implementer",
+  subagent_type="general-purpose",
   description="GREEN: implement <slug> <id>",
-  prompt="Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>. RED commit: <RED_SHA>.
+  prompt="Read .claude/skills/finnavis-tdd/agents/implementer.md in full. It is your role for this run; follow it exactly.
+Use only Read, Write, Edit, Bash, Glob and Grep. Do not start other agents.
+Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>. RED commit: <RED_SHA>.
 Gate test projects: <projects>. Commit trailer: Task: <slug>/<id>.
 Make every test green without touching tests/, then commit and stop."
 )
@@ -182,9 +205,11 @@ On failure: `Gate 2 failed: <reason>. GREEN commit: <GREEN_SHA>.` Then stop.
 
 ```
 Agent(
-  subagent_type="finnavis-tdd-refactorer",
+  subagent_type="general-purpose",
   description="REFACTOR: clean up <slug> <id>",
-  prompt="Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>.
+  prompt="Read .claude/skills/finnavis-tdd/agents/refactorer.md in full. It is your role for this run; follow it exactly.
+Use only Read, Write, Edit, Bash, Glob and Grep. Do not start other agents.
+Feature: <slug>. Task: <id>. Task file: <path>. Layer: <layer>.
 Changed by this task: BASE_SHA=<BASE_SHA>..GREEN_SHA=<GREEN_SHA>.
 Gate test projects: <projects>. Commit trailer: Task: <slug>/<id>.
 Improve the structure of the code this task changed, if it needs it. Commit only if you changed something."

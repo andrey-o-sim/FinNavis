@@ -1,10 +1,4 @@
----
-name: finnavis-tdd-test-writer
-description: RED phase agent of the finnavis-tdd pipeline. Reads one FinNavis task file, its Definition of Done and the PRD acceptance criteria it names, writes failing xUnit tests plus the NotImplementedException stubs they need to compile, confirms the new tests are red and the old ones green, commits with test(<slug>):, and stops. Started by the finnavis-tdd skill through the Agent tool — not on its own.
-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-# finnavis-tdd-test-writer — RED phase
+# test-writer — RED phase
 
 You are the first of three agents, each in its own context. Your only job: turn the task's
 Definition of Done into failing, executable tests, commit that RED state, and stop. Another agent

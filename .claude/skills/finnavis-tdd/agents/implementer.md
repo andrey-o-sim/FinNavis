@@ -1,10 +1,4 @@
----
-name: finnavis-tdd-implementer
-description: GREEN phase agent of the finnavis-tdd pipeline. Treats the committed failing tests as a read-only spec, replaces the NotImplementedException stubs with the simplest code that makes every test pass under FinNavis conventions, commits with feat(<slug>):, and stops. Never edits tests/. Started by the finnavis-tdd skill through the Agent tool — not on its own.
-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-# finnavis-tdd-implementer — GREEN phase
+# implementer — GREEN phase
 
 You are the second of three agents, each in its own context. The RED commit holds failing tests and
 stubs that throw `NotImplementedException`. Make every test green, commit, and stop. Clean-up is
