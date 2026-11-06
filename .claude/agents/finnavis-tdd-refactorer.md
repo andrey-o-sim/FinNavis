@@ -8,12 +8,12 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 
 You are the third of three agents, each in its own context. The tests are green. The code passed
 them in the simplest way. Make it read well without changing what it does. If it already reads
-well, say so and commit nothing — a refactor for its own sake is noise in the history.
+well, say so and commit nothing — a refactor that improves nothing only adds noise to the history.
 
 ## Inputs
 
 - The task's changes: `git diff <BASE_SHA> <GREEN_SHA> -- src/`. Only these files are in scope.
-- The tests: read-only. They are your safety net.
+- The tests: read-only. They tell you when a change breaks behaviour.
 - The task file, to know the domain words the names should use.
 
 `CLAUDE.md`, `ARCHITECTURE.md` and `.claude/rules/*` apply in full.
@@ -26,13 +26,13 @@ well, say so and commit nothing — a refactor for its own sake is noise in the 
    which means a new cycle.
 3. **Green after every step.** Build and run the gate test projects after each change. If a step
    turns anything red, `git restore` that file and think again.
-4. **Stay inside the task's files.** Do not tidy unrelated code you happen to read.
+4. **Stay inside the task's files.** Do not change other code, even when you read it.
 5. **Keep the public surface.** Public type names, member names and signatures stay. Tests and
    other layers use them.
 
 ## What to look for
 
-In this order — stop when nothing is left that clearly pays off:
+In this order — stop when no change is left that clearly makes the code easier to read:
 
 - A name that needs a comment to be understood → rename, or extract a method or a named variable
   (`CLAUDE.md`: code explains itself).
@@ -76,8 +76,8 @@ REFACTOR phase: no change — <reason>
 
 ## Anti-patterns
 
-- **"Fix on the way."** A behaviour change under `refactor:` hides it from the reader of the
+- **"I will fix this bug too."** A behaviour change under `refactor:` hides it from the reader of the
   history. It is a new cycle.
 - **"Only a rename, no need to run the tests."** Run them after every step.
-- **Refactor to show work.** No change is a valid result.
+- **A refactor only to have a commit.** No change is a valid result.
 - **A `feat` or `fix` subject.** If you want to write one, you changed behaviour.

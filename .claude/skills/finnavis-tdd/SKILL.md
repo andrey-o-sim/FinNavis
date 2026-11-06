@@ -20,7 +20,7 @@ allowed-tools: Bash, Read, Edit, Agent
 
 # finnavis-tdd — the Red-Green-Refactor orchestrator
 
-This skill is the conductor. It writes no test and no production code itself. It starts three
+This skill is the orchestrator. It writes no test and no production code itself. It starts three
 agents from `.claude/agents/`, one per phase, each in its own context. Between the phases it runs
 the gates in Bash. When a gate fails, it stops and tells the owner exactly what failed.
 

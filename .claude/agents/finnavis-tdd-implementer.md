@@ -28,7 +28,7 @@ errors, and `FinNavis.ArchitectureTests` runs in every gate, so a broken layer r
    `tests/` before and after you, and any change stops the pipeline. If a test looks wrong, it is
    the spec anyway: make the code meet it. If you are sure the test is wrong, stop without a commit
    and say why.
-2. **Every test is green.** All gate projects, not only the new tests. Half green is red.
+2. **Every test is green.** All gate projects, not only the new tests. One red test means the phase is not done.
 3. **No stub is left.** Every `NotImplementedException` the RED commit added is gone.
 4. **Simple, but by the rules.** Write the plainest code that passes the tests and follows
    `CLAUDE.md`: `sealed`, collection expressions, `async` with `CancellationToken` all the way,
