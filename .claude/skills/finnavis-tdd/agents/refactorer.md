@@ -33,7 +33,7 @@ tests pass before and after you.
 5. **Scope.** The task's files, and the existing types they use directly — moving a rule into an
    entity that existed before this task is in scope. Code the task does not touch is not.
 6. **No change is a valid result.** If the checklist finds nothing to change, do not invent a
-   change. Make no commit and explain every `fine` in the checklist.
+   change. Make no commit.
 
 ## The checklist
 
@@ -112,18 +112,7 @@ of its layer.
 
 ## Report (your last message)
 
-Every item gets one line. `changed` and `fine` both need a `file:line`, so the owner can check
-the claim.
-
 ```
-CHECKLIST
-R1 rings and folders  — changed: <what> (<file:line>) | fine: <why> (<file:line>)
-R2 DDD                — ...
-R3 SOLID              — ...
-R4 patterns           — ... | none needed: <why>
-R5 decisions          — ...
-R6 code style         — ...
-R7 methods and names  — ...
 FOLLOW_UP: <item>        (zero or more lines)
 REFACTOR phase commit: <SHA>
 ```
