@@ -18,7 +18,7 @@
 | T09 | Add `EfImportRunRepository` and `EfMappingProfileRepository` | infra | M | T08 | done |
 | T10 | Implement the candidate snapshot and the AC-17 still-in-use check in `EfImportQueries` | infra | L | T06, T08 | done |
 | T12 | Add the CSV adapter behind `IStatementReader` and the synthetic sample files | infra | L | T06 | done |
-| T13 | Register the four import adapters in the Infrastructure container | wiring | S | T09, T10, T12 | todo |
+| T13 | Register the four import adapters in the Infrastructure container | wiring | S | T09, T10, T12 | done |
 | T14 | Build the shared import pipeline, the policy object and the two-tier duplicate matcher | app | L | T01, T04, T05, T06, T10 | todo |
 | T15 | Add the `InspectFile` and `ConfirmMappingProfile` use cases | app | M | T04, T06, T09, T12 | done |
 | T16 | Add the `LoadStatement` use case with the statement policy | app | L | T14 | todo |

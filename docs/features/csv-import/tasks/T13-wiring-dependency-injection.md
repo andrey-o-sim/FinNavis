@@ -7,7 +7,7 @@ acs: []
 files_hint: ["src/FinNavis.Infrastructure/DependencyInjection/", "src/FinNavis.Presentation/Program.cs", "tests/FinNavis.ArchitectureTests/"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
 ---
 
 # T13 — Register the four import adapters in the Infrastructure container
