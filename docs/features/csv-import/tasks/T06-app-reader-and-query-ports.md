@@ -22,7 +22,7 @@ two reads that belong to no single aggregate: the candidate snapshot of
 AC-17 check.
 
 `acs` is empty: two interface declarations satisfy no acceptance criterion. The criteria arrive with
-the adapters (T10, T11, T12) and the use cases that call them.
+the adapters (T10, T12) and the use cases that call them.
 
 ## What
 
@@ -62,5 +62,5 @@ Their return types are read models under `Application/Abstractions/Reads/`, not 
   `core-ledger` ADR-0004 anticipated the split.
 - **`IUnitOfWork` is `core-ledger`'s and is reused unchanged.** Do not declare a second commit
   abstraction here ([sad.md §5](../sad.md)).
-- Two tasks unblock from here in parallel: T12 needs only this, and T10/T11 need this plus the
+- Two tasks unblock from here in parallel: T12 needs only this, and T10 needs this plus the
   migration.

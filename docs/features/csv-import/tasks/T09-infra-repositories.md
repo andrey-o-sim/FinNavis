@@ -54,4 +54,4 @@ Both in `src/FinNavis.Infrastructure/Repositories/`, both committing through `co
   movements at undo time, those rows must still be there (T05, T07).
 - **Reading a run's set-aside rows is not a query port.** [sad.md §5](../sad.md) is explicit: it is
   one aggregate read through its own repository, not an aggregation across the ledger.
-- Runs in parallel with T10 and T11 — all three unblock from T08 and touch different files.
+- Runs in parallel with T10 — both unblock from T08 and touch different files.

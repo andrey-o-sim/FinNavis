@@ -84,21 +84,12 @@
     },
     {
       "id": "T10",
-      "title": "Implement the candidate snapshot in EfImportQueries",
+      "title": "Implement the candidate snapshot and the AC-17 still-in-use check in EfImportQueries",
       "layer": "infra",
       "deps": ["T06", "T08"],
-      "acs": ["AC-20", "AC-21"],
-      "dod": "One query returns every transaction and transfer on the accounts the file names across the dates it covers, including movements the owner typed by hand (AC-21) and ones an earlier run recorded (AC-20); an EXPLAIN assertion shows the statement-load snapshot using core-ledger's idx_transactions_occurred_on_account_id rather than a sequential scan, and that test fails when the index is dropped.",
-      "files_hint": ["src/FinNavis.Infrastructure/Queries/EfImportQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CandidateSnapshotTests.cs"]
-    },
-    {
-      "id": "T11",
-      "title": "Implement the AC-17 still-in-use check in EfImportQueries",
-      "layer": "infra",
-      "deps": ["T06", "T08"],
-      "acs": ["AC-17"],
-      "dod": "One existence query reports which of a run's created accounts and categories a movement outside the run now names (AC-17), an account named only by the run's own movements is reported as not in use, and the query adds no index — it reads core-ledger's idx_transactions_account_id, idx_transactions_category_id and both transfers account indexes.",
-      "files_hint": ["src/FinNavis.Infrastructure/Queries/EfImportQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CreatedEntityInUseTests.cs"]
+      "acs": ["AC-17", "AC-20", "AC-21"],
+      "dod": "One query returns every transaction and transfer on the accounts the file names across the dates it covers, including movements the owner typed by hand (AC-21) and ones an earlier run recorded (AC-20); an EXPLAIN assertion shows the statement-load snapshot using core-ledger's idx_transactions_occurred_on_account_id rather than a sequential scan, and that test fails when the index is dropped. One existence query reports which of a run's created accounts and categories a movement outside the run now names (AC-17), an account named only by the run's own movements is reported as not in use, and the query adds no index — it reads core-ledger's idx_transactions_account_id, idx_transactions_category_id and both transfers account indexes. No NotImplementedException is left in EfImportQueries.",
+      "files_hint": ["src/FinNavis.Infrastructure/Queries/EfImportQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CandidateSnapshotTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CreatedEntityInUseTests.cs"]
     },
     {
       "id": "T12",
@@ -113,7 +104,7 @@
       "id": "T13",
       "title": "Register the four import adapters in the Infrastructure container",
       "layer": "wiring",
-      "deps": ["T09", "T10", "T11", "T12"],
+      "deps": ["T09", "T10", "T12"],
       "acs": [],
       "dod": "IImportRunRepository, IMappingProfileRepository, IImportQueries and IStatementReader all resolve from the container in one resolve test, registration happens in Infrastructure's own DependencyInjection entry point rather than type by type in Program.cs, and tests/FinNavis.ArchitectureTests is green.",
       "files_hint": ["src/FinNavis.Infrastructure/DependencyInjection/", "src/FinNavis.Presentation/Program.cs", "tests/FinNavis.ArchitectureTests/"]
@@ -167,7 +158,7 @@
       "id": "T19",
       "title": "Add the UndoImportRun use case",
       "layer": "app",
-      "deps": ["T05", "T09", "T11"],
+      "deps": ["T05", "T09", "T10"],
       "acs": ["AC-16", "AC-17", "AC-18", "AC-19"],
       "dod": "An already-undone run is refused and nothing changes, a movement whose fingerprint no longer matches blocks the whole undo and the changed rows are named back with no delete performed (AC-18), a clean undo removes every movement the run recorded (AC-16) and every account and category it created that nothing outside the run names (AC-17), the run is marked Undone while its movements are gone so the same file loads afresh (AC-19), and the whole undo commits in one IUnitOfWork.",
       "files_hint": ["src/FinNavis.Application/Import/UndoImportRun/", "tests/FinNavis.Application.UnitTests/Import/UndoImportRun/"]

@@ -2,7 +2,7 @@
 id: T19
 title: "Add the UndoImportRun use case"
 layer: "app"
-deps: ["T05", "T09", "T11"]
+deps: ["T05", "T09", "T10"]
 acs: ["AC-16", "AC-17", "AC-18", "AC-19"]
 files_hint: ["src/FinNavis.Application/Import/UndoImportRun/", "tests/FinNavis.Application.UnitTests/Import/UndoImportRun/"]
 owner: "Andrey Simonenko"
@@ -31,7 +31,7 @@ In `src/FinNavis.Application/Import/UndoImportRun/`, in this order:
    and name the changed rows back. **No movement is deleted, no created account or category is
    removed, and the run keeps its status** (AC-18).
 4. **Ask `IImportQueries`** which of the run's created accounts and categories a movement from
-   outside the run now names (T11).
+   outside the run now names (T10).
 5. **Mark the run `Undone`**, delete its movements and the created accounts and categories nobody
    else names, and commit — one `IUnitOfWork`, one transaction (AC-16, AC-17).
 

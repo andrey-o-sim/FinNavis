@@ -2,7 +2,7 @@
 id: T13
 title: "Register the four import adapters in the Infrastructure container"
 layer: "wiring"
-deps: ["T09", "T10", "T11", "T12"]
+deps: ["T09", "T10", "T12"]
 acs: []
 files_hint: ["src/FinNavis.Infrastructure/DependencyInjection/", "src/FinNavis.Presentation/Program.cs", "tests/FinNavis.ArchitectureTests/"]
 owner: "Andrey Simonenko"

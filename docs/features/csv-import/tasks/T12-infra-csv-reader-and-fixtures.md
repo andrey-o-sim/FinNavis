@@ -72,4 +72,4 @@ merchants and amounts. A 1500-row export for T25 and T26 to time against.
 - **The row ceiling has no value yet.** PRD §8: *"Is there a limit on the size of a file that may be
   handed over? Default now: none enforced."* The refusal code `Import.FileNotReadable` already
   exists in the contract to carry it when the number arrives.
-- Runs in parallel with the whole T07 → T08 → T09/T10/T11 arm — it needs only T06.
+- Runs in parallel with the whole T07 → T08 → T09/T10 arm — it needs only T06.

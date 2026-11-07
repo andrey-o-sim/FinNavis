@@ -49,8 +49,7 @@ flowchart LR
     T07["T07 DbContext and configurations"]
     T08["T08 EF migration"]
     T09["T09 import repositories"]
-    T10["T10 candidate snapshot query"]
-    T11["T11 still-in-use query"]
+    T10["T10 candidate snapshot and still-in-use queries"]
     T12["T12 CSV adapter and fixtures"]
     T13["T13 dependency injection"]
     T14["T14 pipeline policy and matcher"]
@@ -77,12 +76,9 @@ flowchart LR
     T08 --> T09
     T06 --> T10
     T08 --> T10
-    T06 --> T11
-    T08 --> T11
     T06 --> T12
     T09 --> T13
     T10 --> T13
-    T11 --> T13
     T12 --> T13
     T01 --> T14
     T04 --> T14
@@ -99,7 +95,7 @@ flowchart LR
     T09 --> T18
     T05 --> T19
     T09 --> T19
-    T11 --> T19
+    T10 --> T19
     T02 --> T20
     T04 --> T20
     T05 --> T20
@@ -130,7 +126,7 @@ real statement and a real export opened — and T14 cannot start without it, so 
 After T03 the Domain ring fans out three ways: **T04**, **T05** and **T06** run together. After
 that the graph has two long arms that only meet at T13:
 
-- the persistence arm — T07 → T08 → then **T09, T10 and T11 in parallel**;
+- the persistence arm — T07 → T08 → then **T09 and T10 in parallel**;
 - the file arm — **T12**, which needs only T06 and can run beside the whole persistence arm.
 
 After T14 the two entry points **T16** and **T17** run together, and **T15**, **T18** and **T19**
@@ -142,9 +138,10 @@ from T22.
 
 - `layer: migration` is always serialized — **T08** is the only one, so the lane is trivially held.
 - Overlapping `files_hint` serializes regardless of layer:
-  - **T10 and T11** both write `src/FinNavis.Infrastructure/Queries/EfImportQueries.cs`. They are
-    kept separate because each read gets its own task and its own index proof, but they cannot run
-    at the same time.
+  - **T10** owns `src/FinNavis.Infrastructure/Queries/EfImportQueries.cs` alone. It was once two
+    tasks, one per read, but both reads are methods of one class: the first task would leave the
+    other method as a `NotImplementedException` stub, and `finnavis-tdd` Gate 2 refuses that. So
+    they were merged on 2026-11-07.
   - **T13, T21, T22 and T23** all touch `src/FinNavis.Presentation/Program.cs` — T13 registers the
     adapters, the other three add their route registration. T13 is upstream of all three; T21, T22
     and T23 share the lane with each other.
@@ -171,16 +168,15 @@ See [tracker.md](./tracker.md) for status. Machine contract: [tasks.json](./task
 | [T07](./T07-infra-dbcontext-and-configurations.md) | Add the `DbContext` sets and the eight entity configurations | infra | T04, T05 | 8 tables, 13 indexes, enums as strings, ADR-0008 comment on both link configs |
 | [T08](./T08-migration-csv-import-initial.md) | Generate the import migration and diff it against the staged spec | migration | T07 | Generated script matches the 8 staged `.up.sql` files; applies and reverts in Testcontainers |
 | [T09](./T09-infra-repositories.md) | Add `EfImportRunRepository` and `EfMappingProfileRepository` | infra | T08 | Both round-trip; the shape-key lookup uses its unique index |
-| [T10](./T10-infra-query-candidate-snapshot.md) | Implement the candidate snapshot in `EfImportQueries` | infra | T06, T08 | One query over accounts and dates; `EXPLAIN` shows an index scan |
-| [T11](./T11-infra-query-created-entity-in-use.md) | Implement the AC-17 still-in-use check in `EfImportQueries` | infra | T06, T08 | An existence check that adds no index |
+| [T10](./T10-infra-import-queries.md) | Implement the candidate snapshot and the AC-17 still-in-use check in `EfImportQueries` | infra | T06, T08 | One snapshot query over accounts and dates with an index scan; an existence check that adds no index |
 | [T12](./T12-infra-csv-reader-and-fixtures.md) | Add the CSV adapter behind `IStatementReader` and the synthetic sample files | infra | T06 | Streams rows, builds the shape key, names the missing column; fixtures are synthetic |
-| [T13](./T13-wiring-dependency-injection.md) | Register the four import adapters in the Infrastructure container | wiring | T09, T10, T11, T12 | All four ports resolve in one test; ArchitectureTests green |
+| [T13](./T13-wiring-dependency-injection.md) | Register the four import adapters in the Infrastructure container | wiring | T09, T10, T12 | All four ports resolve in one test; ArchitectureTests green |
 | [T14](./T14-app-pipeline-policy-and-matcher.md) | Build the shared import pipeline, the policy object and the two-tier duplicate matcher | app | T01, T04, T05, T06, T10 | One pipeline, two policies, two match tiers; two identical rows both land |
 | [T15](./T15-app-inspect-and-confirm.md) | Add the `InspectFile` and `ConfirmMappingProfile` use cases | app | T04, T06, T09, T12 | Inspect lists the file's categories; confirm refuses an unknown category |
 | [T16](./T16-app-load-statement.md) | Add the `LoadStatement` use case with the statement policy | app | T14 | Three set-aside reasons, one refusal for an unknown account, one commit |
 | [T17](./T17-app-migrate-history.md) | Add the `MigrateHistory` use case with the migration policy | app | T14 | Creates what the ledger lacks, records a transfer, changes nothing hand-typed |
 | [T18](./T18-app-get-import-run.md) | Add the `GetImportRun` use case | app | T05, T09 | Counts, set-aside rows and the undone flag, read through the repository |
-| [T19](./T19-app-undo-import-run.md) | Add the `UndoImportRun` use case | app | T05, T09, T11 | Refuses on a fingerprint mismatch; removes only what nothing else names |
+| [T19](./T19-app-undo-import-run.md) | Add the `UndoImportRun` use case | app | T05, T09, T10 | Refuses on a fingerprint mismatch; removes only what nothing else names |
 | [T20](./T20-ports-error-codes.md) | Add the `Import` and `MappingProfile` error codes to the registry | ports | T02, T04, T05 | 12 constants returning exactly the contract's strings; no `problem+json` |
 | [T21](./T21-ports-mapping-profiles-endpoints.md) | Add the `MappingProfiles` endpoints: `Inspect` and `Confirm` | ports | T13, T15, T20 | Both operations match the contract; 201 on new, 200 on re-confirm |
 | [T22](./T22-ports-import-runs-load-endpoints.md) | Add the `ImportRuns` load endpoints: `LoadStatement` and `MigrateHistory` | ports | T13, T16, T17, T20 | Multipart in, `200` with counts and the full set-aside list out |
@@ -200,7 +196,7 @@ Several are claimed more than once, because they are proved at more than one lev
   returns them in full on a load, T23 pages them on a read. The load and the read answer differently
   on purpose ([api-sync-report.md](../contracts/api-sync-report.md), decision 2).
 - **AC-17** (undo removes what the run created, unless something else names it) — T05 records the
-  creation links, T11 is the query that answers "named from outside?", T19 acts on it, T25 proves it.
+  creation links, T10 is the query that answers "named from outside?", T19 acts on it, T25 proves it.
 - **AC-18** (undo blocked after a hand edit) — T05 compares the fingerprint, T19 refuses, T20 carries
   `Import.MovementsChangedByHand`, T23 returns it, T25 proves the fingerprint still covers every
   editable field.
@@ -265,4 +261,4 @@ the criterion it serves.
 | The candidate snapshot grows with the date range, so a three-year migration pulls ~20 000 movements into memory on its first run | ADR-0003, [sad.md §7](../sad.md) | Reached immediately or not at all. Revisit past ~200 000 movements |
 | `.claude/skills/finnavis-api-forge/SKILL.md` still states the superseded snake_case code spelling | [api-sync-report.md](../contracts/api-sync-report.md) Section D, new on run 3 | A skill fix, not feature work. It misleads the **next** feature, not this one — but it should be done before `/finnavis-api-forge` runs again |
 | The nightly `pg_dump` backup | [sad.md §7](../sad.md) | Inherited from `core-ledger`; parked there too |
-| RICE was scored from effort **M** while the scope written is **L** | [PRD §1](../PRD.md), [sad.md §11](../sad.md) | Re-score before this feature is scheduled. This epic measures 27 tasks and ~17 person-days, which confirms the PRD was right to flag it |
+| RICE was scored from effort **M** while the scope written is **L** | [PRD §1](../PRD.md), [sad.md §11](../sad.md) | Re-score before this feature is scheduled. This epic measures 26 tasks and ~17 person-days, which confirms the PRD was right to flag it |
