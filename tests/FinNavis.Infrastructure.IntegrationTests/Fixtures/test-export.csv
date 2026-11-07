@@ -1,0 +1,1501 @@
+Date,Account,Category,Amount,Currency,Note
+01.01.2023,Savings jar,Groceries,-19.00,UAH,Corner Bakery
+01.01.2023,Cash wallet,Books,-96.04,UAH,Pixel Books
+02.01.2023,Savings jar,Groceries,-156.20,UAH,Corner Bakery
+02.01.2023,Savings jar,Groceries,-129.00,UAH,Corner Bakery
+03.01.2023,Cash wallet,Books,-84.84,UAH,Pixel Books
+03.01.2023,Savings jar,Groceries,-63.72,UAH,Northside Grocer
+04.01.2023,Savings jar,Groceries,-58.28,UAH,Maple Street Market
+04.01.2023,Cash wallet,Groceries,-82.28,UAH,Maple Street Market
+05.01.2023,Cash wallet,Groceries,-98.60,UAH,Corner Bakery
+05.01.2023,Cash wallet,Books,-174.44,UAH,Pixel Books
+06.01.2023,Debit card,Groceries,-81.00,UAH,Corner Bakery
+06.01.2023,Debit card,Groceries,-63.40,UAH,Corner Bakery
+07.01.2023,Savings jar,Groceries,-141.80,UAH,Corner Bakery
+07.01.2023,Savings jar,Groceries,-119.08,UAH,Maple Street Market
+08.01.2023,Savings jar,Groceries,-145.00,UAH,Corner Bakery
+08.01.2023,Savings jar,Groceries,-167.40,UAH,Corner Bakery
+09.01.2023,Cash wallet,Fuel,-67.56,UAH,Sunny Fuel Stop
+09.01.2023,Savings jar,Groceries,-200.60,UAH,Corner Bakery
+10.01.2023,Savings jar,Fuel,-121.96,UAH,Sunny Fuel Stop
+10.01.2023,Savings jar,Groceries,-120.68,UAH,Maple Street Market
+11.01.2023,Debit card,Groceries,-5.48,UAH,Maple Street Market
+11.01.2023,Debit card,Groceries,-177.32,UAH,Northside Grocer
+12.01.2023,Debit card,Groceries,-98.28,UAH,Maple Street Market
+12.01.2023,Debit card,Groceries,-166.12,UAH,Northside Grocer
+13.01.2023,Debit card,Groceries,-103.40,UAH,Corner Bakery
+13.01.2023,Savings jar,Fuel,-40.36,UAH,Sunny Fuel Stop
+14.01.2023,Savings jar,Groceries,-49.00,UAH,Corner Bakery
+14.01.2023,Debit card,Groceries,-174.12,UAH,Northside Grocer
+15.01.2023,Debit card,Groceries,-100.52,UAH,Northside Grocer
+15.01.2023,Cash wallet,Books,-14.44,UAH,Pixel Books
+16.01.2023,Debit card,Fuel,-99.56,UAH,Sunny Fuel Stop
+16.01.2023,Debit card,Groceries,-176.68,UAH,Maple Street Market
+17.01.2023,Debit card,Groceries,-90.92,UAH,Northside Grocer
+17.01.2023,Debit card,Books,-150.04,UAH,Pixel Books
+18.01.2023,Savings jar,Groceries,-194.28,UAH,Maple Street Market
+18.01.2023,Cash wallet,Books,-120.04,UAH,Pixel Books
+19.01.2023,Debit card,Fuel,-13.16,UAH,Sunny Fuel Stop
+19.01.2023,Debit card,Groceries,-138.28,UAH,Maple Street Market
+20.01.2023,Cash wallet,Groceries,-169.32,UAH,Northside Grocer
+20.01.2023,Debit card,Books,-65.24,UAH,Pixel Books
+21.01.2023,Debit card,Groceries,-2.28,UAH,Maple Street Market
+21.01.2023,Cash wallet,Books,-72.04,UAH,Pixel Books
+22.01.2023,Savings jar,Books,-28.84,UAH,Pixel Books
+22.01.2023,Cash wallet,Books,-84.84,UAH,Pixel Books
+23.01.2023,Debit card,Groceries,-29.80,UAH,Corner Bakery
+23.01.2023,Cash wallet,Books,-67.24,UAH,Pixel Books
+24.01.2023,Debit card,Groceries,-9.00,UAH,Corner Bakery
+24.01.2023,Savings jar,Books,-92.84,UAH,Pixel Books
+25.01.2023,Cash wallet,Groceries,-85.48,UAH,Maple Street Market
+25.01.2023,Savings jar,Groceries,-134.12,UAH,Northside Grocer
+26.01.2023,Debit card,Fuel,-150.76,UAH,Sunny Fuel Stop
+26.01.2023,Savings jar,Groceries,-155.88,UAH,Maple Street Market
+27.01.2023,Debit card,Groceries,-90.28,UAH,Maple Street Market
+27.01.2023,Savings jar,Groceries,-170.92,UAH,Northside Grocer
+28.01.2023,Debit card,Groceries,-135.08,UAH,Maple Street Market
+28.01.2023,Debit card,Groceries,-185.00,UAH,Corner Bakery
+29.01.2023,Savings jar,Groceries,-102.68,UAH,Maple Street Market
+29.01.2023,Savings jar,Groceries,-153.32,UAH,Northside Grocer
+30.01.2023,Savings jar,Fuel,-75.56,UAH,Sunny Fuel Stop
+30.01.2023,Cash wallet,Books,-96.04,UAH,Pixel Books
+31.01.2023,Cash wallet,Books,-40.04,UAH,Pixel Books
+31.01.2023,Cash wallet,Books,-177.64,UAH,Pixel Books
+01.02.2023,Savings jar,Groceries,-145.00,UAH,Corner Bakery
+01.02.2023,Cash wallet,Groceries,-197.48,UAH,Maple Street Market
+02.02.2023,Debit card,Fuel,-144.36,UAH,Sunny Fuel Stop
+02.02.2023,Cash wallet,Fuel,-136.36,UAH,Sunny Fuel Stop
+03.02.2023,Debit card,Books,-147.24,UAH,Pixel Books
+03.02.2023,Debit card,Fuel,-32.36,UAH,Sunny Fuel Stop
+04.02.2023,Cash wallet,Groceries,-54.68,UAH,Maple Street Market
+04.02.2023,Savings jar,Fuel,-99.56,UAH,Sunny Fuel Stop
+05.02.2023,Savings jar,Fuel,-150.76,UAH,Sunny Fuel Stop
+05.02.2023,Savings jar,Fuel,-59.56,UAH,Sunny Fuel Stop
+06.02.2023,Cash wallet,Groceries,-25.00,UAH,Corner Bakery
+06.02.2023,Cash wallet,Fuel,-48.36,UAH,Sunny Fuel Stop
+07.02.2023,Cash wallet,Groceries,-75.88,UAH,Maple Street Market
+07.02.2023,Debit card,Books,-142.44,UAH,Pixel Books
+08.02.2023,Debit card,Groceries,-41.32,UAH,Northside Grocer
+08.02.2023,Savings jar,Books,-129.64,UAH,Pixel Books
+09.02.2023,Debit card,Groceries,-164.52,UAH,Northside Grocer
+09.02.2023,Cash wallet,Books,-38.44,UAH,Pixel Books
+10.02.2023,Savings jar,Groceries,-50.92,UAH,Northside Grocer
+10.02.2023,Savings jar,Books,-187.24,UAH,Pixel Books
+11.02.2023,Debit card,Groceries,-143.08,UAH,Maple Street Market
+11.02.2023,Cash wallet,Groceries,-90.92,UAH,Northside Grocer
+12.02.2023,Savings jar,Fuel,-166.76,UAH,Sunny Fuel Stop
+12.02.2023,Savings jar,Books,-179.24,UAH,Pixel Books
+13.02.2023,Savings jar,Groceries,-122.28,UAH,Maple Street Market
+13.02.2023,Debit card,Groceries,-160.68,UAH,Maple Street Market
+14.02.2023,Savings jar,Groceries,-165.48,UAH,Maple Street Market
+14.02.2023,Savings jar,Groceries,-194.92,UAH,Northside Grocer
+15.02.2023,Debit card,Groceries,-7.72,UAH,Northside Grocer
+15.02.2023,Debit card,Fuel,-147.56,UAH,Sunny Fuel Stop
+16.02.2023,Cash wallet,Groceries,-162.60,UAH,Corner Bakery
+16.02.2023,Debit card,Books,-73.64,UAH,Pixel Books
+17.02.2023,Savings jar,Books,-147.24,UAH,Pixel Books
+17.02.2023,Debit card,Fuel,-160.36,UAH,Sunny Fuel Stop
+18.02.2023,Cash wallet,Groceries,-26.60,UAH,Corner Bakery
+18.02.2023,Cash wallet,Groceries,-94.12,UAH,Northside Grocer
+19.02.2023,Debit card,Groceries,-159.40,UAH,Corner Bakery
+19.02.2023,Cash wallet,Books,-115.24,UAH,Pixel Books
+20.02.2023,Savings jar,Books,-57.24,UAH,Pixel Books
+20.02.2023,Cash wallet,Groceries,-122.92,UAH,Northside Grocer
+21.02.2023,Debit card,Groceries,-22.12,UAH,Northside Grocer
+21.02.2023,Debit card,Fuel,-153.96,UAH,Sunny Fuel Stop
+22.02.2023,Cash wallet,Groceries,-143.72,UAH,Northside Grocer
+22.02.2023,Debit card,Groceries,-63.08,UAH,Maple Street Market
+23.02.2023,Cash wallet,Groceries,-172.20,UAH,Corner Bakery
+23.02.2023,Cash wallet,Books,-160.04,UAH,Pixel Books
+24.02.2023,Cash wallet,Groceries,-145.32,UAH,Northside Grocer
+24.02.2023,Debit card,Groceries,-61.48,UAH,Maple Street Market
+25.02.2023,Cash wallet,Groceries,-146.60,UAH,Corner Bakery
+25.02.2023,Savings jar,Groceries,-21.80,UAH,Corner Bakery
+26.02.2023,Savings jar,Books,-102.44,UAH,Pixel Books
+26.02.2023,Savings jar,Groceries,-188.20,UAH,Corner Bakery
+27.02.2023,Savings jar,Groceries,-127.08,UAH,Maple Street Market
+27.02.2023,Debit card,Groceries,-81.00,UAH,Corner Bakery
+28.02.2023,Savings jar,Groceries,-45.48,UAH,Maple Street Market
+28.02.2023,Savings jar,Fuel,-75.16,UAH,Sunny Fuel Stop
+01.03.2023,Savings jar,Groceries,-66.60,UAH,Corner Bakery
+01.03.2023,Cash wallet,Groceries,-36.52,UAH,Northside Grocer
+02.03.2023,Cash wallet,Groceries,-181.48,UAH,Maple Street Market
+02.03.2023,Debit card,Fuel,-179.56,UAH,Sunny Fuel Stop
+03.03.2023,Cash wallet,Books,-174.44,UAH,Pixel Books
+03.03.2023,Savings jar,Fuel,-41.96,UAH,Sunny Fuel Stop
+04.03.2023,Savings jar,Groceries,-18.60,UAH,Corner Bakery
+04.03.2023,Savings jar,Fuel,-91.56,UAH,Sunny Fuel Stop
+05.03.2023,Debit card,Fuel,-67.56,UAH,Sunny Fuel Stop
+05.03.2023,Savings jar,Books,-41.64,UAH,Pixel Books
+06.03.2023,Savings jar,Groceries,-168.68,UAH,Maple Street Market
+06.03.2023,Debit card,Books,-8.04,UAH,Pixel Books
+07.03.2023,Debit card,Groceries,-156.52,UAH,Northside Grocer
+07.03.2023,Debit card,Fuel,-57.96,UAH,Sunny Fuel Stop
+08.03.2023,Debit card,Groceries,-66.60,UAH,Corner Bakery
+08.03.2023,Cash wallet,Groceries,-124.20,UAH,Corner Bakery
+09.03.2023,Cash wallet,Fuel,-181.16,UAH,Sunny Fuel Stop
+09.03.2023,Savings jar,Fuel,-13.16,UAH,Sunny Fuel Stop
+10.03.2023,Cash wallet,Groceries,-50.92,UAH,Northside Grocer
+10.03.2023,Debit card,Fuel,-134.76,UAH,Sunny Fuel Stop
+11.03.2023,Savings jar,Groceries,-4.52,UAH,Northside Grocer
+11.03.2023,Cash wallet,Groceries,-181.48,UAH,Maple Street Market
+12.03.2023,Debit card,Groceries,-191.72,UAH,Northside Grocer
+12.03.2023,Cash wallet,Groceries,-1.00,UAH,Corner Bakery
+13.03.2023,Cash wallet,Groceries,-152.68,UAH,Maple Street Market
+13.03.2023,Debit card,Fuel,-97.96,UAH,Sunny Fuel Stop
+14.03.2023,Cash wallet,Groceries,-47.72,UAH,Northside Grocer
+14.03.2023,Cash wallet,Books,-3.24,UAH,Pixel Books
+15.03.2023,Cash wallet,Groceries,-13.80,UAH,Corner Bakery
+15.03.2023,Debit card,Fuel,-93.16,UAH,Sunny Fuel Stop
+16.03.2023,Debit card,Groceries,-112.68,UAH,Maple Street Market
+16.03.2023,Cash wallet,Groceries,-148.52,UAH,Northside Grocer
+17.03.2023,Savings jar,Groceries,-177.00,UAH,Corner Bakery
+17.03.2023,Savings jar,Groceries,-90.28,UAH,Maple Street Market
+18.03.2023,Savings jar,Fuel,-129.96,UAH,Sunny Fuel Stop
+18.03.2023,Savings jar,Fuel,-165.16,UAH,Sunny Fuel Stop
+19.03.2023,Savings jar,Fuel,-53.16,UAH,Sunny Fuel Stop
+19.03.2023,Debit card,Groceries,-167.40,UAH,Corner Bakery
+20.03.2023,Cash wallet,Groceries,-97.32,UAH,Northside Grocer
+20.03.2023,Debit card,Fuel,-187.56,UAH,Sunny Fuel Stop
+21.03.2023,Savings jar,Groceries,-18.92,UAH,Northside Grocer
+21.03.2023,Debit card,Fuel,-83.56,UAH,Sunny Fuel Stop
+22.03.2023,Cash wallet,Books,-192.04,UAH,Pixel Books
+22.03.2023,Savings jar,Fuel,-179.56,UAH,Sunny Fuel Stop
+23.03.2023,Cash wallet,Books,-67.24,UAH,Pixel Books
+23.03.2023,Cash wallet,Groceries,-133.80,UAH,Corner Bakery
+24.03.2023,Savings jar,Groceries,-151.08,UAH,Maple Street Market
+24.03.2023,Debit card,Books,-142.44,UAH,Pixel Books
+25.03.2023,Cash wallet,Fuel,-27.56,UAH,Sunny Fuel Stop
+25.03.2023,Savings jar,Books,-43.24,UAH,Pixel Books
+26.03.2023,Savings jar,Groceries,-124.20,UAH,Corner Bakery
+26.03.2023,Cash wallet,Books,-59.24,UAH,Pixel Books
+27.03.2023,Cash wallet,Groceries,-74.28,UAH,Maple Street Market
+27.03.2023,Debit card,Groceries,-161.32,UAH,Northside Grocer
+28.03.2023,Cash wallet,Groceries,-172.20,UAH,Corner Bakery
+28.03.2023,Debit card,Books,-190.44,UAH,Pixel Books
+29.03.2023,Debit card,Books,-148.84,UAH,Pixel Books
+29.03.2023,Savings jar,Books,-68.84,UAH,Pixel Books
+30.03.2023,Cash wallet,Fuel,-150.76,UAH,Sunny Fuel Stop
+30.03.2023,Cash wallet,Groceries,-151.72,UAH,Northside Grocer
+31.03.2023,Savings jar,Groceries,-79.08,UAH,Maple Street Market
+31.03.2023,Cash wallet,Groceries,-197.48,UAH,Maple Street Market
+01.04.2023,Savings jar,Groceries,-93.48,UAH,Maple Street Market
+01.04.2023,Savings jar,Groceries,-47.40,UAH,Corner Bakery
+02.04.2023,Savings jar,Groceries,-48.68,UAH,Maple Street Market
+02.04.2023,Cash wallet,Fuel,-16.36,UAH,Sunny Fuel Stop
+03.04.2023,Savings jar,Groceries,-15.08,UAH,Maple Street Market
+03.04.2023,Debit card,Fuel,-29.16,UAH,Sunny Fuel Stop
+04.04.2023,Savings jar,Groceries,-9.00,UAH,Corner Bakery
+04.04.2023,Savings jar,Groceries,-77.48,UAH,Maple Street Market
+05.04.2023,Cash wallet,Groceries,-73.00,UAH,Corner Bakery
+05.04.2023,Cash wallet,Books,-32.04,UAH,Pixel Books
+06.04.2023,Cash wallet,Groceries,-116.20,UAH,Corner Bakery
+06.04.2023,Savings jar,Books,-195.24,UAH,Pixel Books
+07.04.2023,Debit card,Groceries,-194.60,UAH,Corner Bakery
+07.04.2023,Cash wallet,Fuel,-9.96,UAH,Sunny Fuel Stop
+08.04.2023,Savings jar,Books,-150.44,UAH,Pixel Books
+08.04.2023,Cash wallet,Books,-115.24,UAH,Pixel Books
+09.04.2023,Debit card,Groceries,-47.08,UAH,Maple Street Market
+09.04.2023,Cash wallet,Groceries,-19.88,UAH,Maple Street Market
+10.04.2023,Debit card,Groceries,-95.40,UAH,Corner Bakery
+10.04.2023,Savings jar,Groceries,-79.40,UAH,Corner Bakery
+11.04.2023,Cash wallet,Books,-17.64,UAH,Pixel Books
+11.04.2023,Debit card,Groceries,-14.12,UAH,Northside Grocer
+12.04.2023,Cash wallet,Books,-1.64,UAH,Pixel Books
+12.04.2023,Cash wallet,Fuel,-166.76,UAH,Sunny Fuel Stop
+13.04.2023,Savings jar,Fuel,-41.96,UAH,Sunny Fuel Stop
+13.04.2023,Cash wallet,Fuel,-41.96,UAH,Sunny Fuel Stop
+14.04.2023,Debit card,Books,-99.24,UAH,Pixel Books
+14.04.2023,Savings jar,Groceries,-109.80,UAH,Corner Bakery
+15.04.2023,Debit card,Groceries,-43.88,UAH,Maple Street Market
+15.04.2023,Savings jar,Fuel,-158.76,UAH,Sunny Fuel Stop
+16.04.2023,Cash wallet,Groceries,-138.92,UAH,Northside Grocer
+16.04.2023,Debit card,Groceries,-105.00,UAH,Corner Bakery
+17.04.2023,Savings jar,Fuel,-190.76,UAH,Sunny Fuel Stop
+17.04.2023,Debit card,Groceries,-100.20,UAH,Corner Bakery
+18.04.2023,Savings jar,Books,-164.84,UAH,Pixel Books
+18.04.2023,Cash wallet,Books,-129.64,UAH,Pixel Books
+19.04.2023,Savings jar,Groceries,-114.60,UAH,Corner Bakery
+19.04.2023,Debit card,Groceries,-161.32,UAH,Northside Grocer
+20.04.2023,Debit card,Fuel,-44.76,UAH,Sunny Fuel Stop
+20.04.2023,Debit card,Fuel,-145.96,UAH,Sunny Fuel Stop
+21.04.2023,Debit card,Groceries,-138.60,UAH,Corner Bakery
+21.04.2023,Debit card,Fuel,-125.16,UAH,Sunny Fuel Stop
+22.04.2023,Savings jar,Groceries,-190.12,UAH,Northside Grocer
+22.04.2023,Savings jar,Books,-198.44,UAH,Pixel Books
+23.04.2023,Savings jar,Fuel,-95.96,UAH,Sunny Fuel Stop
+23.04.2023,Debit card,Fuel,-179.56,UAH,Sunny Fuel Stop
+24.04.2023,Debit card,Books,-60.84,UAH,Pixel Books
+24.04.2023,Debit card,Groceries,-145.32,UAH,Northside Grocer
+25.04.2023,Debit card,Groceries,-3.88,UAH,Maple Street Market
+25.04.2023,Cash wallet,Books,-60.84,UAH,Pixel Books
+26.04.2023,Cash wallet,Fuel,-75.56,UAH,Sunny Fuel Stop
+26.04.2023,Savings jar,Groceries,-145.00,UAH,Corner Bakery
+27.04.2023,Debit card,Groceries,-98.92,UAH,Northside Grocer
+27.04.2023,Savings jar,Groceries,-186.60,UAH,Corner Bakery
+28.04.2023,Savings jar,Groceries,-79.08,UAH,Maple Street Market
+28.04.2023,Debit card,Fuel,-78.76,UAH,Sunny Fuel Stop
+29.04.2023,Cash wallet,Groceries,-74.92,UAH,Northside Grocer
+29.04.2023,Debit card,Groceries,-179.88,UAH,Maple Street Market
+30.04.2023,Savings jar,Groceries,-39.40,UAH,Corner Bakery
+30.04.2023,Cash wallet,Groceries,-1.00,UAH,Corner Bakery
+01.05.2023,Debit card,Groceries,-131.88,UAH,Maple Street Market
+01.05.2023,Debit card,Books,-68.84,UAH,Pixel Books
+02.05.2023,Cash wallet,Groceries,-90.28,UAH,Maple Street Market
+02.05.2023,Cash wallet,Groceries,-41.32,UAH,Northside Grocer
+03.05.2023,Savings jar,Fuel,-72.36,UAH,Sunny Fuel Stop
+03.05.2023,Savings jar,Groceries,-61.48,UAH,Maple Street Market
+04.05.2023,Savings jar,Groceries,-44.52,UAH,Northside Grocer
+04.05.2023,Debit card,Groceries,-106.92,UAH,Northside Grocer
+05.05.2023,Savings jar,Groceries,-60.20,UAH,Corner Bakery
+05.05.2023,Debit card,Groceries,-65.00,UAH,Corner Bakery
+06.05.2023,Debit card,Groceries,-52.52,UAH,Northside Grocer
+06.05.2023,Savings jar,Groceries,-26.28,UAH,Maple Street Market
+07.05.2023,Cash wallet,Groceries,-71.40,UAH,Corner Bakery
+07.05.2023,Debit card,Books,-97.64,UAH,Pixel Books
+08.05.2023,Savings jar,Groceries,-3.88,UAH,Maple Street Market
+08.05.2023,Savings jar,Fuel,-104.36,UAH,Sunny Fuel Stop
+09.05.2023,Savings jar,Groceries,-33.32,UAH,Northside Grocer
+09.05.2023,Cash wallet,Groceries,-77.80,UAH,Corner Bakery
+10.05.2023,Cash wallet,Fuel,-163.56,UAH,Sunny Fuel Stop
+10.05.2023,Debit card,Groceries,-165.48,UAH,Maple Street Market
+11.05.2023,Debit card,Fuel,-187.56,UAH,Sunny Fuel Stop
+11.05.2023,Savings jar,Groceries,-167.08,UAH,Maple Street Market
+12.05.2023,Savings jar,Groceries,-42.28,UAH,Maple Street Market
+12.05.2023,Debit card,Groceries,-93.80,UAH,Corner Bakery
+13.05.2023,Savings jar,Groceries,-99.88,UAH,Maple Street Market
+13.05.2023,Debit card,Groceries,-174.12,UAH,Northside Grocer
+14.05.2023,Cash wallet,Fuel,-131.56,UAH,Sunny Fuel Stop
+14.05.2023,Cash wallet,Groceries,-152.68,UAH,Maple Street Market
+15.05.2023,Cash wallet,Fuel,-157.16,UAH,Sunny Fuel Stop
+15.05.2023,Cash wallet,Books,-180.84,UAH,Pixel Books
+16.05.2023,Cash wallet,Groceries,-95.72,UAH,Northside Grocer
+16.05.2023,Debit card,Groceries,-24.68,UAH,Maple Street Market
+17.05.2023,Savings jar,Groceries,-117.48,UAH,Maple Street Market
+17.05.2023,Debit card,Fuel,-157.16,UAH,Sunny Fuel Stop
+18.05.2023,Debit card,Books,-150.44,UAH,Pixel Books
+18.05.2023,Cash wallet,Books,-184.04,UAH,Pixel Books
+19.05.2023,Cash wallet,Groceries,-34.92,UAH,Northside Grocer
+19.05.2023,Cash wallet,Groceries,-199.72,UAH,Northside Grocer
+20.05.2023,Cash wallet,Groceries,-103.08,UAH,Maple Street Market
+20.05.2023,Savings jar,Fuel,-4.76,UAH,Sunny Fuel Stop
+21.05.2023,Cash wallet,Books,-169.64,UAH,Pixel Books
+21.05.2023,Savings jar,Books,-8.04,UAH,Pixel Books
+22.05.2023,Savings jar,Groceries,-63.40,UAH,Corner Bakery
+22.05.2023,Cash wallet,Books,-35.24,UAH,Pixel Books
+23.05.2023,Savings jar,Books,-126.44,UAH,Pixel Books
+23.05.2023,Debit card,Fuel,-3.56,UAH,Sunny Fuel Stop
+24.05.2023,Savings jar,Books,-91.24,UAH,Pixel Books
+24.05.2023,Debit card,Groceries,-119.08,UAH,Maple Street Market
+25.05.2023,Cash wallet,Groceries,-71.08,UAH,Maple Street Market
+25.05.2023,Savings jar,Groceries,-6.12,UAH,Northside Grocer
+26.05.2023,Cash wallet,Groceries,-127.40,UAH,Corner Bakery
+26.05.2023,Debit card,Groceries,-131.88,UAH,Maple Street Market
+27.05.2023,Debit card,Groceries,-85.80,UAH,Corner Bakery
+27.05.2023,Cash wallet,Books,-177.64,UAH,Pixel Books
+28.05.2023,Debit card,Fuel,-179.56,UAH,Sunny Fuel Stop
+28.05.2023,Cash wallet,Books,-123.24,UAH,Pixel Books
+29.05.2023,Debit card,Fuel,-30.76,UAH,Sunny Fuel Stop
+29.05.2023,Debit card,Groceries,-26.28,UAH,Maple Street Market
+30.05.2023,Debit card,Books,-155.24,UAH,Pixel Books
+30.05.2023,Cash wallet,Books,-11.24,UAH,Pixel Books
+31.05.2023,Debit card,Groceries,-23.40,UAH,Corner Bakery
+31.05.2023,Savings jar,Groceries,-145.00,UAH,Corner Bakery
+01.06.2023,Cash wallet,Fuel,-118.76,UAH,Sunny Fuel Stop
+01.06.2023,Savings jar,Groceries,-119.72,UAH,Northside Grocer
+02.06.2023,Savings jar,Groceries,-171.88,UAH,Maple Street Market
+02.06.2023,Cash wallet,Groceries,-57.32,UAH,Northside Grocer
+03.06.2023,Savings jar,Fuel,-187.56,UAH,Sunny Fuel Stop
+03.06.2023,Savings jar,Groceries,-194.28,UAH,Maple Street Market
+04.06.2023,Savings jar,Fuel,-62.76,UAH,Sunny Fuel Stop
+04.06.2023,Debit card,Books,-68.84,UAH,Pixel Books
+05.06.2023,Cash wallet,Fuel,-171.56,UAH,Sunny Fuel Stop
+05.06.2023,Savings jar,Fuel,-16.36,UAH,Sunny Fuel Stop
+06.06.2023,Debit card,Groceries,-187.88,UAH,Maple Street Market
+06.06.2023,Cash wallet,Books,-113.64,UAH,Pixel Books
+07.06.2023,Debit card,Groceries,-191.72,UAH,Northside Grocer
+07.06.2023,Debit card,Fuel,-200.36,UAH,Sunny Fuel Stop
+08.06.2023,Debit card,Fuel,-157.16,UAH,Sunny Fuel Stop
+08.06.2023,Cash wallet,Groceries,-42.60,UAH,Corner Bakery
+09.06.2023,Cash wallet,Groceries,-130.92,UAH,Northside Grocer
+09.06.2023,Debit card,Groceries,-36.52,UAH,Northside Grocer
+10.06.2023,Cash wallet,Books,-172.84,UAH,Pixel Books
+10.06.2023,Savings jar,Books,-52.84,UAH,Pixel Books
+11.06.2023,Cash wallet,Groceries,-18.28,UAH,Maple Street Market
+11.06.2023,Debit card,Groceries,-138.92,UAH,Northside Grocer
+12.06.2023,Debit card,Groceries,-77.80,UAH,Corner Bakery
+12.06.2023,Cash wallet,Groceries,-3.80,UAH,Corner Bakery
+13.06.2023,Cash wallet,Groceries,-183.72,UAH,Northside Grocer
+13.06.2023,Debit card,Groceries,-116.52,UAH,Northside Grocer
+14.06.2023,Debit card,Fuel,-121.96,UAH,Sunny Fuel Stop
+14.06.2023,Savings jar,Groceries,-125.80,UAH,Corner Bakery
+15.06.2023,Cash wallet,Groceries,-125.48,UAH,Maple Street Market
+15.06.2023,Savings jar,Groceries,-28.52,UAH,Northside Grocer
+16.06.2023,Savings jar,Books,-179.24,UAH,Pixel Books
+16.06.2023,Cash wallet,Groceries,-181.80,UAH,Corner Bakery
+17.06.2023,Savings jar,Fuel,-96.36,UAH,Sunny Fuel Stop
+17.06.2023,Debit card,Fuel,-101.16,UAH,Sunny Fuel Stop
+18.06.2023,Cash wallet,Fuel,-115.56,UAH,Sunny Fuel Stop
+18.06.2023,Cash wallet,Books,-20.84,UAH,Pixel Books
+19.06.2023,Savings jar,Groceries,-68.52,UAH,Northside Grocer
+19.06.2023,Savings jar,Fuel,-200.36,UAH,Sunny Fuel Stop
+20.06.2023,Debit card,Groceries,-165.80,UAH,Corner Bakery
+20.06.2023,Debit card,Groceries,-59.88,UAH,Maple Street Market
+21.06.2023,Debit card,Groceries,-55.40,UAH,Corner Bakery
+21.06.2023,Debit card,Groceries,-27.88,UAH,Maple Street Market
+22.06.2023,Savings jar,Groceries,-61.48,UAH,Maple Street Market
+22.06.2023,Debit card,Groceries,-18.28,UAH,Maple Street Market
+23.06.2023,Savings jar,Fuel,-6.76,UAH,Sunny Fuel Stop
+23.06.2023,Debit card,Books,-1.64,UAH,Pixel Books
+24.06.2023,Cash wallet,Fuel,-166.76,UAH,Sunny Fuel Stop
+24.06.2023,Savings jar,Books,-123.24,UAH,Pixel Books
+25.06.2023,Savings jar,Groceries,-58.28,UAH,Maple Street Market
+25.06.2023,Savings jar,Groceries,-175.72,UAH,Northside Grocer
+26.06.2023,Cash wallet,Groceries,-115.88,UAH,Maple Street Market
+26.06.2023,Savings jar,Groceries,-168.68,UAH,Maple Street Market
+27.06.2023,Savings jar,Groceries,-156.52,UAH,Northside Grocer
+27.06.2023,Savings jar,Groceries,-80.92,UAH,Northside Grocer
+28.06.2023,Savings jar,Fuel,-169.96,UAH,Sunny Fuel Stop
+28.06.2023,Savings jar,Groceries,-29.48,UAH,Maple Street Market
+29.06.2023,Savings jar,Groceries,-74.28,UAH,Maple Street Market
+29.06.2023,Debit card,Groceries,-116.20,UAH,Corner Bakery
+30.06.2023,Cash wallet,Books,-164.84,UAH,Pixel Books
+30.06.2023,Debit card,Groceries,-141.48,UAH,Maple Street Market
+01.07.2023,Savings jar,Groceries,-57.32,UAH,Northside Grocer
+01.07.2023,Debit card,Groceries,-114.92,UAH,Northside Grocer
+02.07.2023,Debit card,Books,-102.44,UAH,Pixel Books
+02.07.2023,Savings jar,Books,-182.44,UAH,Pixel Books
+03.07.2023,Savings jar,Groceries,-153.32,UAH,Northside Grocer
+03.07.2023,Cash wallet,Groceries,-18.92,UAH,Northside Grocer
+04.07.2023,Debit card,Fuel,-104.36,UAH,Sunny Fuel Stop
+04.07.2023,Debit card,Groceries,-9.00,UAH,Corner Bakery
+05.07.2023,Debit card,Groceries,-116.52,UAH,Northside Grocer
+05.07.2023,Cash wallet,Fuel,-9.96,UAH,Sunny Fuel Stop
+06.07.2023,Debit card,Groceries,-97.32,UAH,Northside Grocer
+06.07.2023,Cash wallet,Groceries,-110.12,UAH,Northside Grocer
+07.07.2023,Savings jar,Groceries,-198.12,UAH,Northside Grocer
+07.07.2023,Cash wallet,Fuel,-96.36,UAH,Sunny Fuel Stop
+08.07.2023,Debit card,Groceries,-150.12,UAH,Northside Grocer
+08.07.2023,Savings jar,Groceries,-60.52,UAH,Northside Grocer
+09.07.2023,Savings jar,Groceries,-50.28,UAH,Maple Street Market
+09.07.2023,Savings jar,Groceries,-4.52,UAH,Northside Grocer
+10.07.2023,Debit card,Books,-123.24,UAH,Pixel Books
+10.07.2023,Savings jar,Groceries,-194.28,UAH,Maple Street Market
+11.07.2023,Debit card,Fuel,-105.96,UAH,Sunny Fuel Stop
+11.07.2023,Debit card,Fuel,-173.16,UAH,Sunny Fuel Stop
+12.07.2023,Debit card,Groceries,-156.20,UAH,Corner Bakery
+12.07.2023,Cash wallet,Groceries,-47.72,UAH,Northside Grocer
+13.07.2023,Savings jar,Fuel,-59.56,UAH,Sunny Fuel Stop
+13.07.2023,Debit card,Fuel,-176.36,UAH,Sunny Fuel Stop
+14.07.2023,Cash wallet,Groceries,-167.08,UAH,Maple Street Market
+14.07.2023,Debit card,Fuel,-184.36,UAH,Sunny Fuel Stop
+15.07.2023,Debit card,Books,-121.64,UAH,Pixel Books
+15.07.2023,Savings jar,Fuel,-102.76,UAH,Sunny Fuel Stop
+16.07.2023,Cash wallet,Fuel,-141.16,UAH,Sunny Fuel Stop
+16.07.2023,Debit card,Groceries,-31.00,UAH,Corner Bakery
+17.07.2023,Savings jar,Groceries,-93.48,UAH,Maple Street Market
+17.07.2023,Debit card,Groceries,-95.08,UAH,Maple Street Market
+18.07.2023,Debit card,Groceries,-85.48,UAH,Maple Street Market
+18.07.2023,Savings jar,Groceries,-74.92,UAH,Northside Grocer
+19.07.2023,Cash wallet,Groceries,-77.40,UAH,Corner Bakery
+19.07.2023,Debit card,Fuel,-6.76,UAH,Sunny Fuel Stop
+20.07.2023,Savings jar,Groceries,-106.60,UAH,Corner Bakery
+20.07.2023,Savings jar,Groceries,-165.48,UAH,Maple Street Market
+21.07.2023,Cash wallet,Fuel,-97.96,UAH,Sunny Fuel Stop
+21.07.2023,Debit card,Groceries,-136.92,UAH,Northside Grocer
+22.07.2023,Cash wallet,Fuel,-29.16,UAH,Sunny Fuel Stop
+22.07.2023,Savings jar,Fuel,-120.36,UAH,Sunny Fuel Stop
+23.07.2023,Savings jar,Groceries,-86.12,UAH,Northside Grocer
+23.07.2023,Debit card,Groceries,-134.12,UAH,Northside Grocer
+24.07.2023,Cash wallet,Groceries,-93.48,UAH,Maple Street Market
+24.07.2023,Debit card,Groceries,-175.40,UAH,Corner Bakery
+25.07.2023,Savings jar,Groceries,-76.52,UAH,Northside Grocer
+25.07.2023,Cash wallet,Fuel,-161.96,UAH,Sunny Fuel Stop
+26.07.2023,Cash wallet,Groceries,-168.68,UAH,Maple Street Market
+26.07.2023,Cash wallet,Groceries,-79.40,UAH,Corner Bakery
+27.07.2023,Debit card,Groceries,-120.68,UAH,Maple Street Market
+27.07.2023,Cash wallet,Groceries,-170.28,UAH,Maple Street Market
+28.07.2023,Savings jar,Books,-132.84,UAH,Pixel Books
+28.07.2023,Cash wallet,Groceries,-26.28,UAH,Maple Street Market
+29.07.2023,Savings jar,Groceries,-56.68,UAH,Maple Street Market
+29.07.2023,Savings jar,Groceries,-75.88,UAH,Maple Street Market
+30.07.2023,Cash wallet,Groceries,-114.28,UAH,Maple Street Market
+30.07.2023,Savings jar,Fuel,-168.36,UAH,Sunny Fuel Stop
+31.07.2023,Savings jar,Groceries,-55.40,UAH,Corner Bakery
+31.07.2023,Debit card,Groceries,-13.48,UAH,Maple Street Market
+01.08.2023,Savings jar,Groceries,-72.68,UAH,Maple Street Market
+01.08.2023,Debit card,Groceries,-65.32,UAH,Northside Grocer
+02.08.2023,Cash wallet,Groceries,-42.28,UAH,Maple Street Market
+02.08.2023,Debit card,Groceries,-120.68,UAH,Maple Street Market
+03.08.2023,Cash wallet,Groceries,-7.72,UAH,Northside Grocer
+03.08.2023,Cash wallet,Fuel,-30.36,UAH,Sunny Fuel Stop
+04.08.2023,Debit card,Groceries,-172.20,UAH,Corner Bakery
+04.08.2023,Debit card,Groceries,-57.32,UAH,Northside Grocer
+05.08.2023,Savings jar,Groceries,-114.60,UAH,Corner Bakery
+05.08.2023,Debit card,Books,-22.44,UAH,Pixel Books
+06.08.2023,Cash wallet,Groceries,-26.28,UAH,Maple Street Market
+06.08.2023,Cash wallet,Groceries,-127.72,UAH,Northside Grocer
+07.08.2023,Debit card,Groceries,-55.72,UAH,Northside Grocer
+07.08.2023,Debit card,Books,-72.04,UAH,Pixel Books
+08.08.2023,Debit card,Books,-112.04,UAH,Pixel Books
+08.08.2023,Debit card,Groceries,-37.80,UAH,Corner Bakery
+09.08.2023,Cash wallet,Groceries,-177.00,UAH,Corner Bakery
+09.08.2023,Savings jar,Groceries,-169.00,UAH,Corner Bakery
+10.08.2023,Debit card,Groceries,-7.08,UAH,Maple Street Market
+10.08.2023,Savings jar,Groceries,-93.80,UAH,Corner Bakery
+11.08.2023,Savings jar,Groceries,-1.32,UAH,Northside Grocer
+11.08.2023,Savings jar,Groceries,-46.12,UAH,Northside Grocer
+12.08.2023,Cash wallet,Books,-124.84,UAH,Pixel Books
+12.08.2023,Cash wallet,Books,-67.24,UAH,Pixel Books
+13.08.2023,Debit card,Groceries,-138.28,UAH,Maple Street Market
+13.08.2023,Cash wallet,Fuel,-147.56,UAH,Sunny Fuel Stop
+14.08.2023,Cash wallet,Groceries,-116.52,UAH,Northside Grocer
+14.08.2023,Cash wallet,Groceries,-114.28,UAH,Maple Street Market
+15.08.2023,Savings jar,Groceries,-146.92,UAH,Northside Grocer
+15.08.2023,Cash wallet,Groceries,-20.52,UAH,Northside Grocer
+16.08.2023,Debit card,Groceries,-113.32,UAH,Northside Grocer
+16.08.2023,Cash wallet,Groceries,-151.08,UAH,Maple Street Market
+17.08.2023,Savings jar,Books,-172.84,UAH,Pixel Books
+17.08.2023,Savings jar,Groceries,-8.68,UAH,Maple Street Market
+18.08.2023,Debit card,Fuel,-177.96,UAH,Sunny Fuel Stop
+18.08.2023,Savings jar,Groceries,-123.88,UAH,Maple Street Market
+19.08.2023,Cash wallet,Books,-158.44,UAH,Pixel Books
+19.08.2023,Savings jar,Groceries,-44.52,UAH,Northside Grocer
+20.08.2023,Savings jar,Books,-4.84,UAH,Pixel Books
+20.08.2023,Cash wallet,Groceries,-110.12,UAH,Northside Grocer
+21.08.2023,Savings jar,Groceries,-55.08,UAH,Maple Street Market
+21.08.2023,Savings jar,Groceries,-8.68,UAH,Maple Street Market
+22.08.2023,Cash wallet,Groceries,-183.40,UAH,Corner Bakery
+22.08.2023,Cash wallet,Fuel,-27.56,UAH,Sunny Fuel Stop
+23.08.2023,Debit card,Books,-56.04,UAH,Pixel Books
+23.08.2023,Debit card,Groceries,-101.48,UAH,Maple Street Market
+24.08.2023,Debit card,Groceries,-165.80,UAH,Corner Bakery
+24.08.2023,Cash wallet,Books,-60.84,UAH,Pixel Books
+25.08.2023,Cash wallet,Groceries,-39.40,UAH,Corner Bakery
+25.08.2023,Debit card,Groceries,-169.00,UAH,Corner Bakery
+26.08.2023,Savings jar,Books,-174.44,UAH,Pixel Books
+26.08.2023,Savings jar,Groceries,-13.80,UAH,Corner Bakery
+27.08.2023,Debit card,Fuel,-5.16,UAH,Sunny Fuel Stop
+27.08.2023,Savings jar,Groceries,-154.28,UAH,Maple Street Market
+28.08.2023,Savings jar,Books,-33.64,UAH,Pixel Books
+28.08.2023,Debit card,Books,-187.24,UAH,Pixel Books
+29.08.2023,Debit card,Groceries,-39.08,UAH,Maple Street Market
+29.08.2023,Savings jar,Fuel,-27.56,UAH,Sunny Fuel Stop
+30.08.2023,Savings jar,Books,-115.24,UAH,Pixel Books
+30.08.2023,Debit card,Groceries,-148.20,UAH,Corner Bakery
+31.08.2023,Cash wallet,Groceries,-82.92,UAH,Northside Grocer
+31.08.2023,Savings jar,Groceries,-69.80,UAH,Corner Bakery
+01.09.2023,Savings jar,Groceries,-165.80,UAH,Corner Bakery
+01.09.2023,Savings jar,Books,-104.04,UAH,Pixel Books
+02.09.2023,Cash wallet,Fuel,-33.96,UAH,Sunny Fuel Stop
+02.09.2023,Savings jar,Books,-191.64,UAH,Pixel Books
+03.09.2023,Debit card,Groceries,-15.08,UAH,Maple Street Market
+03.09.2023,Savings jar,Fuel,-166.76,UAH,Sunny Fuel Stop
+04.09.2023,Debit card,Groceries,-17.00,UAH,Corner Bakery
+04.09.2023,Cash wallet,Groceries,-181.80,UAH,Corner Bakery
+05.09.2023,Savings jar,Groceries,-66.28,UAH,Maple Street Market
+05.09.2023,Cash wallet,Fuel,-93.16,UAH,Sunny Fuel Stop
+06.09.2023,Cash wallet,Groceries,-81.32,UAH,Northside Grocer
+06.09.2023,Debit card,Books,-76.84,UAH,Pixel Books
+07.09.2023,Cash wallet,Fuel,-57.96,UAH,Sunny Fuel Stop
+07.09.2023,Debit card,Books,-144.04,UAH,Pixel Books
+08.09.2023,Savings jar,Groceries,-34.28,UAH,Maple Street Market
+08.09.2023,Savings jar,Fuel,-171.56,UAH,Sunny Fuel Stop
+09.09.2023,Savings jar,Groceries,-113.00,UAH,Corner Bakery
+09.09.2023,Savings jar,Groceries,-33.00,UAH,Corner Bakery
+10.09.2023,Savings jar,Fuel,-45.16,UAH,Sunny Fuel Stop
+10.09.2023,Debit card,Fuel,-195.56,UAH,Sunny Fuel Stop
+11.09.2023,Cash wallet,Groceries,-29.80,UAH,Corner Bakery
+11.09.2023,Savings jar,Books,-193.64,UAH,Pixel Books
+12.09.2023,Debit card,Books,-113.64,UAH,Pixel Books
+12.09.2023,Savings jar,Groceries,-18.28,UAH,Maple Street Market
+13.09.2023,Debit card,Books,-110.44,UAH,Pixel Books
+13.09.2023,Savings jar,Books,-128.04,UAH,Pixel Books
+14.09.2023,Debit card,Groceries,-15.08,UAH,Maple Street Market
+14.09.2023,Savings jar,Groceries,-44.20,UAH,Corner Bakery
+15.09.2023,Cash wallet,Groceries,-162.92,UAH,Northside Grocer
+15.09.2023,Savings jar,Groceries,-44.20,UAH,Corner Bakery
+16.09.2023,Cash wallet,Groceries,-2.28,UAH,Maple Street Market
+16.09.2023,Cash wallet,Groceries,-146.28,UAH,Maple Street Market
+17.09.2023,Debit card,Groceries,-71.72,UAH,Northside Grocer
+17.09.2023,Debit card,Books,-104.04,UAH,Pixel Books
+18.09.2023,Cash wallet,Books,-96.04,UAH,Pixel Books
+18.09.2023,Debit card,Groceries,-178.52,UAH,Northside Grocer
+19.09.2023,Savings jar,Fuel,-78.76,UAH,Sunny Fuel Stop
+19.09.2023,Cash wallet,Books,-100.84,UAH,Pixel Books
+20.09.2023,Cash wallet,Fuel,-187.56,UAH,Sunny Fuel Stop
+20.09.2023,Debit card,Fuel,-13.16,UAH,Sunny Fuel Stop
+21.09.2023,Savings jar,Groceries,-111.08,UAH,Maple Street Market
+21.09.2023,Debit card,Books,-164.84,UAH,Pixel Books
+22.09.2023,Savings jar,Groceries,-36.20,UAH,Corner Bakery
+22.09.2023,Savings jar,Groceries,-146.92,UAH,Northside Grocer
+23.09.2023,Cash wallet,Fuel,-35.56,UAH,Sunny Fuel Stop
+23.09.2023,Savings jar,Groceries,-7.40,UAH,Corner Bakery
+24.09.2023,Cash wallet,Groceries,-116.20,UAH,Corner Bakery
+24.09.2023,Debit card,Groceries,-15.40,UAH,Corner Bakery
+25.09.2023,Cash wallet,Books,-99.24,UAH,Pixel Books
+25.09.2023,Cash wallet,Groceries,-5.80,UAH,Corner Bakery
+26.09.2023,Savings jar,Groceries,-61.80,UAH,Corner Bakery
+26.09.2023,Cash wallet,Groceries,-98.28,UAH,Maple Street Market
+27.09.2023,Debit card,Books,-124.84,UAH,Pixel Books
+27.09.2023,Cash wallet,Groceries,-106.60,UAH,Corner Bakery
+28.09.2023,Cash wallet,Fuel,-126.76,UAH,Sunny Fuel Stop
+28.09.2023,Debit card,Books,-155.24,UAH,Pixel Books
+29.09.2023,Savings jar,Groceries,-89.32,UAH,Northside Grocer
+29.09.2023,Savings jar,Fuel,-51.56,UAH,Sunny Fuel Stop
+30.09.2023,Cash wallet,Books,-84.84,UAH,Pixel Books
+30.09.2023,Cash wallet,Groceries,-71.08,UAH,Maple Street Market
+01.10.2023,Savings jar,Groceries,-193.32,UAH,Northside Grocer
+01.10.2023,Savings jar,Groceries,-88.68,UAH,Maple Street Market
+02.10.2023,Debit card,Groceries,-191.40,UAH,Corner Bakery
+02.10.2023,Debit card,Groceries,-172.52,UAH,Northside Grocer
+03.10.2023,Savings jar,Books,-54.44,UAH,Pixel Books
+03.10.2023,Savings jar,Fuel,-65.96,UAH,Sunny Fuel Stop
+04.10.2023,Cash wallet,Groceries,-66.60,UAH,Corner Bakery
+04.10.2023,Debit card,Groceries,-90.28,UAH,Maple Street Market
+05.10.2023,Debit card,Fuel,-91.56,UAH,Sunny Fuel Stop
+05.10.2023,Cash wallet,Groceries,-29.48,UAH,Maple Street Market
+06.10.2023,Savings jar,Groceries,-137.00,UAH,Corner Bakery
+06.10.2023,Cash wallet,Groceries,-141.80,UAH,Corner Bakery
+07.10.2023,Cash wallet,Books,-120.04,UAH,Pixel Books
+07.10.2023,Savings jar,Books,-184.04,UAH,Pixel Books
+08.10.2023,Savings jar,Groceries,-180.12,UAH,Northside Grocer
+08.10.2023,Savings jar,Groceries,-77.80,UAH,Corner Bakery
+09.10.2023,Debit card,Groceries,-199.40,UAH,Corner Bakery
+09.10.2023,Savings jar,Groceries,-165.48,UAH,Maple Street Market
+10.10.2023,Cash wallet,Groceries,-106.60,UAH,Corner Bakery
+10.10.2023,Savings jar,Groceries,-55.08,UAH,Maple Street Market
+11.10.2023,Savings jar,Books,-3.24,UAH,Pixel Books
+11.10.2023,Savings jar,Groceries,-141.48,UAH,Maple Street Market
+12.10.2023,Savings jar,Groceries,-108.20,UAH,Corner Bakery
+12.10.2023,Debit card,Fuel,-17.96,UAH,Sunny Fuel Stop
+13.10.2023,Savings jar,Fuel,-65.56,UAH,Sunny Fuel Stop
+13.10.2023,Savings jar,Groceries,-182.12,UAH,Northside Grocer
+14.10.2023,Debit card,Fuel,-35.56,UAH,Sunny Fuel Stop
+14.10.2023,Debit card,Fuel,-189.16,UAH,Sunny Fuel Stop
+15.10.2023,Debit card,Groceries,-157.80,UAH,Corner Bakery
+15.10.2023,Cash wallet,Fuel,-153.96,UAH,Sunny Fuel Stop
+16.10.2023,Debit card,Groceries,-146.92,UAH,Northside Grocer
+16.10.2023,Debit card,Books,-187.24,UAH,Pixel Books
+17.10.2023,Cash wallet,Groceries,-183.40,UAH,Corner Bakery
+17.10.2023,Debit card,Groceries,-55.08,UAH,Maple Street Market
+18.10.2023,Savings jar,Groceries,-1.00,UAH,Corner Bakery
+18.10.2023,Cash wallet,Groceries,-198.12,UAH,Northside Grocer
+19.10.2023,Debit card,Groceries,-122.28,UAH,Maple Street Market
+19.10.2023,Cash wallet,Fuel,-123.56,UAH,Sunny Fuel Stop
+20.10.2023,Savings jar,Fuel,-197.16,UAH,Sunny Fuel Stop
+20.10.2023,Cash wallet,Groceries,-71.72,UAH,Northside Grocer
+21.10.2023,Debit card,Fuel,-126.76,UAH,Sunny Fuel Stop
+21.10.2023,Savings jar,Books,-41.64,UAH,Pixel Books
+22.10.2023,Savings jar,Groceries,-15.08,UAH,Maple Street Market
+22.10.2023,Cash wallet,Books,-196.84,UAH,Pixel Books
+23.10.2023,Cash wallet,Groceries,-34.92,UAH,Northside Grocer
+23.10.2023,Debit card,Books,-6.44,UAH,Pixel Books
+24.10.2023,Cash wallet,Groceries,-78.12,UAH,Northside Grocer
+24.10.2023,Cash wallet,Books,-145.64,UAH,Pixel Books
+25.10.2023,Debit card,Books,-16.04,UAH,Pixel Books
+25.10.2023,Cash wallet,Groceries,-44.20,UAH,Corner Bakery
+26.10.2023,Debit card,Fuel,-57.96,UAH,Sunny Fuel Stop
+26.10.2023,Cash wallet,Books,-96.04,UAH,Pixel Books
+27.10.2023,Debit card,Groceries,-63.40,UAH,Corner Bakery
+27.10.2023,Savings jar,Cafes,-152.61,UAH,Blue Kettle Cafe
+28.10.2023,Savings jar,Groceries,-85.80,UAH,Corner Bakery
+28.10.2023,Debit card,Groceries,-22.12,UAH,Northside Grocer
+29.10.2023,Debit card,Groceries,-82.92,UAH,Northside Grocer
+29.10.2023,Debit card,Books,-4.84,UAH,Pixel Books
+30.10.2023,Cash wallet,Groceries,-2.60,UAH,Corner Bakery
+30.10.2023,Cash wallet,Fuel,-22.76,UAH,Sunny Fuel Stop
+31.10.2023,Cash wallet,Groceries,-159.08,UAH,Maple Street Market
+31.10.2023,Debit card,Groceries,-83.88,UAH,Maple Street Market
+01.11.2023,Savings jar,Groceries,-145.32,UAH,Northside Grocer
+01.11.2023,Savings jar,Books,-70.44,UAH,Pixel Books
+02.11.2023,Cash wallet,Groceries,-115.88,UAH,Maple Street Market
+02.11.2023,Cash wallet,Fuel,-64.36,UAH,Sunny Fuel Stop
+03.11.2023,Savings jar,Groceries,-2.60,UAH,Corner Bakery
+03.11.2023,Cash wallet,Fuel,-53.16,UAH,Sunny Fuel Stop
+04.11.2023,Debit card,Groceries,-182.12,UAH,Northside Grocer
+04.11.2023,Cash wallet,Fuel,-105.96,UAH,Sunny Fuel Stop
+05.11.2023,Cash wallet,Fuel,-182.76,UAH,Sunny Fuel Stop
+05.11.2023,Cash wallet,Books,-118.44,UAH,Pixel Books
+06.11.2023,Debit card,Groceries,-75.88,UAH,Maple Street Market
+06.11.2023,Savings jar,Groceries,-15.40,UAH,Corner Bakery
+07.11.2023,Debit card,Fuel,-96.36,UAH,Sunny Fuel Stop
+07.11.2023,Cash wallet,Fuel,-80.36,UAH,Sunny Fuel Stop
+08.11.2023,Cash wallet,Books,-190.44,UAH,Pixel Books
+08.11.2023,Cash wallet,Fuel,-152.36,UAH,Sunny Fuel Stop
+09.11.2023,Debit card,Books,-25.64,UAH,Pixel Books
+09.11.2023,Cash wallet,Groceries,-124.52,UAH,Northside Grocer
+10.11.2023,Savings jar,Groceries,-15.72,UAH,Northside Grocer
+10.11.2023,Debit card,Groceries,-29.48,UAH,Maple Street Market
+11.11.2023,Savings jar,Fuel,-1.96,UAH,Sunny Fuel Stop
+11.11.2023,Cash wallet,Groceries,-186.92,UAH,Northside Grocer
+12.11.2023,Savings jar,Groceries,-166.12,UAH,Northside Grocer
+12.11.2023,Debit card,Fuel,-54.76,UAH,Sunny Fuel Stop
+13.11.2023,Savings jar,Books,-139.24,UAH,Pixel Books
+13.11.2023,Debit card,Books,-22.44,UAH,Pixel Books
+14.11.2023,Savings jar,Books,-123.24,UAH,Pixel Books
+14.11.2023,Debit card,Books,-198.44,UAH,Pixel Books
+15.11.2023,Debit card,Groceries,-100.20,UAH,Corner Bakery
+15.11.2023,Debit card,Books,-30.44,UAH,Pixel Books
+16.11.2023,Cash wallet,Groceries,-36.20,UAH,Corner Bakery
+16.11.2023,Cash wallet,Fuel,-200.36,UAH,Sunny Fuel Stop
+17.11.2023,Savings jar,Groceries,-87.08,UAH,Maple Street Market
+17.11.2023,Savings jar,Books,-91.24,UAH,Pixel Books
+18.11.2023,Savings jar,Groceries,-95.40,UAH,Corner Bakery
+18.11.2023,Debit card,Fuel,-59.56,UAH,Sunny Fuel Stop
+19.11.2023,Savings jar,Fuel,-86.76,UAH,Sunny Fuel Stop
+19.11.2023,Cash wallet,Groceries,-35.88,UAH,Maple Street Market
+20.11.2023,Cash wallet,Books,-48.04,UAH,Pixel Books
+20.11.2023,Cash wallet,Fuel,-198.76,UAH,Sunny Fuel Stop
+21.11.2023,Cash wallet,Groceries,-199.08,UAH,Maple Street Market
+21.11.2023,Savings jar,Groceries,-100.52,UAH,Northside Grocer
+22.11.2023,Debit card,Groceries,-123.48,UAH,Maple Street Market
+22.11.2023,Debit card,Groceries,-146.60,UAH,Corner Bakery
+23.11.2023,Savings jar,Books,-76.84,UAH,Pixel Books
+23.11.2023,Savings jar,Fuel,-142.76,UAH,Sunny Fuel Stop
+24.11.2023,Cash wallet,Fuel,-182.76,UAH,Sunny Fuel Stop
+24.11.2023,Cash wallet,Groceries,-165.48,UAH,Maple Street Market
+25.11.2023,Debit card,Fuel,-104.36,UAH,Sunny Fuel Stop
+25.11.2023,Savings jar,Groceries,-131.88,UAH,Maple Street Market
+26.11.2023,Cash wallet,Groceries,-12.20,UAH,Corner Bakery
+26.11.2023,Cash wallet,Fuel,-131.56,UAH,Sunny Fuel Stop
+27.11.2023,Savings jar,Groceries,-196.52,UAH,Northside Grocer
+27.11.2023,Debit card,Groceries,-49.00,UAH,Corner Bakery
+28.11.2023,Debit card,Groceries,-167.40,UAH,Corner Bakery
+28.11.2023,Savings jar,Fuel,-19.56,UAH,Sunny Fuel Stop
+29.11.2023,Cash wallet,Books,-193.64,UAH,Pixel Books
+29.11.2023,Savings jar,Books,-131.24,UAH,Pixel Books
+30.11.2023,Cash wallet,Books,-148.84,UAH,Pixel Books
+30.11.2023,Cash wallet,Groceries,-196.20,UAH,Corner Bakery
+01.12.2023,Cash wallet,Groceries,-84.20,UAH,Corner Bakery
+01.12.2023,Savings jar,Books,-123.24,UAH,Pixel Books
+02.12.2023,Debit card,Groceries,-47.40,UAH,Corner Bakery
+02.12.2023,Debit card,Fuel,-54.76,UAH,Sunny Fuel Stop
+03.12.2023,Debit card,Groceries,-5.48,UAH,Maple Street Market
+03.12.2023,Debit card,Books,-171.24,UAH,Pixel Books
+04.12.2023,Cash wallet,Groceries,-76.52,UAH,Northside Grocer
+04.12.2023,Cash wallet,Groceries,-158.12,UAH,Northside Grocer
+05.12.2023,Cash wallet,Groceries,-186.60,UAH,Corner Bakery
+05.12.2023,Debit card,Fuel,-9.96,UAH,Sunny Fuel Stop
+06.12.2023,Cash wallet,Groceries,-13.48,UAH,Maple Street Market
+06.12.2023,Savings jar,Groceries,-71.08,UAH,Maple Street Market
+07.12.2023,Savings jar,Books,-188.84,UAH,Pixel Books
+07.12.2023,Savings jar,Groceries,-184.68,UAH,Maple Street Market
+08.12.2023,Debit card,Groceries,-170.28,UAH,Maple Street Market
+08.12.2023,Cash wallet,Fuel,-5.16,UAH,Sunny Fuel Stop
+09.12.2023,Cash wallet,Books,-163.24,UAH,Pixel Books
+09.12.2023,Cash wallet,Fuel,-96.36,UAH,Sunny Fuel Stop
+10.12.2023,Debit card,Books,-54.44,UAH,Pixel Books
+10.12.2023,Savings jar,Books,-182.44,UAH,Pixel Books
+11.12.2023,Cash wallet,Groceries,-84.20,UAH,Corner Bakery
+11.12.2023,Cash wallet,Groceries,-121.32,UAH,Northside Grocer
+12.12.2023,Cash wallet,Books,-16.04,UAH,Pixel Books
+12.12.2023,Cash wallet,Groceries,-185.00,UAH,Corner Bakery
+13.12.2023,Savings jar,Fuel,-94.76,UAH,Sunny Fuel Stop
+13.12.2023,Savings jar,Groceries,-100.20,UAH,Corner Bakery
+14.12.2023,Savings jar,Groceries,-196.52,UAH,Northside Grocer
+14.12.2023,Cash wallet,Groceries,-82.92,UAH,Northside Grocer
+15.12.2023,Savings jar,Groceries,-107.88,UAH,Maple Street Market
+15.12.2023,Savings jar,Fuel,-64.36,UAH,Sunny Fuel Stop
+16.12.2023,Debit card,Groceries,-54.12,UAH,Northside Grocer
+16.12.2023,Savings jar,Books,-14.44,UAH,Pixel Books
+17.12.2023,Cash wallet,Groceries,-124.20,UAH,Corner Bakery
+17.12.2023,Debit card,Groceries,-159.40,UAH,Corner Bakery
+18.12.2023,Cash wallet,Fuel,-195.56,UAH,Sunny Fuel Stop
+18.12.2023,Cash wallet,Books,-27.24,UAH,Pixel Books
+19.12.2023,Cash wallet,Fuel,-155.56,UAH,Sunny Fuel Stop
+19.12.2023,Cash wallet,Groceries,-177.00,UAH,Corner Bakery
+20.12.2023,Debit card,Fuel,-141.16,UAH,Sunny Fuel Stop
+20.12.2023,Cash wallet,Groceries,-194.92,UAH,Northside Grocer
+21.12.2023,Debit card,Books,-145.24,UAH,Pixel Books
+21.12.2023,Savings jar,Groceries,-26.92,UAH,Northside Grocer
+22.12.2023,Cash wallet,Fuel,-169.96,UAH,Sunny Fuel Stop
+22.12.2023,Cash wallet,Books,-14.04,UAH,Pixel Books
+23.12.2023,Debit card,Groceries,-33.00,UAH,Corner Bakery
+23.12.2023,Cash wallet,Books,-12.84,UAH,Pixel Books
+24.12.2023,Savings jar,Groceries,-41.00,UAH,Corner Bakery
+24.12.2023,Savings jar,Fuel,-152.36,UAH,Sunny Fuel Stop
+25.12.2023,Cash wallet,Groceries,-122.92,UAH,Northside Grocer
+25.12.2023,Cash wallet,Groceries,-9.00,UAH,Corner Bakery
+26.12.2023,Debit card,Groceries,-100.52,UAH,Northside Grocer
+26.12.2023,Savings jar,Groceries,-127.40,UAH,Corner Bakery
+27.12.2023,Cash wallet,Groceries,-32.68,UAH,Maple Street Market
+27.12.2023,Savings jar,Fuel,-86.36,UAH,Sunny Fuel Stop
+28.12.2023,Savings jar,Groceries,-18.92,UAH,Northside Grocer
+28.12.2023,Cash wallet,Books,-139.24,UAH,Pixel Books
+29.12.2023,Cash wallet,Fuel,-33.96,UAH,Sunny Fuel Stop
+29.12.2023,Savings jar,Groceries,-183.08,UAH,Maple Street Market
+30.12.2023,Debit card,Groceries,-143.08,UAH,Maple Street Market
+30.12.2023,Savings jar,Groceries,-154.28,UAH,Maple Street Market
+31.12.2023,Cash wallet,Groceries,-151.08,UAH,Maple Street Market
+31.12.2023,Debit card,Books,-172.84,UAH,Pixel Books
+01.01.2024,Debit card,Groceries,-138.92,UAH,Northside Grocer
+01.01.2024,Cash wallet,Books,-75.24,UAH,Pixel Books
+02.01.2024,Cash wallet,Groceries,-63.40,UAH,Corner Bakery
+02.01.2024,Debit card,Groceries,-175.08,UAH,Maple Street Market
+03.01.2024,Cash wallet,Books,-120.04,UAH,Pixel Books
+03.01.2024,Debit card,Groceries,-91.88,UAH,Maple Street Market
+04.01.2024,Debit card,Groceries,-15.00,UAH,Corner Bakery
+04.01.2024,Debit card,Groceries,-92.20,UAH,Corner Bakery
+05.01.2024,Debit card,Groceries,-159.40,UAH,Corner Bakery
+05.01.2024,Cash wallet,Fuel,-136.36,UAH,Sunny Fuel Stop
+06.01.2024,Cash wallet,Groceries,-190.12,UAH,Northside Grocer
+06.01.2024,Debit card,Groceries,-8.68,UAH,Maple Street Market
+07.01.2024,Debit card,Groceries,-172.52,UAH,Northside Grocer
+07.01.2024,Debit card,Groceries,-154.60,UAH,Corner Bakery
+08.01.2024,Debit card,Groceries,-129.00,UAH,Corner Bakery
+08.01.2024,Debit card,Groceries,-74.92,UAH,Northside Grocer
+09.01.2024,Savings jar,Groceries,-126.12,UAH,Northside Grocer
+09.01.2024,Savings jar,Fuel,-144.36,UAH,Sunny Fuel Stop
+10.01.2024,Savings jar,Groceries,-120.68,UAH,Maple Street Market
+10.01.2024,Debit card,Fuel,-59.56,UAH,Sunny Fuel Stop
+11.01.2024,Savings jar,Fuel,-185.96,UAH,Sunny Fuel Stop
+11.01.2024,Cash wallet,Fuel,-16.36,UAH,Sunny Fuel Stop
+12.01.2024,Cash wallet,Groceries,-120.68,UAH,Maple Street Market
+12.01.2024,Cash wallet,Groceries,-44.20,UAH,Corner Bakery
+13.01.2024,Debit card,Groceries,-191.40,UAH,Corner Bakery
+13.01.2024,Cash wallet,Books,-160.04,UAH,Pixel Books
+14.01.2024,Savings jar,Fuel,-168.36,UAH,Sunny Fuel Stop
+14.01.2024,Debit card,Books,-10.84,UAH,Pixel Books
+15.01.2024,Savings jar,Groceries,-1.00,UAH,Corner Bakery
+15.01.2024,Debit card,Books,-153.64,UAH,Pixel Books
+16.01.2024,Debit card,Groceries,-184.68,UAH,Maple Street Market
+16.01.2024,Cash wallet,Books,-30.44,UAH,Pixel Books
+17.01.2024,Savings jar,Fuel,-128.36,UAH,Sunny Fuel Stop
+17.01.2024,Savings jar,Books,-65.64,UAH,Pixel Books
+18.01.2024,Cash wallet,Groceries,-9.32,UAH,Northside Grocer
+18.01.2024,Savings jar,Groceries,-186.28,UAH,Maple Street Market
+19.01.2024,Savings jar,Groceries,-145.32,UAH,Northside Grocer
+19.01.2024,Savings jar,Groceries,-44.52,UAH,Northside Grocer
+20.01.2024,Savings jar,Groceries,-166.12,UAH,Northside Grocer
+20.01.2024,Savings jar,Fuel,-37.16,UAH,Sunny Fuel Stop
+21.01.2024,Savings jar,Fuel,-121.96,UAH,Sunny Fuel Stop
+21.01.2024,Cash wallet,Groceries,-106.60,UAH,Corner Bakery
+22.01.2024,Savings jar,Groceries,-9.00,UAH,Corner Bakery
+22.01.2024,Debit card,Fuel,-30.76,UAH,Sunny Fuel Stop
+23.01.2024,Savings jar,Fuel,-32.36,UAH,Sunny Fuel Stop
+23.01.2024,Debit card,Fuel,-174.76,UAH,Sunny Fuel Stop
+24.01.2024,Debit card,Groceries,-167.40,UAH,Corner Bakery
+24.01.2024,Savings jar,Groceries,-18.92,UAH,Northside Grocer
+25.01.2024,Cash wallet,Fuel,-110.76,UAH,Sunny Fuel Stop
+25.01.2024,Savings jar,Books,-104.04,UAH,Pixel Books
+26.01.2024,Debit card,Fuel,-101.16,UAH,Sunny Fuel Stop
+26.01.2024,Debit card,Groceries,-157.48,UAH,Maple Street Market
+27.01.2024,Debit card,Groceries,-74.60,UAH,Corner Bakery
+27.01.2024,Cash wallet,Fuel,-139.56,UAH,Sunny Fuel Stop
+28.01.2024,Debit card,Groceries,-61.80,UAH,Corner Bakery
+28.01.2024,Debit card,Groceries,-104.68,UAH,Maple Street Market
+29.01.2024,Cash wallet,Fuel,-11.56,UAH,Sunny Fuel Stop
+29.01.2024,Debit card,Books,-60.84,UAH,Pixel Books
+30.01.2024,Savings jar,Fuel,-110.76,UAH,Sunny Fuel Stop
+30.01.2024,Debit card,Groceries,-68.20,UAH,Corner Bakery
+31.01.2024,Debit card,Groceries,-146.92,UAH,Northside Grocer
+31.01.2024,Debit card,Groceries,-34.28,UAH,Maple Street Market
+01.02.2024,Cash wallet,Books,-137.64,UAH,Pixel Books
+01.02.2024,Debit card,Books,-134.44,UAH,Pixel Books
+02.02.2024,Debit card,Fuel,-144.36,UAH,Sunny Fuel Stop
+02.02.2024,Debit card,Books,-190.44,UAH,Pixel Books
+03.02.2024,Cash wallet,Fuel,-192.36,UAH,Sunny Fuel Stop
+03.02.2024,Cash wallet,Groceries,-110.12,UAH,Northside Grocer
+04.02.2024,Cash wallet,Groceries,-178.92,UAH,Northside Grocer
+04.02.2024,Cash wallet,Books,-156.84,UAH,Pixel Books
+05.02.2024,Debit card,Fuel,-3.56,UAH,Sunny Fuel Stop
+05.02.2024,Debit card,Groceries,-17.32,UAH,Northside Grocer
+06.02.2024,Savings jar,Groceries,-37.48,UAH,Maple Street Market
+06.02.2024,Savings jar,Books,-25.64,UAH,Pixel Books
+07.02.2024,Cash wallet,Groceries,-147.88,UAH,Maple Street Market
+07.02.2024,Cash wallet,Groceries,-94.12,UAH,Northside Grocer
+08.02.2024,Cash wallet,Groceries,-142.12,UAH,Northside Grocer
+08.02.2024,Cash wallet,Fuel,-198.76,UAH,Sunny Fuel Stop
+09.02.2024,Savings jar,Fuel,-21.16,UAH,Sunny Fuel Stop
+09.02.2024,Savings jar,Books,-36.84,UAH,Pixel Books
+10.02.2024,Savings jar,Groceries,-5.80,UAH,Corner Bakery
+10.02.2024,Savings jar,Fuel,-57.96,UAH,Sunny Fuel Stop
+11.02.2024,Debit card,Groceries,-189.80,UAH,Corner Bakery
+11.02.2024,Debit card,Groceries,-194.28,UAH,Maple Street Market
+12.02.2024,Debit card,Groceries,-184.68,UAH,Maple Street Market
+12.02.2024,Savings jar,Fuel,-37.16,UAH,Sunny Fuel Stop
+13.02.2024,Cash wallet,Books,-136.04,UAH,Pixel Books
+13.02.2024,Savings jar,Groceries,-76.52,UAH,Northside Grocer
+14.02.2024,Debit card,Groceries,-23.40,UAH,Corner Bakery
+14.02.2024,Savings jar,Fuel,-77.16,UAH,Sunny Fuel Stop
+15.02.2024,Cash wallet,Groceries,-76.20,UAH,Corner Bakery
+15.02.2024,Debit card,Fuel,-173.16,UAH,Sunny Fuel Stop
+16.02.2024,Cash wallet,Groceries,-146.28,UAH,Maple Street Market
+16.02.2024,Debit card,Groceries,-170.92,UAH,Northside Grocer
+17.02.2024,Cash wallet,Fuel,-179.56,UAH,Sunny Fuel Stop
+17.02.2024,Savings jar,Groceries,-123.88,UAH,Maple Street Market
+18.02.2024,Debit card,Groceries,-120.68,UAH,Maple Street Market
+18.02.2024,Cash wallet,Groceries,-18.60,UAH,Corner Bakery
+19.02.2024,Debit card,Groceries,-141.80,UAH,Corner Bakery
+19.02.2024,Savings jar,Fuel,-190.76,UAH,Sunny Fuel Stop
+20.02.2024,Savings jar,Groceries,-55.40,UAH,Corner Bakery
+20.02.2024,Cash wallet,Fuel,-158.76,UAH,Sunny Fuel Stop
+21.02.2024,Debit card,Groceries,-57.32,UAH,Northside Grocer
+21.02.2024,Cash wallet,Groceries,-145.32,UAH,Northside Grocer
+22.02.2024,Debit card,Books,-25.64,UAH,Pixel Books
+22.02.2024,Debit card,Books,-179.24,UAH,Pixel Books
+23.02.2024,Cash wallet,Groceries,-28.20,UAH,Corner Bakery
+23.02.2024,Cash wallet,Groceries,-31.40,UAH,Corner Bakery
+24.02.2024,Savings jar,Books,-176.04,UAH,Pixel Books
+24.02.2024,Debit card,Fuel,-86.76,UAH,Sunny Fuel Stop
+25.02.2024,Savings jar,Groceries,-195.88,UAH,Maple Street Market
+25.02.2024,Savings jar,Groceries,-111.72,UAH,Northside Grocer
+26.02.2024,Savings jar,Fuel,-86.76,UAH,Sunny Fuel Stop
+26.02.2024,Cash wallet,Groceries,-127.40,UAH,Corner Bakery
+27.02.2024,Savings jar,Fuel,-187.56,UAH,Sunny Fuel Stop
+27.02.2024,Savings jar,Groceries,-93.08,UAH,Maple Street Market
+28.02.2024,Debit card,Groceries,-49.32,UAH,Northside Grocer
+28.02.2024,Debit card,Groceries,-42.92,UAH,Northside Grocer
+01.03.2024,Cash wallet,Groceries,-60.52,UAH,Northside Grocer
+01.03.2024,Savings jar,Groceries,-61.48,UAH,Maple Street Market
+02.03.2024,Cash wallet,Fuel,-48.36,UAH,Sunny Fuel Stop
+02.03.2024,Debit card,Groceries,-37.80,UAH,Corner Bakery
+03.03.2024,Savings jar,Books,-99.24,UAH,Pixel Books
+03.03.2024,Debit card,Books,-1.24,UAH,Pixel Books
+04.03.2024,Savings jar,Groceries,-112.68,UAH,Maple Street Market
+04.03.2024,Debit card,Groceries,-39.08,UAH,Maple Street Market
+05.03.2024,Debit card,Groceries,-44.12,UAH,Northside Grocer
+05.03.2024,Debit card,Groceries,-153.32,UAH,Northside Grocer
+06.03.2024,Debit card,Groceries,-90.60,UAH,Corner Bakery
+06.03.2024,Debit card,Groceries,-13.80,UAH,Corner Bakery
+07.03.2024,Savings jar,Groceries,-23.40,UAH,Corner Bakery
+07.03.2024,Cash wallet,Groceries,-157.48,UAH,Maple Street Market
+08.03.2024,Debit card,Groceries,-127.08,UAH,Maple Street Market
+08.03.2024,Cash wallet,Books,-136.04,UAH,Pixel Books
+09.03.2024,Savings jar,Groceries,-98.92,UAH,Northside Grocer
+09.03.2024,Savings jar,Books,-73.64,UAH,Pixel Books
+10.03.2024,Debit card,Groceries,-31.72,UAH,Northside Grocer
+10.03.2024,Cash wallet,Groceries,-114.60,UAH,Corner Bakery
+11.03.2024,Debit card,Groceries,-176.68,UAH,Maple Street Market
+11.03.2024,Savings jar,Groceries,-89.00,UAH,Corner Bakery
+12.03.2024,Savings jar,Groceries,-144.68,UAH,Maple Street Market
+12.03.2024,Savings jar,Fuel,-176.36,UAH,Sunny Fuel Stop
+13.03.2024,Cash wallet,Groceries,-98.60,UAH,Corner Bakery
+13.03.2024,Savings jar,Groceries,-98.60,UAH,Corner Bakery
+14.03.2024,Debit card,Groceries,-195.88,UAH,Maple Street Market
+14.03.2024,Cash wallet,Books,-60.84,UAH,Pixel Books
+15.03.2024,Debit card,Groceries,-129.00,UAH,Corner Bakery
+15.03.2024,Savings jar,Groceries,-79.08,UAH,Maple Street Market
+16.03.2024,Cash wallet,Groceries,-183.72,UAH,Northside Grocer
+16.03.2024,Savings jar,Groceries,-94.12,UAH,Northside Grocer
+17.03.2024,Debit card,Groceries,-196.52,UAH,Northside Grocer
+17.03.2024,Debit card,Fuel,-168.36,UAH,Sunny Fuel Stop
+18.03.2024,Savings jar,Entertainment,-59.17,UAH,Harbor Cinema
+18.03.2024,Debit card,Groceries,-74.60,UAH,Corner Bakery
+19.03.2024,Debit card,Groceries,-21.48,UAH,Maple Street Market
+19.03.2024,Savings jar,Groceries,-61.48,UAH,Maple Street Market
+20.03.2024,Cash wallet,Groceries,-186.92,UAH,Northside Grocer
+20.03.2024,Debit card,Groceries,-112.68,UAH,Maple Street Market
+21.03.2024,Cash wallet,Groceries,-173.48,UAH,Maple Street Market
+21.03.2024,Debit card,Groceries,-52.52,UAH,Northside Grocer
+22.03.2024,Cash wallet,Groceries,-194.28,UAH,Maple Street Market
+22.03.2024,Debit card,Fuel,-171.56,UAH,Sunny Fuel Stop
+23.03.2024,Cash wallet,Groceries,-127.40,UAH,Corner Bakery
+23.03.2024,Savings jar,Groceries,-137.00,UAH,Corner Bakery
+24.03.2024,Savings jar,Groceries,-80.68,UAH,Maple Street Market
+24.03.2024,Cash wallet,Groceries,-1.32,UAH,Northside Grocer
+25.03.2024,Cash wallet,Groceries,-101.80,UAH,Corner Bakery
+25.03.2024,Cash wallet,Groceries,-178.28,UAH,Maple Street Market
+26.03.2024,Cash wallet,Groceries,-185.00,UAH,Corner Bakery
+26.03.2024,Cash wallet,Groceries,-183.72,UAH,Northside Grocer
+27.03.2024,Cash wallet,Groceries,-15.40,UAH,Corner Bakery
+27.03.2024,Cash wallet,Fuel,-102.76,UAH,Sunny Fuel Stop
+28.03.2024,Cash wallet,Groceries,-129.32,UAH,Northside Grocer
+28.03.2024,Savings jar,Books,-1.64,UAH,Pixel Books
+29.03.2024,Savings jar,Books,-59.24,UAH,Pixel Books
+29.03.2024,Debit card,Books,-193.64,UAH,Pixel Books
+30.03.2024,Debit card,Fuel,-16.36,UAH,Sunny Fuel Stop
+30.03.2024,Savings jar,Books,-174.44,UAH,Pixel Books
+31.03.2024,Debit card,Books,-6.44,UAH,Pixel Books
+31.03.2024,Savings jar,Groceries,-9.32,UAH,Northside Grocer
+01.04.2024,Cash wallet,Groceries,-66.60,UAH,Corner Bakery
+01.04.2024,Cash wallet,Groceries,-146.60,UAH,Corner Bakery
+02.04.2024,Debit card,Fuel,-174.76,UAH,Sunny Fuel Stop
+02.04.2024,Cash wallet,Books,-126.44,UAH,Pixel Books
+03.04.2024,Cash wallet,Groceries,-47.72,UAH,Northside Grocer
+03.04.2024,Debit card,Fuel,-72.36,UAH,Sunny Fuel Stop
+04.04.2024,Savings jar,Groceries,-58.92,UAH,Northside Grocer
+04.04.2024,Debit card,Groceries,-6.12,UAH,Northside Grocer
+05.04.2024,Savings jar,Groceries,-28.52,UAH,Northside Grocer
+05.04.2024,Cash wallet,Books,-139.24,UAH,Pixel Books
+06.04.2024,Debit card,Groceries,-117.80,UAH,Corner Bakery
+06.04.2024,Savings jar,Groceries,-16.68,UAH,Maple Street Market
+07.04.2024,Debit card,Fuel,-120.36,UAH,Sunny Fuel Stop
+07.04.2024,Debit card,Groceries,-135.08,UAH,Maple Street Market
+08.04.2024,Cash wallet,Groceries,-197.80,UAH,Corner Bakery
+08.04.2024,Savings jar,Groceries,-38.12,UAH,Northside Grocer
+09.04.2024,Cash wallet,Groceries,-18.60,UAH,Corner Bakery
+09.04.2024,Savings jar,Fuel,-13.16,UAH,Sunny Fuel Stop
+10.04.2024,Savings jar,Groceries,-95.72,UAH,Northside Grocer
+10.04.2024,Cash wallet,Books,-36.84,UAH,Pixel Books
+11.04.2024,Debit card,Fuel,-81.96,UAH,Sunny Fuel Stop
+11.04.2024,Savings jar,Groceries,-162.28,UAH,Maple Street Market
+12.04.2024,Cash wallet,Books,-67.24,UAH,Pixel Books
+12.04.2024,Savings jar,Groceries,-39.72,UAH,Northside Grocer
+13.04.2024,Cash wallet,Groceries,-42.92,UAH,Northside Grocer
+13.04.2024,Debit card,Groceries,-196.52,UAH,Northside Grocer
+14.04.2024,Savings jar,Fuel,-174.76,UAH,Sunny Fuel Stop
+14.04.2024,Cash wallet,Books,-27.24,UAH,Pixel Books
+15.04.2024,Savings jar,Groceries,-6.12,UAH,Northside Grocer
+15.04.2024,Debit card,Books,-110.44,UAH,Pixel Books
+16.04.2024,Savings jar,Groceries,-196.52,UAH,Northside Grocer
+16.04.2024,Debit card,Groceries,-59.88,UAH,Maple Street Market
+17.04.2024,Savings jar,Groceries,-71.08,UAH,Maple Street Market
+17.04.2024,Savings jar,Groceries,-161.00,UAH,Corner Bakery
+18.04.2024,Cash wallet,Books,-120.04,UAH,Pixel Books
+18.04.2024,Debit card,Groceries,-82.28,UAH,Maple Street Market
+19.04.2024,Cash wallet,Fuel,-41.96,UAH,Sunny Fuel Stop
+19.04.2024,Savings jar,Books,-105.64,UAH,Pixel Books
+20.04.2024,Debit card,Fuel,-5.16,UAH,Sunny Fuel Stop
+20.04.2024,Savings jar,Books,-27.24,UAH,Pixel Books
+21.04.2024,Savings jar,Fuel,-53.16,UAH,Sunny Fuel Stop
+21.04.2024,Cash wallet,Books,-120.04,UAH,Pixel Books
+22.04.2024,Savings jar,Groceries,-192.68,UAH,Maple Street Market
+22.04.2024,Cash wallet,Books,-192.04,UAH,Pixel Books
+23.04.2024,Cash wallet,Groceries,-149.80,UAH,Corner Bakery
+23.04.2024,Debit card,Groceries,-75.88,UAH,Maple Street Market
+24.04.2024,Debit card,Groceries,-119.72,UAH,Northside Grocer
+24.04.2024,Debit card,Books,-180.84,UAH,Pixel Books
+25.04.2024,Savings jar,Books,-180.84,UAH,Pixel Books
+25.04.2024,Savings jar,Fuel,-134.76,UAH,Sunny Fuel Stop
+26.04.2024,Savings jar,Fuel,-25.96,UAH,Sunny Fuel Stop
+26.04.2024,Savings jar,Books,-64.04,UAH,Pixel Books
+27.04.2024,Cash wallet,Fuel,-64.36,UAH,Sunny Fuel Stop
+27.04.2024,Cash wallet,Groceries,-47.72,UAH,Northside Grocer
+28.04.2024,Debit card,Groceries,-109.80,UAH,Corner Bakery
+28.04.2024,Debit card,Groceries,-87.72,UAH,Northside Grocer
+29.04.2024,Debit card,Books,-91.24,UAH,Pixel Books
+29.04.2024,Savings jar,Fuel,-96.36,UAH,Sunny Fuel Stop
+30.04.2024,Cash wallet,Books,-14.44,UAH,Pixel Books
+30.04.2024,Savings jar,Groceries,-130.60,UAH,Corner Bakery
+01.05.2024,Cash wallet,Groceries,-176.68,UAH,Maple Street Market
+01.05.2024,Debit card,Groceries,-159.08,UAH,Maple Street Market
+02.05.2024,Debit card,Books,-3.24,UAH,Pixel Books
+02.05.2024,Cash wallet,Groceries,-196.52,UAH,Northside Grocer
+03.05.2024,Debit card,Groceries,-71.08,UAH,Maple Street Market
+03.05.2024,Savings jar,Fuel,-115.56,UAH,Sunny Fuel Stop
+04.05.2024,Cash wallet,Books,-27.24,UAH,Pixel Books
+04.05.2024,Debit card,Fuel,-190.76,UAH,Sunny Fuel Stop
+05.05.2024,Debit card,Groceries,-185.00,UAH,Corner Bakery
+05.05.2024,Debit card,Groceries,-101.80,UAH,Corner Bakery
+06.05.2024,Savings jar,Groceries,-58.92,UAH,Northside Grocer
+06.05.2024,Savings jar,Groceries,-183.08,UAH,Maple Street Market
+07.05.2024,Cash wallet,Groceries,-79.72,UAH,Northside Grocer
+07.05.2024,Cash wallet,Groceries,-41.00,UAH,Corner Bakery
+08.05.2024,Cash wallet,Fuel,-53.16,UAH,Sunny Fuel Stop
+08.05.2024,Cash wallet,Groceries,-189.48,UAH,Maple Street Market
+09.05.2024,Debit card,Groceries,-79.72,UAH,Northside Grocer
+09.05.2024,Cash wallet,Groceries,-33.00,UAH,Corner Bakery
+10.05.2024,Savings jar,Groceries,-21.80,UAH,Corner Bakery
+10.05.2024,Savings jar,Fuel,-105.96,UAH,Sunny Fuel Stop
+11.05.2024,Debit card,Fuel,-181.16,UAH,Sunny Fuel Stop
+11.05.2024,Cash wallet,Fuel,-107.56,UAH,Sunny Fuel Stop
+12.05.2024,Cash wallet,Books,-62.44,UAH,Pixel Books
+12.05.2024,Cash wallet,Groceries,-72.68,UAH,Maple Street Market
+13.05.2024,Cash wallet,Groceries,-15.40,UAH,Corner Bakery
+13.05.2024,Savings jar,Groceries,-85.80,UAH,Corner Bakery
+14.05.2024,Savings jar,Groceries,-195.88,UAH,Maple Street Market
+14.05.2024,Savings jar,Fuel,-160.36,UAH,Sunny Fuel Stop
+15.05.2024,Savings jar,Groceries,-56.68,UAH,Maple Street Market
+15.05.2024,Debit card,Groceries,-198.12,UAH,Northside Grocer
+16.05.2024,Cash wallet,Books,-41.64,UAH,Pixel Books
+16.05.2024,Savings jar,Groceries,-194.60,UAH,Corner Bakery
+17.05.2024,Savings jar,Groceries,-26.28,UAH,Maple Street Market
+17.05.2024,Cash wallet,Groceries,-162.28,UAH,Maple Street Market
+18.05.2024,Savings jar,Groceries,-64.68,UAH,Maple Street Market
+18.05.2024,Savings jar,Books,-113.64,UAH,Pixel Books
+19.05.2024,Debit card,Transport,-68.13,UAH,Metro Pass Kiosk
+19.05.2024,Cash wallet,Groceries,-54.12,UAH,Northside Grocer
+20.05.2024,Cash wallet,Fuel,-161.96,UAH,Sunny Fuel Stop
+20.05.2024,Savings jar,Groceries,-98.92,UAH,Northside Grocer
+21.05.2024,Cash wallet,Fuel,-24.36,UAH,Sunny Fuel Stop
+21.05.2024,Cash wallet,Fuel,-195.56,UAH,Sunny Fuel Stop
+22.05.2024,Debit card,Fuel,-160.36,UAH,Sunny Fuel Stop
+22.05.2024,Savings jar,Books,-107.24,UAH,Pixel Books
+23.05.2024,Cash wallet,Groceries,-61.48,UAH,Maple Street Market
+23.05.2024,Cash wallet,Groceries,-63.72,UAH,Northside Grocer
+24.05.2024,Cash wallet,Books,-91.24,UAH,Pixel Books
+24.05.2024,Debit card,Books,-64.04,UAH,Pixel Books
+25.05.2024,Cash wallet,Groceries,-167.40,UAH,Corner Bakery
+25.05.2024,Cash wallet,Groceries,-111.40,UAH,Corner Bakery
+26.05.2024,Cash wallet,Groceries,-86.12,UAH,Northside Grocer
+26.05.2024,Cash wallet,Groceries,-131.88,UAH,Maple Street Market
+27.05.2024,Debit card,Groceries,-128.68,UAH,Maple Street Market
+27.05.2024,Savings jar,Groceries,-82.28,UAH,Maple Street Market
+28.05.2024,Debit card,Books,-54.44,UAH,Pixel Books
+28.05.2024,Cash wallet,Books,-161.64,UAH,Pixel Books
+29.05.2024,Cash wallet,Groceries,-3.88,UAH,Maple Street Market
+29.05.2024,Debit card,Groceries,-110.12,UAH,Northside Grocer
+30.05.2024,Savings jar,Groceries,-33.00,UAH,Corner Bakery
+30.05.2024,Debit card,Fuel,-107.56,UAH,Sunny Fuel Stop
+31.05.2024,Savings jar,Books,-107.24,UAH,Pixel Books
+31.05.2024,Cash wallet,Fuel,-118.76,UAH,Sunny Fuel Stop
+01.06.2024,Debit card,Groceries,-138.60,UAH,Corner Bakery
+01.06.2024,Debit card,Groceries,-6.12,UAH,Northside Grocer
+02.06.2024,Debit card,Groceries,-59.88,UAH,Maple Street Market
+02.06.2024,Cash wallet,Groceries,-170.60,UAH,Corner Bakery
+03.06.2024,Cash wallet,Fuel,-40.36,UAH,Sunny Fuel Stop
+03.06.2024,Savings jar,Groceries,-151.40,UAH,Corner Bakery
+04.06.2024,Cash wallet,Groceries,-48.68,UAH,Maple Street Market
+04.06.2024,Cash wallet,Groceries,-117.48,UAH,Maple Street Market
+05.06.2024,Debit card,Groceries,-60.52,UAH,Northside Grocer
+05.06.2024,Savings jar,Fuel,-45.16,UAH,Sunny Fuel Stop
+06.06.2024,Debit card,Groceries,-199.72,UAH,Northside Grocer
+06.06.2024,Savings jar,Groceries,-195.88,UAH,Maple Street Market
+07.06.2024,Cash wallet,Fuel,-131.56,UAH,Sunny Fuel Stop
+07.06.2024,Debit card,Fuel,-16.36,UAH,Sunny Fuel Stop
+08.06.2024,Cash wallet,Books,-68.84,UAH,Pixel Books
+08.06.2024,Savings jar,Books,-43.24,UAH,Pixel Books
+09.06.2024,Debit card,Groceries,-10.28,UAH,Maple Street Market
+09.06.2024,Cash wallet,Groceries,-97.32,UAH,Northside Grocer
+10.06.2024,Savings jar,Fuel,-185.96,UAH,Sunny Fuel Stop
+10.06.2024,Savings jar,Books,-195.24,UAH,Pixel Books
+11.06.2024,Savings jar,Books,-136.04,UAH,Pixel Books
+11.06.2024,Debit card,Groceries,-172.20,UAH,Corner Bakery
+12.06.2024,Debit card,Books,-147.24,UAH,Pixel Books
+12.06.2024,Cash wallet,Fuel,-104.36,UAH,Sunny Fuel Stop
+13.06.2024,Cash wallet,Groceries,-102.12,UAH,Northside Grocer
+13.06.2024,Debit card,Groceries,-148.20,UAH,Corner Bakery
+14.06.2024,Cash wallet,Books,-174.44,UAH,Pixel Books
+14.06.2024,Savings jar,Books,-70.44,UAH,Pixel Books
+15.06.2024,Debit card,Groceries,-156.52,UAH,Northside Grocer
+15.06.2024,Debit card,Books,-192.04,UAH,Pixel Books
+16.06.2024,Savings jar,Fuel,-72.36,UAH,Sunny Fuel Stop
+16.06.2024,Cash wallet,Books,-193.64,UAH,Pixel Books
+17.06.2024,Debit card,Groceries,-166.12,UAH,Northside Grocer
+17.06.2024,Savings jar,Groceries,-153.00,UAH,Corner Bakery
+18.06.2024,Cash wallet,Groceries,-18.92,UAH,Northside Grocer
+18.06.2024,Cash wallet,Groceries,-108.20,UAH,Corner Bakery
+19.06.2024,Debit card,Fuel,-70.76,UAH,Sunny Fuel Stop
+19.06.2024,Savings jar,Groceries,-41.00,UAH,Corner Bakery
+20.06.2024,Savings jar,Books,-14.44,UAH,Pixel Books
+20.06.2024,Debit card,Fuel,-139.56,UAH,Sunny Fuel Stop
+21.06.2024,Debit card,Groceries,-47.08,UAH,Maple Street Market
+21.06.2024,Debit card,Groceries,-142.12,UAH,Northside Grocer
+22.06.2024,Debit card,Fuel,-45.16,UAH,Sunny Fuel Stop
+22.06.2024,Debit card,Fuel,-3.56,UAH,Sunny Fuel Stop
+23.06.2024,Debit card,Books,-19.24,UAH,Pixel Books
+23.06.2024,Debit card,Books,-163.24,UAH,Pixel Books
+24.06.2024,Savings jar,Books,-185.24,UAH,Pixel Books
+24.06.2024,Savings jar,Groceries,-73.32,UAH,Northside Grocer
+25.06.2024,Savings jar,Groceries,-135.40,UAH,Corner Bakery
+25.06.2024,Savings jar,Groceries,-100.52,UAH,Northside Grocer
+26.06.2024,Savings jar,Books,-177.64,UAH,Pixel Books
+26.06.2024,Savings jar,Fuel,-70.76,UAH,Sunny Fuel Stop
+27.06.2024,Cash wallet,Groceries,-12.52,UAH,Northside Grocer
+27.06.2024,Savings jar,Groceries,-65.32,UAH,Northside Grocer
+28.06.2024,Savings jar,Groceries,-198.12,UAH,Northside Grocer
+28.06.2024,Debit card,Groceries,-102.12,UAH,Northside Grocer
+29.06.2024,Savings jar,Groceries,-52.52,UAH,Northside Grocer
+29.06.2024,Debit card,Groceries,-97.32,UAH,Northside Grocer
+30.06.2024,Debit card,Groceries,-103.40,UAH,Corner Bakery
+30.06.2024,Savings jar,Groceries,-50.28,UAH,Maple Street Market
+01.07.2024,Savings jar,Fuel,-115.56,UAH,Sunny Fuel Stop
+01.07.2024,Cash wallet,Groceries,-200.68,UAH,Maple Street Market
+02.07.2024,Savings jar,Groceries,-188.20,UAH,Corner Bakery
+02.07.2024,Savings jar,Fuel,-61.16,UAH,Sunny Fuel Stop
+03.07.2024,Cash wallet,Groceries,-174.12,UAH,Northside Grocer
+03.07.2024,Cash wallet,Groceries,-87.40,UAH,Corner Bakery
+04.07.2024,Savings jar,Fuel,-107.56,UAH,Sunny Fuel Stop
+04.07.2024,Debit card,Groceries,-23.40,UAH,Corner Bakery
+05.07.2024,Savings jar,Books,-182.44,UAH,Pixel Books
+05.07.2024,Savings jar,Groceries,-154.92,UAH,Northside Grocer
+06.07.2024,Debit card,Groceries,-104.68,UAH,Maple Street Market
+06.07.2024,Cash wallet,Fuel,-38.76,UAH,Sunny Fuel Stop
+07.07.2024,Savings jar,Books,-27.24,UAH,Pixel Books
+07.07.2024,Debit card,Groceries,-108.20,UAH,Corner Bakery
+08.07.2024,Debit card,Books,-166.44,UAH,Pixel Books
+08.07.2024,Debit card,Groceries,-141.48,UAH,Maple Street Market
+09.07.2024,Savings jar,Fuel,-141.16,UAH,Sunny Fuel Stop
+09.07.2024,Cash wallet,Groceries,-26.28,UAH,Maple Street Market
+10.07.2024,Savings jar,Groceries,-163.88,UAH,Maple Street Market
+10.07.2024,Cash wallet,Groceries,-90.60,UAH,Corner Bakery
+11.07.2024,Savings jar,Groceries,-174.12,UAH,Northside Grocer
+11.07.2024,Cash wallet,Books,-67.24,UAH,Pixel Books
+12.07.2024,Debit card,Fuel,-99.56,UAH,Sunny Fuel Stop
+12.07.2024,Savings jar,Groceries,-146.28,UAH,Maple Street Market
+13.07.2024,Savings jar,Fuel,-35.56,UAH,Sunny Fuel Stop
+13.07.2024,Debit card,Fuel,-120.36,UAH,Sunny Fuel Stop
+14.07.2024,Cash wallet,Groceries,-26.92,UAH,Northside Grocer
+14.07.2024,Savings jar,Books,-4.84,UAH,Pixel Books
+15.07.2024,Savings jar,Groceries,-160.68,UAH,Maple Street Market
+15.07.2024,Debit card,Groceries,-85.80,UAH,Corner Bakery
+16.07.2024,Savings jar,Groceries,-68.20,UAH,Corner Bakery
+16.07.2024,Cash wallet,Groceries,-74.92,UAH,Northside Grocer
+17.07.2024,Debit card,Books,-187.24,UAH,Pixel Books
+17.07.2024,Cash wallet,Groceries,-8.68,UAH,Maple Street Market
+18.07.2024,Cash wallet,Fuel,-41.96,UAH,Sunny Fuel Stop
+18.07.2024,Savings jar,Groceries,-151.08,UAH,Maple Street Market
+19.07.2024,Savings jar,Groceries,-53.48,UAH,Maple Street Market
+19.07.2024,Debit card,Groceries,-42.60,UAH,Corner Bakery
+20.07.2024,Debit card,Books,-33.64,UAH,Pixel Books
+20.07.2024,Debit card,Books,-65.64,UAH,Pixel Books
+21.07.2024,Savings jar,Books,-52.84,UAH,Pixel Books
+21.07.2024,Cash wallet,Groceries,-146.28,UAH,Maple Street Market
+22.07.2024,Cash wallet,Groceries,-193.00,UAH,Corner Bakery
+22.07.2024,Savings jar,Fuel,-19.56,UAH,Sunny Fuel Stop
+23.07.2024,Savings jar,Fuel,-96.36,UAH,Sunny Fuel Stop
+23.07.2024,Debit card,Fuel,-109.16,UAH,Sunny Fuel Stop
+24.07.2024,Cash wallet,Groceries,-181.48,UAH,Maple Street Market
+24.07.2024,Savings jar,Fuel,-24.36,UAH,Sunny Fuel Stop
+25.07.2024,Debit card,Groceries,-176.68,UAH,Maple Street Market
+25.07.2024,Savings jar,Fuel,-160.36,UAH,Sunny Fuel Stop
+26.07.2024,Debit card,Groceries,-122.28,UAH,Maple Street Market
+26.07.2024,Cash wallet,Books,-176.04,UAH,Pixel Books
+27.07.2024,Debit card,Groceries,-163.88,UAH,Maple Street Market
+27.07.2024,Cash wallet,Books,-180.84,UAH,Pixel Books
+28.07.2024,Savings jar,Books,-17.64,UAH,Pixel Books
+28.07.2024,Savings jar,Fuel,-181.16,UAH,Sunny Fuel Stop
+29.07.2024,Cash wallet,Groceries,-126.12,UAH,Northside Grocer
+29.07.2024,Debit card,Fuel,-75.56,UAH,Sunny Fuel Stop
+30.07.2024,Cash wallet,Fuel,-27.56,UAH,Sunny Fuel Stop
+30.07.2024,Savings jar,Books,-187.24,UAH,Pixel Books
+31.07.2024,Debit card,Groceries,-49.00,UAH,Corner Bakery
+31.07.2024,Cash wallet,Books,-140.84,UAH,Pixel Books
+01.08.2024,Cash wallet,Books,-147.24,UAH,Pixel Books
+01.08.2024,Cash wallet,Groceries,-165.80,UAH,Corner Bakery
+02.08.2024,Cash wallet,Groceries,-37.80,UAH,Corner Bakery
+02.08.2024,Cash wallet,Groceries,-38.12,UAH,Northside Grocer
+03.08.2024,Debit card,Books,-105.64,UAH,Pixel Books
+03.08.2024,Cash wallet,Books,-134.44,UAH,Pixel Books
+04.08.2024,Debit card,Groceries,-95.72,UAH,Northside Grocer
+04.08.2024,Cash wallet,Groceries,-186.60,UAH,Corner Bakery
+05.08.2024,Cash wallet,Fuel,-158.76,UAH,Sunny Fuel Stop
+05.08.2024,Cash wallet,Groceries,-149.80,UAH,Corner Bakery
+06.08.2024,Cash wallet,Fuel,-184.36,UAH,Sunny Fuel Stop
+06.08.2024,Cash wallet,Books,-38.44,UAH,Pixel Books
+07.08.2024,Savings jar,Books,-155.24,UAH,Pixel Books
+07.08.2024,Cash wallet,Books,-140.84,UAH,Pixel Books
+08.08.2024,Savings jar,Groceries,-193.88,UAH,Maple Street Market
+08.08.2024,Debit card,Groceries,-141.48,UAH,Maple Street Market
+09.08.2024,Cash wallet,Books,-118.44,UAH,Pixel Books
+09.08.2024,Savings jar,Fuel,-190.76,UAH,Sunny Fuel Stop
+10.08.2024,Debit card,Groceries,-136.68,UAH,Maple Street Market
+10.08.2024,Cash wallet,Books,-102.44,UAH,Pixel Books
+11.08.2024,Cash wallet,Groceries,-68.52,UAH,Northside Grocer
+11.08.2024,Debit card,Books,-14.44,UAH,Pixel Books
+12.08.2024,Savings jar,Groceries,-45.80,UAH,Corner Bakery
+12.08.2024,Savings jar,Groceries,-93.48,UAH,Maple Street Market
+13.08.2024,Cash wallet,Groceries,-116.20,UAH,Corner Bakery
+13.08.2024,Savings jar,Groceries,-90.60,UAH,Corner Bakery
+14.08.2024,Savings jar,Fuel,-164.76,UAH,Sunny Fuel Stop
+14.08.2024,Savings jar,Books,-9.64,UAH,Pixel Books
+15.08.2024,Savings jar,Books,-24.04,UAH,Pixel Books
+15.08.2024,Debit card,Groceries,-85.80,UAH,Corner Bakery
+16.08.2024,Cash wallet,Groceries,-7.40,UAH,Corner Bakery
+16.08.2024,Savings jar,Groceries,-101.48,UAH,Maple Street Market
+17.08.2024,Cash wallet,Groceries,-18.28,UAH,Maple Street Market
+17.08.2024,Savings jar,Books,-81.64,UAH,Pixel Books
+18.08.2024,Debit card,Groceries,-169.00,UAH,Corner Bakery
+18.08.2024,Debit card,Groceries,-66.92,UAH,Northside Grocer
+19.08.2024,Cash wallet,Fuel,-30.76,UAH,Sunny Fuel Stop
+19.08.2024,Debit card,Groceries,-139.88,UAH,Maple Street Market
+20.08.2024,Savings jar,Books,-152.04,UAH,Pixel Books
+20.08.2024,Debit card,Books,-86.44,UAH,Pixel Books
+21.08.2024,Cash wallet,Fuel,-38.76,UAH,Sunny Fuel Stop
+21.08.2024,Debit card,Groceries,-127.40,UAH,Corner Bakery
+22.08.2024,Cash wallet,Groceries,-95.40,UAH,Corner Bakery
+22.08.2024,Cash wallet,Groceries,-42.92,UAH,Northside Grocer
+23.08.2024,Debit card,Fuel,-161.96,UAH,Sunny Fuel Stop
+23.08.2024,Debit card,Groceries,-74.60,UAH,Corner Bakery
+24.08.2024,Debit card,Groceries,-97.32,UAH,Northside Grocer
+24.08.2024,Cash wallet,Groceries,-90.28,UAH,Maple Street Market
+25.08.2024,Debit card,Groceries,-117.48,UAH,Maple Street Market
+25.08.2024,Savings jar,Books,-16.04,UAH,Pixel Books
+26.08.2024,Cash wallet,Groceries,-194.28,UAH,Maple Street Market
+26.08.2024,Debit card,Groceries,-156.52,UAH,Northside Grocer
+27.08.2024,Debit card,Groceries,-84.20,UAH,Corner Bakery
+27.08.2024,Debit card,Fuel,-62.76,UAH,Sunny Fuel Stop
+28.08.2024,Savings jar,Groceries,-31.40,UAH,Corner Bakery
+28.08.2024,Cash wallet,Groceries,-185.00,UAH,Corner Bakery
+29.08.2024,Savings jar,Groceries,-140.52,UAH,Northside Grocer
+29.08.2024,Debit card,Fuel,-40.36,UAH,Sunny Fuel Stop
+30.08.2024,Savings jar,Groceries,-82.28,UAH,Maple Street Market
+30.08.2024,Debit card,Groceries,-149.80,UAH,Corner Bakery
+31.08.2024,Savings jar,Fuel,-69.16,UAH,Sunny Fuel Stop
+31.08.2024,Cash wallet,Fuel,-165.16,UAH,Sunny Fuel Stop
+01.09.2024,Savings jar,Groceries,-175.40,UAH,Corner Bakery
+01.09.2024,Debit card,Groceries,-192.68,UAH,Maple Street Market
+02.09.2024,Debit card,Fuel,-105.96,UAH,Sunny Fuel Stop
+02.09.2024,Savings jar,Groceries,-119.40,UAH,Corner Bakery
+03.09.2024,Savings jar,Groceries,-119.40,UAH,Corner Bakery
+03.09.2024,Savings jar,Groceries,-87.08,UAH,Maple Street Market
+04.09.2024,Savings jar,Groceries,-121.32,UAH,Northside Grocer
+04.09.2024,Savings jar,Groceries,-119.08,UAH,Maple Street Market
+05.09.2024,Cash wallet,Fuel,-57.96,UAH,Sunny Fuel Stop
+05.09.2024,Cash wallet,Groceries,-109.80,UAH,Corner Bakery
+06.09.2024,Cash wallet,Books,-16.04,UAH,Pixel Books
+06.09.2024,Debit card,Groceries,-36.52,UAH,Northside Grocer
+07.09.2024,Cash wallet,Groceries,-97.00,UAH,Corner Bakery
+07.09.2024,Savings jar,Books,-187.24,UAH,Pixel Books
+08.09.2024,Debit card,Groceries,-199.40,UAH,Corner Bakery
+08.09.2024,Savings jar,Groceries,-181.80,UAH,Corner Bakery
+09.09.2024,Savings jar,Fuel,-141.16,UAH,Sunny Fuel Stop
+09.09.2024,Savings jar,Groceries,-17.00,UAH,Corner Bakery
+10.09.2024,Debit card,Groceries,-59.88,UAH,Maple Street Market
+10.09.2024,Cash wallet,Groceries,-26.60,UAH,Corner Bakery
+11.09.2024,Debit card,Groceries,-100.52,UAH,Northside Grocer
+11.09.2024,Cash wallet,Groceries,-26.60,UAH,Corner Bakery
+12.09.2024,Debit card,Groceries,-101.48,UAH,Maple Street Market
+12.09.2024,Debit card,Groceries,-63.72,UAH,Northside Grocer
+13.09.2024,Debit card,Groceries,-179.88,UAH,Maple Street Market
+13.09.2024,Debit card,Groceries,-141.48,UAH,Maple Street Market
+14.09.2024,Debit card,Books,-131.24,UAH,Pixel Books
+14.09.2024,Savings jar,Groceries,-105.00,UAH,Corner Bakery
+15.09.2024,Savings jar,Fuel,-144.36,UAH,Sunny Fuel Stop
+15.09.2024,Cash wallet,Books,-192.04,UAH,Pixel Books
+16.09.2024,Savings jar,Groceries,-114.60,UAH,Corner Bakery
+16.09.2024,Savings jar,Books,-129.64,UAH,Pixel Books
+17.09.2024,Cash wallet,Fuel,-134.76,UAH,Sunny Fuel Stop
+17.09.2024,Debit card,Groceries,-161.00,UAH,Corner Bakery
+18.09.2024,Savings jar,Fuel,-6.76,UAH,Sunny Fuel Stop
+18.09.2024,Debit card,Fuel,-112.36,UAH,Sunny Fuel Stop
+19.09.2024,Cash wallet,Fuel,-149.16,UAH,Sunny Fuel Stop
+19.09.2024,Debit card,Groceries,-151.08,UAH,Maple Street Market
+20.09.2024,Debit card,Books,-67.24,UAH,Pixel Books
+20.09.2024,Savings jar,Fuel,-109.16,UAH,Sunny Fuel Stop
+21.09.2024,Savings jar,Fuel,-61.16,UAH,Sunny Fuel Stop
+21.09.2024,Debit card,Groceries,-104.68,UAH,Maple Street Market
+22.09.2024,Cash wallet,Groceries,-124.20,UAH,Corner Bakery
+22.09.2024,Debit card,Groceries,-101.80,UAH,Corner Bakery
+23.09.2024,Savings jar,Groceries,-123.88,UAH,Maple Street Market
+23.09.2024,Cash wallet,Groceries,-120.68,UAH,Maple Street Market
+24.09.2024,Debit card,Fuel,-78.76,UAH,Sunny Fuel Stop
+24.09.2024,Debit card,Groceries,-31.08,UAH,Maple Street Market
+25.09.2024,Debit card,Groceries,-25.32,UAH,Northside Grocer
+25.09.2024,Savings jar,Books,-104.04,UAH,Pixel Books
+26.09.2024,Debit card,Groceries,-21.48,UAH,Maple Street Market
+26.09.2024,Savings jar,Groceries,-87.40,UAH,Corner Bakery
+27.09.2024,Cash wallet,Groceries,-135.40,UAH,Corner Bakery
+27.09.2024,Cash wallet,Groceries,-26.28,UAH,Maple Street Market
+28.09.2024,Savings jar,Groceries,-103.40,UAH,Corner Bakery
+28.09.2024,Cash wallet,Groceries,-157.80,UAH,Corner Bakery
+29.09.2024,Cash wallet,Groceries,-18.60,UAH,Corner Bakery
+29.09.2024,Cash wallet,Books,-86.44,UAH,Pixel Books
+30.09.2024,Savings jar,Groceries,-50.28,UAH,Maple Street Market
+30.09.2024,Cash wallet,Groceries,-109.48,UAH,Maple Street Market
+01.10.2024,Cash wallet,Books,-32.04,UAH,Pixel Books
+01.10.2024,Savings jar,Groceries,-107.88,UAH,Maple Street Market
+02.10.2024,Cash wallet,Groceries,-170.60,UAH,Corner Bakery
+02.10.2024,Cash wallet,Books,-100.84,UAH,Pixel Books
+03.10.2024,Cash wallet,Groceries,-109.80,UAH,Corner Bakery
+03.10.2024,Savings jar,Groceries,-125.48,UAH,Maple Street Market
+04.10.2024,Savings jar,Groceries,-50.60,UAH,Corner Bakery
+04.10.2024,Savings jar,Groceries,-162.92,UAH,Northside Grocer
+05.10.2024,Cash wallet,Books,-8.04,UAH,Pixel Books
+05.10.2024,Cash wallet,Fuel,-118.76,UAH,Sunny Fuel Stop
+06.10.2024,Debit card,Books,-11.24,UAH,Pixel Books
+06.10.2024,Cash wallet,Books,-17.64,UAH,Pixel Books
+07.10.2024,Savings jar,Groceries,-53.80,UAH,Corner Bakery
+07.10.2024,Cash wallet,Groceries,-18.60,UAH,Corner Bakery
+08.10.2024,Cash wallet,Groceries,-144.68,UAH,Maple Street Market
+08.10.2024,Cash wallet,Books,-24.04,UAH,Pixel Books
+09.10.2024,Savings jar,Fuel,-150.76,UAH,Sunny Fuel Stop
+09.10.2024,Savings jar,Fuel,-121.96,UAH,Sunny Fuel Stop
+10.10.2024,Debit card,Groceries,-162.92,UAH,Northside Grocer
+10.10.2024,Cash wallet,Groceries,-46.12,UAH,Northside Grocer
+11.10.2024,Savings jar,Groceries,-114.92,UAH,Northside Grocer
+11.10.2024,Cash wallet,Books,-75.24,UAH,Pixel Books
+12.10.2024,Savings jar,Fuel,-101.16,UAH,Sunny Fuel Stop
+12.10.2024,Debit card,Groceries,-150.12,UAH,Northside Grocer
+13.10.2024,Cash wallet,Books,-169.64,UAH,Pixel Books
+13.10.2024,Savings jar,Books,-200.04,UAH,Pixel Books
+14.10.2024,Debit card,Fuel,-62.76,UAH,Sunny Fuel Stop
+14.10.2024,Savings jar,Fuel,-93.16,UAH,Sunny Fuel Stop
+15.10.2024,Savings jar,Fuel,-128.36,UAH,Sunny Fuel Stop
+15.10.2024,Savings jar,Groceries,-143.08,UAH,Maple Street Market
+16.10.2024,Savings jar,Groceries,-133.80,UAH,Corner Bakery
+16.10.2024,Cash wallet,Books,-51.24,UAH,Pixel Books
+17.10.2024,Cash wallet,Fuel,-96.36,UAH,Sunny Fuel Stop
+17.10.2024,Savings jar,Groceries,-66.60,UAH,Corner Bakery
+18.10.2024,Savings jar,Groceries,-15.40,UAH,Corner Bakery
+18.10.2024,Debit card,Groceries,-195.88,UAH,Maple Street Market
+19.10.2024,Savings jar,Books,-169.64,UAH,Pixel Books
+19.10.2024,Cash wallet,Fuel,-176.36,UAH,Sunny Fuel Stop
+20.10.2024,Debit card,Groceries,-108.52,UAH,Northside Grocer
+20.10.2024,Savings jar,Fuel,-158.76,UAH,Sunny Fuel Stop
+21.10.2024,Cash wallet,Fuel,-89.96,UAH,Sunny Fuel Stop
+21.10.2024,Savings jar,Fuel,-193.96,UAH,Sunny Fuel Stop
+22.10.2024,Debit card,Groceries,-130.60,UAH,Corner Bakery
+22.10.2024,Savings jar,Fuel,-99.56,UAH,Sunny Fuel Stop
+23.10.2024,Cash wallet,Groceries,-34.28,UAH,Maple Street Market
+23.10.2024,Savings jar,Groceries,-149.48,UAH,Maple Street Market
+24.10.2024,Debit card,Books,-147.24,UAH,Pixel Books
+24.10.2024,Savings jar,Fuel,-88.36,UAH,Sunny Fuel Stop
+25.10.2024,Debit card,Books,-152.04,UAH,Pixel Books
+25.10.2024,Cash wallet,Books,-177.64,UAH,Pixel Books
+26.10.2024,Cash wallet,Groceries,-154.28,UAH,Maple Street Market
+26.10.2024,Debit card,Groceries,-156.52,UAH,Northside Grocer
+27.10.2024,Debit card,Groceries,-121.32,UAH,Northside Grocer
+27.10.2024,Debit card,Fuel,-93.16,UAH,Sunny Fuel Stop
+28.10.2024,Savings jar,Groceries,-39.72,UAH,Northside Grocer
+28.10.2024,Savings jar,Groceries,-104.68,UAH,Maple Street Market
+29.10.2024,Debit card,Fuel,-198.76,UAH,Sunny Fuel Stop
+29.10.2024,Debit card,Groceries,-189.48,UAH,Maple Street Market
+30.10.2024,Savings jar,Groceries,-44.20,UAH,Corner Bakery
+30.10.2024,Cash wallet,Groceries,-186.28,UAH,Maple Street Market
+31.10.2024,Savings jar,Groceries,-145.00,UAH,Corner Bakery
+31.10.2024,Savings jar,Fuel,-187.56,UAH,Sunny Fuel Stop
+01.11.2024,Debit card,Groceries,-146.92,UAH,Northside Grocer
+01.11.2024,Cash wallet,Books,-20.84,UAH,Pixel Books
+02.11.2024,Cash wallet,Groceries,-98.92,UAH,Northside Grocer
+02.11.2024,Cash wallet,Groceries,-170.28,UAH,Maple Street Market
+03.11.2024,Debit card,Books,-128.04,UAH,Pixel Books
+03.11.2024,Debit card,Groceries,-170.92,UAH,Northside Grocer
+04.11.2024,Savings jar,Fuel,-89.96,UAH,Sunny Fuel Stop
+04.11.2024,Savings jar,Books,-4.84,UAH,Pixel Books
+05.11.2024,Cash wallet,Books,-89.64,UAH,Pixel Books
+05.11.2024,Debit card,Groceries,-170.60,UAH,Corner Bakery
+06.11.2024,Savings jar,Groceries,-3.88,UAH,Maple Street Market
+06.11.2024,Debit card,Groceries,-127.40,UAH,Corner Bakery
+07.11.2024,Debit card,Groceries,-93.48,UAH,Maple Street Market
+07.11.2024,Cash wallet,Groceries,-49.00,UAH,Corner Bakery
+08.11.2024,Debit card,Groceries,-66.28,UAH,Maple Street Market
+08.11.2024,Savings jar,Groceries,-162.28,UAH,Maple Street Market
+09.11.2024,Savings jar,Groceries,-41.00,UAH,Corner Bakery
+09.11.2024,Debit card,Groceries,-7.08,UAH,Maple Street Market
+10.11.2024,Debit card,Fuel,-136.36,UAH,Sunny Fuel Stop
+10.11.2024,Debit card,Fuel,-144.36,UAH,Sunny Fuel Stop
+11.11.2024,Savings jar,Groceries,-12.52,UAH,Northside Grocer
+11.11.2024,Debit card,Books,-92.84,UAH,Pixel Books
+12.11.2024,Savings jar,Groceries,-186.28,UAH,Maple Street Market
+12.11.2024,Savings jar,Groceries,-70.12,UAH,Northside Grocer
+13.11.2024,Debit card,Books,-57.64,UAH,Pixel Books
+13.11.2024,Savings jar,Groceries,-14.12,UAH,Northside Grocer
+14.11.2024,Savings jar,Groceries,-161.00,UAH,Corner Bakery
+14.11.2024,Debit card,Groceries,-191.40,UAH,Corner Bakery
+15.11.2024,Debit card,Groceries,-14.12,UAH,Northside Grocer
+15.11.2024,Savings jar,Books,-3.24,UAH,Pixel Books
+16.11.2024,Cash wallet,Groceries,-37.80,UAH,Corner Bakery
+16.11.2024,Cash wallet,Groceries,-85.80,UAH,Corner Bakery
+17.11.2024,Savings jar,Groceries,-111.40,UAH,Corner Bakery
+17.11.2024,Savings jar,Groceries,-5.80,UAH,Corner Bakery
+18.11.2024,Cash wallet,Fuel,-14.76,UAH,Sunny Fuel Stop
+18.11.2024,Debit card,Groceries,-60.20,UAH,Corner Bakery
+19.11.2024,Savings jar,Groceries,-34.28,UAH,Maple Street Market
+19.11.2024,Cash wallet,Fuel,-197.16,UAH,Sunny Fuel Stop
+20.11.2024,Debit card,Groceries,-193.32,UAH,Northside Grocer
+20.11.2024,Cash wallet,Groceries,-157.48,UAH,Maple Street Market
+21.11.2024,Cash wallet,Groceries,-45.48,UAH,Maple Street Market
+21.11.2024,Debit card,Books,-60.84,UAH,Pixel Books
+22.11.2024,Debit card,Groceries,-79.72,UAH,Northside Grocer
+22.11.2024,Debit card,Books,-70.44,UAH,Pixel Books
+23.11.2024,Savings jar,Groceries,-189.48,UAH,Maple Street Market
+23.11.2024,Debit card,Groceries,-101.80,UAH,Corner Bakery
+24.11.2024,Debit card,Fuel,-174.76,UAH,Sunny Fuel Stop
+24.11.2024,Debit card,Books,-97.64,UAH,Pixel Books
+25.11.2024,Savings jar,Groceries,-102.12,UAH,Northside Grocer
+25.11.2024,Savings jar,Groceries,-10.60,UAH,Corner Bakery
+26.11.2024,Savings jar,Groceries,-39.40,UAH,Corner Bakery
+26.11.2024,Cash wallet,Groceries,-117.48,UAH,Maple Street Market
+27.11.2024,Savings jar,Books,-137.64,UAH,Pixel Books
+27.11.2024,Debit card,Groceries,-61.80,UAH,Corner Bakery
+28.11.2024,Cash wallet,Groceries,-18.28,UAH,Maple Street Market
+28.11.2024,Cash wallet,Groceries,-36.52,UAH,Northside Grocer
+29.11.2024,Debit card,Groceries,-24.68,UAH,Maple Street Market
+29.11.2024,Debit card,Books,-12.84,UAH,Pixel Books
+30.11.2024,Savings jar,Groceries,-100.20,UAH,Corner Bakery
+30.11.2024,Debit card,Books,-140.84,UAH,Pixel Books
+01.12.2024,Savings jar,Books,-57.64,UAH,Pixel Books
+01.12.2024,Debit card,Groceries,-33.32,UAH,Northside Grocer
+02.12.2024,Cash wallet,Groceries,-119.40,UAH,Corner Bakery
+02.12.2024,Savings jar,Groceries,-191.08,UAH,Maple Street Market
+03.12.2024,Debit card,Groceries,-114.60,UAH,Corner Bakery
+03.12.2024,Savings jar,Fuel,-126.76,UAH,Sunny Fuel Stop
+04.12.2024,Savings jar,Books,-134.44,UAH,Pixel Books
+04.12.2024,Debit card,Books,-168.04,UAH,Pixel Books
+05.12.2024,Savings jar,Fuel,-197.16,UAH,Sunny Fuel Stop
+05.12.2024,Debit card,Groceries,-101.48,UAH,Maple Street Market
+06.12.2024,Cash wallet,Books,-67.24,UAH,Pixel Books
+06.12.2024,Debit card,Groceries,-86.12,UAH,Northside Grocer
+07.12.2024,Debit card,Books,-112.04,UAH,Pixel Books
+07.12.2024,Debit card,Groceries,-76.20,UAH,Corner Bakery
+08.12.2024,Cash wallet,Groceries,-55.72,UAH,Northside Grocer
+08.12.2024,Savings jar,Books,-195.24,UAH,Pixel Books
+09.12.2024,Savings jar,Books,-75.24,UAH,Pixel Books
+09.12.2024,Debit card,Books,-91.24,UAH,Pixel Books
+10.12.2024,Cash wallet,Books,-36.84,UAH,Pixel Books
+10.12.2024,Cash wallet,Fuel,-101.16,UAH,Sunny Fuel Stop
+11.12.2024,Debit card,Groceries,-185.00,UAH,Corner Bakery
+11.12.2024,Debit card,Groceries,-156.12,UAH,Northside Grocer
+12.12.2024,Cash wallet,Groceries,-97.32,UAH,Northside Grocer
+12.12.2024,Cash wallet,Groceries,-187.88,UAH,Maple Street Market
+13.12.2024,Debit card,Groceries,-154.92,UAH,Northside Grocer
+13.12.2024,Savings jar,Books,-156.84,UAH,Pixel Books
+14.12.2024,Savings jar,Groceries,-90.60,UAH,Corner Bakery
+14.12.2024,Debit card,Groceries,-143.40,UAH,Corner Bakery
+15.12.2024,Debit card,Groceries,-13.48,UAH,Maple Street Market
+15.12.2024,Cash wallet,Books,-78.44,UAH,Pixel Books
+16.12.2024,Debit card,Groceries,-37.80,UAH,Corner Bakery
+16.12.2024,Debit card,Groceries,-122.92,UAH,Northside Grocer
+17.12.2024,Cash wallet,Groceries,-125.80,UAH,Corner Bakery
+17.12.2024,Debit card,Books,-150.44,UAH,Pixel Books
+18.12.2024,Cash wallet,Groceries,-36.52,UAH,Northside Grocer
+18.12.2024,Cash wallet,Books,-89.64,UAH,Pixel Books
+19.12.2024,Debit card,Groceries,-195.88,UAH,Maple Street Market
+19.12.2024,Savings jar,Books,-52.84,UAH,Pixel Books
+20.12.2024,Debit card,Groceries,-119.08,UAH,Maple Street Market
+20.12.2024,Debit card,Groceries,-98.28,UAH,Maple Street Market
+21.12.2024,Debit card,Groceries,-153.00,UAH,Corner Bakery
+21.12.2024,Savings jar,Groceries,-112.68,UAH,Maple Street Market
+22.12.2024,Debit card,Groceries,-98.28,UAH,Maple Street Market
+22.12.2024,Savings jar,Books,-4.84,UAH,Pixel Books
+23.12.2024,Savings jar,Groceries,-149.80,UAH,Corner Bakery
+23.12.2024,Cash wallet,Books,-166.44,UAH,Pixel Books
+24.12.2024,Cash wallet,Fuel,-161.96,UAH,Sunny Fuel Stop
+24.12.2024,Savings jar,Groceries,-79.40,UAH,Corner Bakery
+25.12.2024,Savings jar,Books,-43.24,UAH,Pixel Books
+25.12.2024,Cash wallet,Books,-65.64,UAH,Pixel Books
+26.12.2024,Cash wallet,Groceries,-70.12,UAH,Northside Grocer
+26.12.2024,Savings jar,Groceries,-31.72,UAH,Northside Grocer
+27.12.2024,Savings jar,Groceries,-132.20,UAH,Corner Bakery
+27.12.2024,Savings jar,Fuel,-6.76,UAH,Sunny Fuel Stop
+28.12.2024,Cash wallet,Groceries,-199.72,UAH,Northside Grocer
+28.12.2024,Debit card,Fuel,-145.96,UAH,Sunny Fuel Stop
+29.12.2024,Cash wallet,Books,-78.44,UAH,Pixel Books
+29.12.2024,Savings jar,Groceries,-61.48,UAH,Maple Street Market
+30.12.2024,Cash wallet,Groceries,-196.20,UAH,Corner Bakery
+30.12.2024,Cash wallet,Groceries,-60.52,UAH,Northside Grocer
+31.12.2024,Cash wallet,Groceries,-127.08,UAH,Maple Street Market
+31.12.2024,Debit card,Groceries,-70.12,UAH,Northside Grocer
+01.01.2025,Debit card,Groceries,-95.08,UAH,Maple Street Market
+01.01.2025,Savings jar,Books,-179.24,UAH,Pixel Books
+02.01.2025,Cash wallet,Books,-97.64,UAH,Pixel Books
+02.01.2025,Debit card,Groceries,-73.00,UAH,Corner Bakery
+03.01.2025,Debit card,Groceries,-159.72,UAH,Northside Grocer
+03.01.2025,Savings jar,Groceries,-45.48,UAH,Maple Street Market
+04.01.2025,Savings jar,Books,-163.24,UAH,Pixel Books
+04.01.2025,Savings jar,Groceries,-42.60,UAH,Corner Bakery
+05.01.2025,Cash wallet,Groceries,-21.80,UAH,Corner Bakery
+05.01.2025,Debit card,Books,-108.84,UAH,Pixel Books
+06.01.2025,Savings jar,Groceries,-46.12,UAH,Northside Grocer
+06.01.2025,Cash wallet,Books,-160.04,UAH,Pixel Books
+07.01.2025,Savings jar,Groceries,-156.20,UAH,Corner Bakery
+07.01.2025,Cash wallet,Groceries,-149.48,UAH,Maple Street Market
+08.01.2025,Savings jar,Groceries,-88.68,UAH,Maple Street Market
+08.01.2025,Cash wallet,Fuel,-137.96,UAH,Sunny Fuel Stop
+09.01.2025,Savings jar,Books,-38.44,UAH,Pixel Books
+09.01.2025,Debit card,Fuel,-133.16,UAH,Sunny Fuel Stop
+10.01.2025,Debit card,Fuel,-195.56,UAH,Sunny Fuel Stop
+10.01.2025,Debit card,Groceries,-100.20,UAH,Corner Bakery
+11.01.2025,Cash wallet,Groceries,-140.52,UAH,Northside Grocer
+11.01.2025,Savings jar,Books,-83.24,UAH,Pixel Books
+12.01.2025,Debit card,Groceries,-26.28,UAH,Maple Street Market
+12.01.2025,Cash wallet,Groceries,-130.92,UAH,Northside Grocer
+13.01.2025,Debit card,Books,-131.24,UAH,Pixel Books
+13.01.2025,Debit card,Groceries,-50.28,UAH,Maple Street Market
+14.01.2025,Savings jar,Books,-144.04,UAH,Pixel Books
+14.01.2025,Savings jar,Groceries,-187.88,UAH,Maple Street Market
+15.01.2025,Debit card,Fuel,-179.56,UAH,Sunny Fuel Stop
+15.01.2025,Debit card,Fuel,-13.16,UAH,Sunny Fuel Stop
+16.01.2025,Cash wallet,Books,-80.04,UAH,Pixel Books
+16.01.2025,Cash wallet,Groceries,-74.28,UAH,Maple Street Market
+17.01.2025,Cash wallet,Groceries,-114.60,UAH,Corner Bakery
+17.01.2025,Savings jar,Groceries,-12.52,UAH,Northside Grocer
+18.01.2025,Savings jar,Groceries,-58.28,UAH,Maple Street Market
+18.01.2025,Savings jar,Groceries,-85.80,UAH,Corner Bakery
+19.01.2025,Savings jar,Books,-199.64,UAH,Pixel Books
+19.01.2025,Savings jar,Groceries,-132.52,UAH,Northside Grocer
+20.01.2025,Cash wallet,Books,-96.04,UAH,Pixel Books
+20.01.2025,Debit card,Groceries,-143.72,UAH,Northside Grocer
