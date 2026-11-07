@@ -1,5 +1,6 @@
 using FinNavis.Application.Abstractions;
 using FinNavis.Domain.Abstractions;
+using FinNavis.Infrastructure.Import;
 using FinNavis.Infrastructure.Persistence;
 using FinNavis.Infrastructure.Queries;
 using FinNavis.Infrastructure.Repositories;
@@ -44,6 +45,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IImportQueries, EfImportQueries>();
 
         services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton(CsvStatementReaderOptions.WithoutCeiling);
+        services.AddSingleton<IStatementReader, CsvStatementReader>();
 
         return services;
     }
