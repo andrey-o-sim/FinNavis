@@ -2,11 +2,12 @@
 name: finnavis-tdd-loop
 description: >
   Runs every todo task of a FinNavis feature epic through finnavis-tdd, one task after another, in
-  dependency order. Reads docs/features/<slug>/tasks/tasks.json and tracker.md through a bundled
-  planner script, which picks the todo tasks of a layer finnavis-tdd takes (domain, app, infra,
-  wiring), orders them by their deps, puts first a task that an interrupted run left half-done, and
-  lists every task it skips with the reason. Calls finnavis-tdd once per task. When a task fails,
-  it rolls the task's commits back with git revert and records why; by default it then stops, and
+  dependency order, each task in its own task-runner agent so the main session stays small. Reads
+  docs/features/<slug>/tasks/tasks.json and tracker.md through a bundled planner script, which
+  picks the todo tasks of a layer finnavis-tdd takes (domain, app, infra, wiring), orders them by
+  their deps, puts first a task that an interrupted run left half-done, and lists every task it
+  skips with the reason. When a task fails, it rolls the task's commits back with git revert and
+  records why; by default it then stops, and
   with --continue-on-error it goes on with the tasks that do not depend on the failed one. Writes
   one report per task to tasks/reports/<id>.md and, at the end of the run, a Haiku agent appends
   the run's summary — done, failed, needs attention, changed since an earlier run — to
@@ -28,9 +29,15 @@ skill removes. It adds no rule of its own about how a task is built. Every phase
 commit of a task still comes from `finnavis-tdd`, so there is one place to change them. What the
 loop adds is around the tasks: the order, what happens after a failure, and the reports.
 
-The loop runs in the main context and calls `finnavis-tdd` through the Skill tool. It cannot hand
-each task to a sub-agent: `finnavis-tdd` starts its own three agents, and a sub-agent cannot start
-agents.
+The main session is a thin orchestrator. It runs the planner, the git checks, the rollback and the
+reports — short commands with short output. Each task runs in its own task-runner agent, which
+calls `finnavis-tdd`; that skill then starts its three phase agents from inside the runner. A
+sub-agent can start agents, so this nesting works.
+
+Why a runner per task: one `finnavis-tdd` cycle puts its skill text, three agent reports and
+every gate's output into the context that runs it. Ten tasks of that in the main session would
+fill it, and a compaction would then drop details the loop still needs. The runner keeps all of it
+in its own context and hands back five lines plus a file path.
 
 Talk to the owner in the language they wrote in (`.claude/rules/language.md`). Commits and every
 file stay English. The fixed messages in this file are English to match the repo: say them in the
@@ -63,6 +70,8 @@ TASKS_DIR   = docs/features/<slug>/tasks
 REPORTS_DIR = docs/features/<slug>/tasks/reports
 PLAN        = .claude/skills/finnavis-tdd-loop/scripts/plan.py
 REPORTER    = .claude/skills/finnavis-tdd-loop/agents/final-reporter.md
+RUNNER      = .claude/skills/finnavis-tdd-loop/agents/task-runner.md
+RUN_DIR     = mktemp -d, taken once in pre-flight: the runners' detail files, outside the repo
 RUN_STARTED   = date '+%Y-%m-%d %H:%M', taken once in pre-flight
 RUN_START_SHA = git rev-parse HEAD, taken once in pre-flight
 FAILED        = the ids that failed in this run
@@ -131,7 +140,7 @@ plan, because a dry run changes nothing and the owner may want the plan while st
    - else `NEXT: <id>` → `Dry run, nothing changed. The loop would run <n> tasks, starting with
      <id>.`
    - else `NEXT: none` → `Dry run, nothing changed. The loop has nothing to run.`
-5. Take `RUN_STARTED` and `RUN_START_SHA`. Print:
+5. Take `RUN_STARTED`, `RUN_START_SHA` and `RUN_DIR`. Print:
    `Run started <RUN_STARTED> at <short RUN_START_SHA>.`
 
 `finnavis-tdd` runs its own pre-flight for each task too — Docker, dependencies, the green
@@ -157,18 +166,33 @@ Repeat until the planner prints `NEXT: none`:
 
    A rollback needs this commit. Without it, the loop could not tell the task's own commits from
    the ones before it.
-4. Call the Skill tool: `skill: finnavis-tdd`, `args: <slug> <id>`. Follow it to its end, exactly
-   as if the owner had typed `/finnavis-tdd <slug> <id>`. When it says "stop", the task has
-   stopped, not the loop: come back here for step 5. Do not print its final report in the chat;
-   it goes into the task report.
-5. Check that the task really finished. Both must hold:
+4. Start the task runner and wait for it:
+
+   ```
+   Agent(
+     subagent_type="general-purpose",
+     description="TDD <slug> <id>",
+     prompt="Read .claude/skills/finnavis-tdd-loop/agents/task-runner.md in full. It is your role for this run; follow it exactly.
+   Feature: <slug>. Task: <id>. DETAIL_FILE: <RUN_DIR>/<id>.md.
+   Run the task through finnavis-tdd, write DETAIL_FILE, print the result lines and stop."
+   )
+   ```
+
+   The runner works in the background. Wait for its completion notification and do nothing else
+   meanwhile: the next step reads the git state it leaves. From its last lines take
+   `TASK_RESULT`, and when failed also `FAILED_AT`, `REASON` and `ENVIRONMENT`. Do not read
+   `DETAIL_FILE`; the task report copies it with `cat`, so the long text never enters this
+   context. No result lines at all → treat the task as failed with `REASON: the runner returned
+   no result`, `ENVIRONMENT: no`, and write `DETAIL_FILE` yourself with that line.
+5. Check that the task really finished. Do not take the runner's word for it. Both must hold:
    - `git status --porcelain` is empty, and
    - the `<id>` row in `tracker.md` says `done`.
-6. Finished → write the task report with `Status: done` ("The task report") and commit it.
-   Print `[<n>/<total>] <id> done — <short SHA of the tracker commit>`.
+6. `TASK_RESULT: done` and both checks hold → write the task report with `Status: done` ("The
+   task report") and commit it. Print `[<n>/<total>] <id> done — <short SHA of the tracker
+   commit>`.
 
-   Not finished — a refusal, a failed gate, Docker not running, or a check in step 5 — → follow
-   "When a task fails". Print `[<n>/<total>] <id> failed — <one-line reason>`.
+   Anything else → follow "When a task fails". If the runner said `done` but a check failed, the
+   reason is the failed check. Print `[<n>/<total>] <id> failed — <REASON>`.
 
 The planner runs again before every task because it reads `tracker.md` fresh. If a task did not
 reach `done`, a plan kept in memory would be wrong, and the planner is cheap.
@@ -217,12 +241,9 @@ Run these steps in order, with or without `--continue-on-error`.
    as an interrupted run of that task.
 3. **Write the task report** with `Status: failed` and commit it.
 4. **Decide whether to go on.**
-   - The failure is not about this task, so it would repeat on every task → stop the loop, even
-     with `--continue-on-error`. That is, `finnavis-tdd` refused in its **pre-flight** because:
-     the baseline is not green, Docker is not running, the working tree was not clean before the
-     task started, or the branch is `master`. Also stop when its gate script says a failure comes
-     from the environment (Docker, the database connection). A tree that is dirty **after** a
-     phase stopped is not on this list: that is this task's failure, handled in step 1.
+   - The runner said `ENVIRONMENT: yes` → stop the loop, even with `--continue-on-error`. The
+     failure is not about this task, so it would repeat on every task: a baseline that is not
+     green, Docker not running, and the like. `agents/task-runner.md` holds the full list.
    - Without `--continue-on-error` → stop the loop.
    - With `--continue-on-error` → add `<id>` to `FAILED` and go back to step 1 of the loop. The
      planner then skips every task that depends on `<id>`.
@@ -235,7 +256,40 @@ One file per task: `REPORTS_DIR/<id>.md`. It is the record of every attempt at t
 owner can open one file and see what happened. Write it after every attempt, done or failed.
 
 If the file exists from an earlier run, keep its `## History` lines and add the new one at the
-end. Replace the rest. Use this layout:
+end. Replace the rest.
+
+The long part, `## Last attempt`, comes from the runner's `DETAIL_FILE`. Copy it with `cat`; do
+not read it. You write only the short parts around it:
+
+```bash
+R=REPORTS_DIR/<id>.md
+OLD_HISTORY=$( [ -f "$R" ] && sed -n '/^## History$/,/^## /{/^- /p}' "$R" )
+{
+  printf '# %s — %s
+
+Status: %s
+Last run: %s
+
+## History
+
+' "<id>" "<title>" "<status>" "<RUN_STARTED>"
+  [ -n "$OLD_HISTORY" ] && printf '%s
+' "$OLD_HISTORY"
+  printf '%s
+
+## Last attempt
+
+' "<the new History line>"
+  cat "<RUN_DIR>/<id>.md"
+  # failed only:
+  printf '
+Rolled back by: %s
+Stash: %s
+' "<rollback SHA or nothing to roll back>" "<stash name or none>"
+} > "$R.tmp" && mv "$R.tmp" "$R"
+```
+
+The result has this layout:
 
 ```
 # <id> — <title>
@@ -250,28 +304,20 @@ Last run: <RUN_STARTED>
 
 ## Last attempt
 
-<for done: the final report of finnavis-tdd, exactly as it would have printed it. When the task
-resumed an interrupted run, the earlier phases' output (the DoD coverage block, ALREADY_GREEN
-lines) is gone with the interrupted context: write "resumed — output of the earlier phases was
-not available" in its place, never a guess>
+<DETAIL_FILE, as the runner wrote it: the final report of finnavis-tdd for a done task; Failed
+at, Reason, Output, Commits of the attempt and Look at for a failed one>
 
-<for failed:>
-Failed at: <the phase or gate, or "pre-flight">
-Reason: <the failure message from finnavis-tdd, or the failed check from step 5>
-
-Output:
-<the gate script lines or the refusal text, in a code block>
-
-Commits of the attempt: <short SHA and subject, one per line, or "none">
-Rolled back by: <short SHA of the rollback commit, or "nothing to roll back">
-Stash: <the stash name, or "none">
-
-Look at: <what the owner should check first, in one or two lines, taken from the failure>
+Rolled back by: <short SHA of the rollback commit, or "nothing to roll back">   (failed only)
+Stash: <the stash name, or "none">                                            (failed only)
 ```
 
+When the runner said `done` but a check in step 5 failed, the detail file holds a finished
+report that is not true. Put `Failed at: loop check` and `Reason: <the failed check>` above the
+`cat`, so the reader sees the real result first.
+
 The stash sits on top of the commit that was rolled back, so `git stash apply` on the new HEAD
-makes no sense. When there is a stash, add to `Look at:` the command that restores it with its
-own base: `git stash branch <a branch name> stash@{<n>}`. The stash name also goes on the History
+makes no sense. When there is a stash, add a line after `Stash:` with the command that restores it
+with its own base: `Restore: git stash branch <a branch name> stash@{<n>}`. The stash name also goes on the History
 line, so it is still there after the next run replaces `## Last attempt`.
 
 Commit it by path:
@@ -328,8 +374,12 @@ Never push and never open a PR. Both need the owner's approval (`.claude/rules/g
 
 ## Anti-patterns
 
-- **Do not do any phase work yourself.** The loop only calls `finnavis-tdd`. If a task looks easy,
-  it still goes through all three agents and all three gates.
+- **Do not run `finnavis-tdd` in the main session.** Each task goes to its own runner, even a task
+  that looks small. Running it here fills the main context, and the next tasks pay for it.
+- **Do not do any phase work yourself.** If a task looks easy, it still goes through the runner,
+  all three agents and all three gates.
+- **Do not read `DETAIL_FILE`.** `cat` it into the report. Reading it brings back exactly the text
+  the runner exists to keep out.
 - **Do not repair a failed task.** Roll it back, report it, and stop or go on. Do not retry it in
   the same run, and do not edit its commits. `finnavis-tdd` says the same about a failed phase.
 - **Do not leave a failed task's commits at HEAD.** Even when the loop stops, roll back first.
