@@ -7,7 +7,7 @@ acs: ["AC-01", "AC-02", "AC-03", "AC-04"]
 files_hint: ["src/FinNavis.Application/Import/InspectFile/", "src/FinNavis.Application/Import/ConfirmMappingProfile/", "tests/FinNavis.Application.UnitTests/Import/InspectFile/", "tests/FinNavis.Application.UnitTests/Import/ConfirmMappingProfile/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T15 — Add the InspectFile and ConfirmMappingProfile use cases
