@@ -14,5 +14,16 @@ public sealed class DomainRuleViolationException : Exception
         Code = code;
     }
 
+    public DomainRuleViolationException(
+        string code,
+        string message,
+        IReadOnlyDictionary<string, object> details)
+        : base(message)
+    {
+        throw new NotImplementedException();
+    }
+
     public string Code { get; }
+
+    public IReadOnlyDictionary<string, object>? Details { get; }
 }
