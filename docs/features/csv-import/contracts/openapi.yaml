@@ -4,7 +4,7 @@
 #   fields + bounds   <- data-model.md (every property traces to a column; maxLength/enum copied)
 #   error responses   <- sad.md §6 alt-branches (one response per branch)
 #   operations        <- PRD.md §4 user stories; shapes from §5 acceptance criteria
-#   refusal wording   <- PRD.md §10, never invented here (three exceptions, named in the report)
+#   refusal wording   <- PRD.md §10, never invented here
 # Conventions and the six FinNavis deviations live in .claude/rules/openapi.md.
 # Every field's origin is tabulated in ./api-sync-report.md.
 #
@@ -45,6 +45,11 @@
 # MappingProfile.ShapeKeyInvalid, a 400 on confirmMappingProfile. The MappingProfile entity
 # refuses a shape key that is empty or over the 1000 characters of mapping_profiles.shape_key.
 # The wording is a new PRD §10 row. api-sync-report.md is not re-run yet: run --reconcile.
+#
+# Hand edit (2026-11-07): the three refusal messages drafted at the api-forge gate now come from
+# PRD §10, which gained a row for each — Import.MappingProfileNotConfirmed, Import.AlreadyUndone
+# and Import.NotRecorded. Import.AlreadyUndone keeps the drafted sentence; the other two were
+# reworded. No code, field, path or status moved; info.version stays 0.1.0.
 openapi: 3.1.0
 
 info:
@@ -387,15 +392,12 @@ paths:
             No rules exist for this shape of file, so there is nothing to file its rows under
             (sad.md §6 flow 2, first alt-branch, second half). Inspect the file and confirm its
             rules first.
-
-            **The wording here was drafted at the api-forge gate** — PRD §10 carries no row for
-            this refusal. See `api-sync-report.md`, Deferrals.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example:
                 code: "Import.MappingProfileNotConfirmed"
-                message: "The rules for this shape of file have not been confirmed, so nothing was recorded."
+                message: "There are no confirmed rules for this kind of file yet, so its rows had nowhere to go. Nothing was recorded."
                 details:
                   shape_key: "date|description|category|amount"
         "500":
@@ -736,16 +738,12 @@ components:
         unchanged**: the whole run commits in one database transaction, which rolled back
         (ADR-0004, sad.md §6 flow 2, inner alt-branch). No run row survives either, which is why
         there is no id to read back.
-
-        **The wording here was drafted at the api-forge gate** — PRD §10 carries no row for this
-        refusal, only AC-22's "the owner is told the load did not happen". See
-        `api-sync-report.md`, Deferrals.
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
             code: "Import.NotRecorded"
-            message: "The load did not happen. Nothing was recorded and every balance is unchanged."
+            message: "The load stopped before it finished, so nothing from it was recorded and every balance is unchanged."
 
   schemas:
     # ── Shared primitives ──────────────────────────────────────────────
@@ -784,9 +782,7 @@ components:
         message:
           type: string
           description: |
-            The refusal sentence the owner reads, taken from PRD §10 and not invented. Three
-            refusals in this contract have no PRD §10 row and carry wording drafted at the
-            api-forge gate — they are named in `api-sync-report.md`.
+            The refusal sentence the owner reads, taken from PRD §10 and not invented.
         details:
           type: object
           description: Optional structured context — the conflicting id, the missing columns, a list of changed rows.

@@ -425,4 +425,7 @@ Two, and both answer themselves — the owner learns the answer by living a mont
 | AC-09 | You do not have an account with that name, so there was nothing to load this file onto. Nothing was recorded and no account was created. |
 | AC-14 | No rule covers this row, so it was set aside instead of being recorded without one. |
 | AC-18 | Some rows from this load were changed by hand afterwards, so the load cannot be undone as a whole. |
+| AC-22 (`Import.NotRecorded`) | The load stopped before it finished, so nothing from it was recorded and every balance is unchanged. |
 | — (`MappingProfile.ShapeKeyInvalid`) | A file header must be between 1 and 1000 characters. |
+| — (`Import.MappingProfileNotConfirmed`) | There are no confirmed rules for this kind of file yet, so its rows had nowhere to go. Nothing was recorded. |
+| — (`Import.AlreadyUndone`) | This load was already undone, so there is nothing left to remove. |

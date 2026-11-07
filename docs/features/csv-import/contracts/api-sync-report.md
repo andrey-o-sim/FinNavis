@@ -288,11 +288,7 @@ response 200  UndoImportRunResponse                        (schema ImportRunRepo
 Error                                                      (docs/adr/0002 — flat, NOT Problem Details)
 ├─ Code                   string           high ← ^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$ — the only part a client
 │                                                 branches on. PascalCase, docs/adr/0003
-├─ Message                string           high ← PRD §10 wording, never invented here. Three exceptions carry
-│                                                 wording drafted at this gate:
-│                                                 Import.MappingProfileNotConfirmed, Import.AlreadyUndone,
-│                                                 Import.NotRecorded — their codes are solid, only the sentence
-│                                                 is open (Section D)
+├─ Message                string           high ← PRD §10 wording, never invented here
 └─ Details                object?          med  ← optional structured context, per code — the table below
 ```
 
@@ -329,10 +325,10 @@ re-deriving it. Each code appears exactly once in the contract, and none collide
 | `Import.InvalidPaging` | `400` | `getImportRun`, `undoImportRun` | the `limit` bound declared here; cursor is server-minted |
 | `Account.NotFound` | `404` | `loadStatement` | PRD AC-09 · §6 flow 2, first alt-branch · FK `import_runs.account_id` |
 | `Import.NotFound` | `404` | `getImportRun`, `undoImportRun` | `import_runs.id` existence |
-| `Import.MappingProfileNotConfirmed` | `409` | `loadStatement` | §6 flow 2, first alt-branch ("no rules exist for this shape") — **message drafted here** |
-| `Import.AlreadyUndone` | `409` | `undoImportRun` | §6 flow 6, first alt-branch — **message drafted here** |
+| `Import.MappingProfileNotConfirmed` | `409` | `loadStatement` | §6 flow 2, first alt-branch ("no rules exist for this shape") |
+| `Import.AlreadyUndone` | `409` | `undoImportRun` | §6 flow 6, first alt-branch |
 | `Import.MovementsChangedByHand` | `409` | `undoImportRun` | PRD AC-18 · §6 flow 6, second alt-branch · ADR-0008 |
-| `Import.NotRecorded` | `500` | `loadStatement`, `migrateHistory` | PRD AC-22 · §6 flow 2, the failing-commit branch — **message drafted here** |
+| `Import.NotRecorded` | `500` | `loadStatement`, `migrateHistory` | PRD AC-22 · §6 flow 2, the failing-commit branch |
 | `Category.NotFound` | `404` | `confirmMappingProfile` | PRD AC-02 · §6 flow 1, second alt-branch · FK `mapping_profile_rules.target_category_id` |
 | `MappingProfile.InvalidRule` | `400` | `confirmMappingProfile` | `data-model.md` decision 12 — the `target` / `target_category_id` pairing, a domain invariant |
 | `MappingProfile.DuplicateSourceCategory` | `409` | `confirmMappingProfile` | UNIQUE (`mapping_profile_id`, `source_category`) |
@@ -540,13 +536,17 @@ and every bound was re-checked against its column rather than assumed (Section B
 
 ## Section D — Deferrals
 
-Six carried from run 1, none closed — `docs/adr/0003` changed how a code is **spelled**, and none
-of these six turns on the spelling. One row is **new on run 3**.
+Six carried from run 1 — `docs/adr/0003` changed how a code is **spelled**, and none of these six
+turns on the spelling. One row is **new on run 3**.
+
+**Closed by hand on 2026-11-07:** the three refusal messages drafted at this gate —
+`Import.MappingProfileNotConfirmed`, `Import.AlreadyUndone`, `Import.NotRecorded`. PRD §10 now has
+a row for each, and `openapi.yaml` repeats each sentence word for word. The row is removed from the
+table below.
 
 | what | why parked | next step |
 |---|---|---|
 | The 12 error codes have no definition in `src/` | `src/` is a skeleton — there is no registry to check spelling against | `implement-tasks`: transcribe the Section B.2 table into the sentinel domain errors, same strings |
-| Three refusal messages drafted at this gate — `Import.MappingProfileNotConfirmed`, `Import.AlreadyUndone`, `Import.NotRecorded` | PRD §10 has no row for them, and an owner-facing sentence is not invented at this stage. Their **codes** are solid: each traces to a `sad.md` §6 branch | Add three rows to PRD §10, or confirm the drafted wording. Then re-run with `--reconcile` |
 | Five responses with no §6 `alt`-branch | All five are shape, uniqueness or existence checks, which a sequence diagram legitimately omits | None required. Re-check at `--reconcile` if §6 ever grows a validation branch |
 | No `maxLength` or row ceiling on an uploaded file | PRD §8 open: "Is there a limit on the size of a file that may be handed over? Default now: none enforced." `data-model.md` decision 10 states that the column bounds do not close it | Answer PRD §8 before implementation; the code `Import.FileNotReadable` already exists to carry the refusal |
 | ASP.NET Core's `application/problem+json` default is still on | Nothing in `src/` to turn it off in yet | `implement-tasks`: disable it and route every failure through the one envelope (`docs/adr/0002`) |
@@ -635,8 +635,9 @@ in `docs/adr/0003`, not here.
 
 ## What `--reconcile` will read first
 
-1. **PRD §10** — whether the three drafted refusal messages were added or reworded. This is the one
-   that would change the contract text.
+1. **PRD §10** — the three drafted refusal messages became PRD §10 rows by hand on 2026-11-07, and
+   the contract was updated to match. The reconcile only checks that each `example.message` still
+   equals its PRD §10 row word for word.
 2. **PRD §8** — whether the file-size ceiling was answered; it would add a bound to the two
    multipart `File` properties and possibly a second `400` code.
 3. **PRD §8 / `sad.md` §11, the proximity-tier parameters** — they land in the snapshot query's
