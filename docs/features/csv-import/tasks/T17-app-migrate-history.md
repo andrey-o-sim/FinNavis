@@ -7,7 +7,7 @@ acs: ["AC-03", "AC-10", "AC-12"]
 files_hint: ["src/FinNavis.Application/Import/MigrateHistory/", "tests/FinNavis.Application.UnitTests/Import/MigrateHistory/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T17 — Add the MigrateHistory use case with the migration policy
