@@ -41,6 +41,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<LedgerHistoryQueries>();
         services.AddScoped<LedgerBreakdownQueries>();
         services.AddScoped<ILedgerQueries, LedgerQueries>();
+        services.AddScoped<IImportQueries, EfImportQueries>();
 
         services.AddSingleton<IClock, SystemClock>();
 
