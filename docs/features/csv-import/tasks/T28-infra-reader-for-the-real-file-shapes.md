@@ -7,7 +7,7 @@ acs: ["AC-03"]
 files_hint: ["src/FinNavis.Application/Abstractions/IStatementReader.cs", "src/FinNavis.Application/Abstractions/Reads/", "src/FinNavis.Infrastructure/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Fixtures/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T28 — Rebuild the CSV adapter and the sample files for the real file shapes

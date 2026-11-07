@@ -33,7 +33,7 @@
 | T25 | Quality gate QG-2 — a load is all-or-nothing, and reversible | tests | L | T22, T23 | todo |
 | T26 | Quality gate QG-3 — a bulk load fits inside one evening's patience | tests | M | T22 | todo |
 | T27 | Diff the served document against the contract and close the deferrals | docs | M | T21, T22, T23 | todo |
-| T28 | Rebuild the CSV adapter and the sample files for the real file shapes | infra | L | T12 | todo |
+| T28 | Rebuild the CSV adapter and the sample files for the real file shapes | infra | L | T12 | done |
 
 **Total:** 27 tasks, ~18 person-days (10 × L, 13 × M, 4 × S). T10 carries the work of the old T11, so the days stay the same. T28 was added on 2026-11-07, when T01 found that the real files do not have the shape T12 was built for.
 **Owner:** Andrey Simonenko — one owner, so the column is not repeated per row.
