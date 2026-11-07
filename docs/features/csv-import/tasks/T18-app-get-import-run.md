@@ -7,7 +7,7 @@ acs: ["AC-13", "AC-14"]
 files_hint: ["src/FinNavis.Application/Import/GetImportRun/", "tests/FinNavis.Application.UnitTests/Import/GetImportRun/"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
 ---
 
 # T18 — Add the GetImportRun use case
