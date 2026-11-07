@@ -4,18 +4,20 @@ namespace FinNavis.Application.Import;
 
 internal static class ImportErrors
 {
+    private const string MissingRequiredColumnCode = "Import.MissingRequiredColumn";
+
     public static DomainRuleViolationException RunNotFound(Guid importRunId) =>
         new("Import.NotFound", $"No load in this installation has id {importRunId}.");
 
     public static DomainRuleViolationException MissingRequiredColumn(IReadOnlyList<string> missingColumnNames) =>
         new(
-            "Import.MissingRequiredColumn",
+            MissingRequiredColumnCode,
             "This file does not say the date or the amount, so nothing can be recorded from it.",
             new Dictionary<string, object> { ["missing"] = missingColumnNames });
 
     public static DomainRuleViolationException MissingRequiredExportColumn(IReadOnlyList<string> missingColumnNames) =>
         new(
-            "Import.MissingRequiredColumn",
+            MissingRequiredColumnCode,
             "This file does not say the date or the amount, or the account each row belongs to, "
                 + "so nothing can be recorded from it.",
             new Dictionary<string, object> { ["missing"] = missingColumnNames });

@@ -31,13 +31,13 @@ public sealed class MigrateHistory(
             await statementReader.ReadHeaderAsync(export, ImportFileKind.Export, cancellationToken);
         RequireDateAmountAndAccount(header);
 
-        MigrationPolicy policy = new(
-            header,
+        LedgerByName ledger = new(
             await accounts.ListAsync(cancellationToken),
             await categories.ListAsync(cancellationToken),
             accounts,
             categories,
             clock.UtcNow);
+        MigrationPolicy policy = new(header, ledger);
 
         return await pipeline.RunAsync(export, fileName, policy, cancellationToken);
     }
