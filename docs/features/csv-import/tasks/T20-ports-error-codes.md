@@ -4,7 +4,7 @@ title: "Add the Import and MappingProfile error codes to the registry"
 layer: "ports"
 deps: ["T02", "T04", "T05"]
 acs: ["AC-02", "AC-03", "AC-09", "AC-18"]
-files_hint: ["src/FinNavis.Presentation/Errors/", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
+files_hint: ["src/FinNavis.Application/Import/ImportErrors.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
 owner: "Andrey Simonenko"
 estimate: "M"
 status: "todo"
@@ -24,10 +24,25 @@ four refusals whose wording PRD §10 fixes.
 
 ## What
 
-Two classes in `src/FinNavis.Presentation/Errors/`, next to the registry `core-ledger` created:
-**`MappingProfileErrors`** and **`ImportErrors`**. The class is the module, the member is the name,
-so `MappingProfileErrors.InvalidRule` returns `"MappingProfile.InvalidRule"`
-([docs/adr/0003](../../../adr/0003-spell-an-error-code-in-pascalcase.md)).
+There is no central registry class, and this task does not add one. `core-ledger` keeps each code
+where it is raised, and this feature already follows it:
+
+- **A code a Domain rule raises lives in that entity.** `MappingProfile.InvalidRule`,
+  `DuplicateSourceCategory` and `ShapeKeyInvalid` are in `MappingProfile.cs` and `MappingRule.cs`.
+  `Import.AlreadyUndone` and `Import.MovementsChangedByHand` are in `ImportRun.cs`.
+- **A code a use case raises lives in `src/FinNavis.Application/Import/ImportErrors.cs`**, the
+  same shape as `core-ledger`'s `CategoryErrors`. T15–T19 already created it with `Import.NotFound`,
+  `Import.MissingRequiredColumn`, `Import.MappingProfileNotConfirmed`, `Import.NotRecorded`,
+  `Account.NotFound` and `Category.NotFound`.
+
+So eleven of the thirteen codes exist before this task starts. The work is:
+
+1. Add the two that are missing, **`Import.FileNotReadable`** and **`Import.InvalidPaging`**, to
+   `ImportErrors`, and raise them where the refusal happens. Do not create a second `ImportErrors`
+   or a `MappingProfileErrors` class, and do not move a code out of a Domain entity — a code
+   defined in two places can drift.
+2. Add the test that compares every code the feature raises with the list in the contract.
+3. Add the test that the `problem+json` switch-off still holds for this feature's routes.
 
 The thirteen codes, read from [openapi.yaml](../contracts/openapi.yaml):
 
@@ -62,8 +77,8 @@ invented here.
 
 ## Notes
 
-- **`core-ledger` T24 owns the envelope and the `problem+json` switch-off.** This task adds codes to
-  a registry that already exists and **asserts the switch-off held**. Do not turn it off a second
+- **`core-ledger` T24 owns the envelope and the `problem+json` switch-off.** This task adds two codes
+  to `ImportErrors`, which already exists, and **asserts the switch-off held**. Do not turn it off a second
   time — if it is still on, that is a `core-ledger` defect, not work for this epic.
 - **The `problem+json` test is the one worth writing carefully.**
   [`.claude/rules/openapi.md`](../../../../.claude/rules/openapi.md) §5: a client that switches on

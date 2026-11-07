@@ -169,8 +169,8 @@
       "layer": "ports",
       "deps": ["T02", "T04", "T05"],
       "acs": ["AC-02", "AC-03", "AC-09", "AC-18"],
-      "dod": "All thirteen codes contracts/openapi.yaml advertises (ImportErrors and MappingProfileErrors, plus Account.NotFound and Category.NotFound reused from core-ledger) return exactly those strings, each spelled Module.ErrorName, every message is the PRD §10 wording and not invented (AC-02, AC-03, AC-09, AC-18), and a test asserts no response from this feature carries application/problem+json.",
-      "files_hint": ["src/FinNavis.Presentation/Errors/", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
+      "dod": "All thirteen codes contracts/openapi.yaml advertises return exactly those strings, the two missing ones (Import.FileNotReadable, Import.InvalidPaging) are added to the existing Application ImportErrors with no second registry class, each spelled Module.ErrorName, every message is the PRD §10 wording and not invented (AC-02, AC-03, AC-09, AC-18), and a test asserts no response from this feature carries application/problem+json.",
+      "files_hint": ["src/FinNavis.Application/Import/ImportErrors.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
     },
     {
       "id": "T21",
