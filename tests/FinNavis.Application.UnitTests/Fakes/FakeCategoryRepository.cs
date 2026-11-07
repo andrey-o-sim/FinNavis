@@ -15,6 +15,8 @@ internal sealed class FakeCategoryRepository : ICategoryRepository
 
     public IReadOnlyCollection<Category> Stored => _stored.Values;
 
+    public IReadOnlyCollection<Category> StagedForRemoval => _stagedForRemoval;
+
     public IReadOnlyDictionary<Guid, Guid?> CommittedGroupLinks => _committedGroupLinks;
 
     public void Seed(params Category[] categories)

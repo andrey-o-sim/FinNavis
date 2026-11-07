@@ -14,6 +14,8 @@ internal sealed class FakeTransferRepository : ITransferRepository
 
     public IReadOnlyCollection<Transfer> Stored => _stored.Values;
 
+    public IReadOnlyCollection<Transfer> StagedForRemoval => _stagedForRemoval;
+
     public void Seed(params Transfer[] transfers)
     {
         foreach (Transfer transfer in transfers)

@@ -13,6 +13,8 @@ internal sealed class FakeAccountRepository : IAccountRepository
 
     public IReadOnlyCollection<Account> Stored => _stored.Values;
 
+    public IReadOnlyCollection<Account> StagedForRemoval => _stagedForRemoval;
+
     public void Seed(params Account[] accounts)
     {
         foreach (Account account in accounts)

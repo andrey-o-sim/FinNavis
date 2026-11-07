@@ -14,6 +14,8 @@ internal sealed class FakeTransactionRepository : ITransactionRepository
 
     public IReadOnlyCollection<Transaction> Stored => _stored.Values;
 
+    public IReadOnlyCollection<Transaction> StagedForRemoval => _stagedForRemoval;
+
     public void Seed(params Transaction[] transactions)
     {
         foreach (Transaction transaction in transactions)
