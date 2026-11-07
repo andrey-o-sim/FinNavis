@@ -50,12 +50,13 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
         CancellationToken cancellationToken)
     {
         int categoryIndex = FindCategoryColumn(header);
-        List<string> sourceCategories = [];
 
         if (categoryIndex < 0)
         {
-            return sourceCategories;
+            return [];
         }
+
+        List<string> sourceCategories = [];
 
         await foreach (StatementRow row in statementReader.ReadRowsAsync(statement, cancellationToken))
         {

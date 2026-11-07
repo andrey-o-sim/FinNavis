@@ -18,34 +18,44 @@ public sealed class ConfirmMappingProfile(
         await RequireEveryTargetCategoryAsync(rules, cancellationToken);
 
         DateTimeOffset now = clock.UtcNow;
-        List<MappingRule> mappingRules =
-        [
-            .. rules.Select(rule => MappingRule.Create(
-                Guid.CreateVersion7(),
-                rule.SourceCategory,
-                rule.Target,
-                rule.TargetCategoryId,
-                now)),
-        ];
+        List<MappingRule> mappingRules = BuildMappingRules(rules, now);
 
         MappingProfile? existing = await mappingProfiles.GetByShapeKeyAsync(shapeKey, cancellationToken);
-        MappingProfileConfirmation confirmation;
-
-        if (existing is null)
-        {
-            MappingProfile profile = MappingProfile.Create(Guid.CreateVersion7(), shapeKey, mappingRules, now);
-            mappingProfiles.Add(profile);
-            confirmation = new MappingProfileConfirmation(profile, IsNewShape: true);
-        }
-        else
-        {
-            mappingProfiles.ReplaceRules(existing, mappingRules);
-            confirmation = new MappingProfileConfirmation(existing, IsNewShape: false);
-        }
+        MappingProfileConfirmation confirmation = existing is null
+            ? CreateProfile(shapeKey, mappingRules, now)
+            : ReplaceRulesOf(existing, mappingRules);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return confirmation;
+    }
+
+    private static List<MappingRule> BuildMappingRules(IReadOnlyList<RuleToConfirm> rules, DateTimeOffset now) =>
+    [
+        .. rules.Select(rule => MappingRule.Create(
+            Guid.CreateVersion7(),
+            rule.SourceCategory,
+            rule.Target,
+            rule.TargetCategoryId,
+            now)),
+    ];
+
+    private MappingProfileConfirmation CreateProfile(
+        string shapeKey,
+        IReadOnlyCollection<MappingRule> mappingRules,
+        DateTimeOffset now)
+    {
+        MappingProfile profile = MappingProfile.Create(Guid.CreateVersion7(), shapeKey, mappingRules, now);
+        mappingProfiles.Add(profile);
+
+        return new MappingProfileConfirmation(profile, IsNewShape: true);
+    }
+
+    private MappingProfileConfirmation ReplaceRulesOf(MappingProfile existing, IReadOnlyCollection<MappingRule> mappingRules)
+    {
+        mappingProfiles.ReplaceRules(existing, mappingRules);
+
+        return new MappingProfileConfirmation(existing, IsNewShape: false);
     }
 
     private async Task RequireEveryTargetCategoryAsync(
