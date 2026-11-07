@@ -7,7 +7,7 @@ acs: ["AC-15", "AC-20", "AC-21"]
 files_hint: ["src/FinNavis.Application/Import/Pipeline/", "tests/FinNavis.Application.UnitTests/Import/Pipeline/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T14 — Build the shared import pipeline, the policy object and the two-tier duplicate matcher
