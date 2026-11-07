@@ -7,7 +7,7 @@ acs: []
 files_hint: ["docs/features/csv-import/PRD.md", "docs/features/csv-import/contracts/openapi.yaml", "docs/features/csv-import/contracts/api-sync-report.md"]
 owner: "Andrey Simonenko"
 estimate: "S"
-status: "todo"
+status: "done"
 ---
 
 # T02 — Add the three missing refusal messages to PRD §10
@@ -43,12 +43,12 @@ sentence, and strike the deferral row from
 
 ## Definition of Done
 
-- [ ] `PRD.md` §10 carries one row per code, written in the same plain voice as the seven rows
+- [x] `PRD.md` §10 carries one row per code, written in the same plain voice as the seven rows
       already there
-- [ ] `contracts/openapi.yaml` repeats each sentence word for word — one `code` in the contract,
+- [x] `contracts/openapi.yaml` repeats each sentence word for word — one `code` in the contract,
       one message, no second wording
-- [ ] The deferral row for the three drafted messages is struck from `api-sync-report.md` Section D
-- [ ] No other PRD §10 row is reworded — AC-02's "with that name" stays verbatim, for the reason
+- [x] The deferral row for the three drafted messages is struck from `api-sync-report.md` Section D
+- [x] No other PRD §10 row is reworded — AC-02's "with that name" stays verbatim, for the reason
       `api-sync-report.md` records under *Accepted as is*
 
 ## Notes

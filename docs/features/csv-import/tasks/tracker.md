@@ -8,7 +8,7 @@
 | # | Task | Layer | Estimate | Blocked by | Status |
 |---|---|---|---|---|---|
 | T01 | Answer PRD §8's four file questions and fix ADR-0002's proximity parameters | docs | M | — | done |
-| T02 | Add the three missing refusal messages to PRD §10 | docs | S | — | todo |
+| T02 | Add the three missing refusal messages to PRD §10 | docs | S | — | done |
 | T03 | Add the four import enums and the `MovementFingerprint` value object | domain | M | — | done |
 | T04 | Add the `MappingProfile` aggregate, its rules and `IMappingProfileRepository` | domain | M | T03 | done |
 | T05 | Add the `ImportRun` aggregate with its five child types and `IImportRunRepository` | domain | L | T03 | done |
