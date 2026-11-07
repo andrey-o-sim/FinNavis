@@ -171,6 +171,12 @@ get broken most often.
   only when one request can miss the same aggregate twice: `Account.SourceNotFound` and
   `Account.DestinationNotFound` on a transfer. See
   `docs/adr/0004-name-the-not-found-aggregate-in-the-module.md`.
+- **Six pipeline codes are the one exception to "every code is in the contract".** A failure that
+  stops a request before any use case runs — `Route.NotFound`, `Request.MethodNotAllowed`,
+  `Request.UnsupportedMediaType`, `Request.Invalid`, `Request.ValidationFailed`,
+  `Server.Unexpected` — is shared by the whole API, so it is defined once in Presentation and listed
+  in no feature contract. A business refusal still needs its code in the contract and its message
+  from the PRD. See `docs/adr/0005-keep-pipeline-error-codes-outside-the-feature-contracts.md`.
 - **ASP.NET Core produces `application/problem+json` by default** — for routing 404s, model-binding
   failures, `Results.ValidationProblem` and anything under `AddProblemDetails`. Turn that default
   off and route every failure through the one envelope. Otherwise the API answers with two error
