@@ -55,7 +55,7 @@ Tried <x> tasks: <d> done, <f> failed.
 
 ### Not tried
 - <id> — <the planner's reason, short: "docs layer", "waits for T01", "depends on T12, failed in
-  this run">
+  this run", or "not reached, the loop stopped" for a task still in the planner's run list>
 ```
 
 Rules for the content:

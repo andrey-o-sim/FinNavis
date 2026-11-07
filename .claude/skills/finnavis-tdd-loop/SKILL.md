@@ -63,10 +63,27 @@ TASKS_DIR   = docs/features/<slug>/tasks
 REPORTS_DIR = docs/features/<slug>/tasks/reports
 PLAN        = .claude/skills/finnavis-tdd-loop/scripts/plan.py
 REPORTER    = .claude/skills/finnavis-tdd-loop/agents/final-reporter.md
-RUN_STARTED = date '+%Y-%m-%d %H:%M', taken once in pre-flight
-FAILED      = the ids that failed in this run; empty at the start
-TRIED       = the ids this run called finnavis-tdd for, in order; empty at the start
+RUN_STARTED   = date '+%Y-%m-%d %H:%M', taken once in pre-flight
+RUN_START_SHA = git rev-parse HEAD, taken once in pre-flight
+FAILED        = the ids that failed in this run
+TRIED         = the ids this run called finnavis-tdd for, in order
 ```
+
+A long run can be compacted, and a list kept only in memory is lost with it. So `FAILED` and
+`TRIED` are read from git, not remembered. Every attempt ends with a report commit, and every
+failed attempt with a rollback commit:
+
+```bash
+# TRIED, oldest first
+git log --reverse --format=%s RUN_START_SHA..HEAD \
+  | sed -n 's/^docs(<slug>): record the \(T[0-9]*\) tdd run$/\1/p'
+# FAILED
+git log --format=%s RUN_START_SHA..HEAD \
+  | sed -n 's/^chore(<slug>): roll back the failed \(T[0-9]*\) attempt$/\1/p'
+```
+
+Print `RUN_STARTED` and `RUN_START_SHA` in the first progress line, so they stay in the
+conversation even after a compaction.
 
 ## The planner
 
@@ -114,7 +131,8 @@ plan, because a dry run changes nothing and the owner may want the plan while st
    - else `NEXT: <id>` → `Dry run, nothing changed. The loop would run <n> tasks, starting with
      <id>.`
    - else `NEXT: none` → `Dry run, nothing changed. The loop has nothing to run.`
-5. Take `RUN_STARTED`.
+5. Take `RUN_STARTED` and `RUN_START_SHA`. Print:
+   `Run started <RUN_STARTED> at <short RUN_START_SHA>.`
 
 `finnavis-tdd` runs its own pre-flight for each task too — Docker, dependencies, the green
 baseline. The loop does not repeat those checks.
@@ -123,10 +141,11 @@ baseline. The loop does not repeat those checks.
 
 Repeat until the planner prints `NEXT: none`:
 
-1. Run the planner with `--failed`. Take `<id>` from `NEXT: <id>`. On `ERROR:`, stop the loop and
-   go to "End of the run".
-2. Print one line: `[<n>/<total>] <id> — <title>`. `<total>` is the length of the run list from
-   the first plan. Add `<id>` to `TRIED`.
+1. Run the planner with `--failed`. For the first task, reuse the pre-flight output. Take `<id>`
+   from `NEXT: <id>`. On `ERROR:`, stop the loop and go to "End of the run".
+2. Print one line: `[<n>/<total>] <id> — <title>`. `<n>` is the number of tasks in `TRIED` plus
+   one. `<total>` is `<n> - 1` plus the length of the planner's current run list, so it drops when
+   a failure makes the planner skip the tasks that depend on it.
 3. Take `TASK_START`, the commit the task starts from. Usually that is HEAD. When the planner
    marked the task as resuming an interrupted run, the task's earlier commits are already on top,
    so walk back past them:
@@ -177,8 +196,12 @@ Run these steps in order, with or without `--continue-on-error`.
    ```
 
    Then `git diff --stat TASK_START HEAD` must be empty: the tree is back where the task started.
-   If the revert hits a conflict, run `git revert --abort` and stop the loop, even with
-   `--continue-on-error`.
+
+   If the revert hits a conflict, run `git revert --abort` and stop at once, even with
+   `--continue-on-error`. Commit nothing more: no task report and no final report. The task's
+   commits are still at HEAD, and a report commit on top would hide them from the resume check
+   (see below). Tell the owner in the chat what failed, which commits are at HEAD, and the stash
+   name if there is one. This should be rare: the loop reverts commits it has just made.
 
    Why roll back, and why with `revert`:
    - The next task starts with a green baseline gate. A RED commit at HEAD makes that gate fail,
@@ -195,8 +218,11 @@ Run these steps in order, with or without `--continue-on-error`.
 3. **Write the task report** with `Status: failed` and commit it.
 4. **Decide whether to go on.**
    - The failure is not about this task, so it would repeat on every task → stop the loop, even
-     with `--continue-on-error`. That is: `finnavis-tdd` says the baseline is not green, the tree
-     was not clean, the branch is `master`, or the rollback hit a conflict.
+     with `--continue-on-error`. That is, `finnavis-tdd` refused in its **pre-flight** because:
+     the baseline is not green, Docker is not running, the working tree was not clean before the
+     task started, or the branch is `master`. Also stop when its gate script says a failure comes
+     from the environment (Docker, the database connection). A tree that is dirty **after** a
+     phase stopped is not on this list: that is this task's failure, handled in step 1.
    - Without `--continue-on-error` → stop the loop.
    - With `--continue-on-error` → add `<id>` to `FAILED` and go back to step 1 of the loop. The
      planner then skips every task that depends on `<id>`.
@@ -220,11 +246,14 @@ Last run: <RUN_STARTED>
 ## History
 
 - <RUN_STARTED> — done
-- <RUN_STARTED> — failed at <phase or gate>: <one-line reason>
+- <RUN_STARTED> — failed at <phase or gate>: <one-line reason>. Stash: <name>   (when there is one)
 
 ## Last attempt
 
-<for done: the final report of finnavis-tdd, exactly as it would have printed it>
+<for done: the final report of finnavis-tdd, exactly as it would have printed it. When the task
+resumed an interrupted run, the earlier phases' output (the DoD coverage block, ALREADY_GREEN
+lines) is gone with the interrupted context: write "resumed — output of the earlier phases was
+not available" in its place, never a guess>
 
 <for failed:>
 Failed at: <the phase or gate, or "pre-flight">
@@ -240,6 +269,11 @@ Stash: <the stash name, or "none">
 Look at: <what the owner should check first, in one or two lines, taken from the failure>
 ```
 
+The stash sits on top of the commit that was rolled back, so `git stash apply` on the new HEAD
+makes no sense. When there is a stash, add to `Look at:` the command that restores it with its
+own base: `git stash branch <a branch name> stash@{<n>}`. The stash name also goes on the History
+line, so it is still there after the next run replaces `## Last attempt`.
+
 Commit it by path:
 
 ```bash
@@ -254,7 +288,10 @@ The report commit has no `Task:` trailer either, for the same reason as the roll
 Do this when the run tried at least one task: the planner printed `NEXT: none`, or the loop
 stopped. Skip it for `--dry-run` and for a run that tried nothing.
 
-1. Start the final reporter on Haiku. A fresh agent reads only the files, so the summary shows
+1. Run the planner once more, with `--failed`. The output from before the last task is stale: it
+   still lists that task as next. A task still in the run list was not reached because the loop
+   stopped; tell the reporter so.
+2. Start the final reporter on Haiku. A fresh agent reads only the files, so the summary shows
    what the reports say, not what the main context remembers, and Haiku costs little:
 
    ```
@@ -267,23 +304,24 @@ stopped. Skip it for `--dry-run` and for a run that tried nothing.
    Feature: <slug>. REPORTS_DIR: <REPORTS_DIR>. RUN_STARTED: <RUN_STARTED>.
    Ended: <finished | stopped at <id>: <reason>>. Continue on error: <yes | no>.
    Tried, in order: <TRIED>.
+   Tasks still in the planner's run list were not reached: the loop stopped before them.
    Last planner output:
-   <the full output of the last planner run>"
+   <the full output of the planner run from step 1>"
    )
    ```
 
-2. Check that `git status --porcelain` shows only `REPORTS_DIR/final-report.md`. If the agent
+3. Check that `git status --porcelain` shows only `REPORTS_DIR/final-report.md`. If the agent
    touched anything else, stop and show the owner the paths; do not commit.
-3. Commit it: `git add REPORTS_DIR/final-report.md` and
+4. Commit it: `git add REPORTS_DIR/final-report.md` and
    `git commit -m "docs(<slug>): record tdd loop run <n>"`, with `<n>` from the agent's last line.
-4. In the chat, show the new `## Run <n>` section of `final-report.md`, then:
+5. In the chat, show the new `## Run <n>` section of `final-report.md`, then:
 
    ```
    Reports: <REPORTS_DIR>/
    Before the PR: run ./build.sh test. The gates ran only the test projects of each task's layer.
    ```
 
-   When the loop stopped on a failure, add: `To try the failed task again after you fix the cause:
+   When `FAILED` is not empty, add: `To try the failed tasks again after you fix the cause:
    /finnavis-tdd-loop <slug>`.
 
 Never push and never open a PR. Both need the owner's approval (`.claude/rules/git.md`).
@@ -295,7 +333,8 @@ Never push and never open a PR. Both need the owner's approval (`.claude/rules/g
 - **Do not repair a failed task.** Roll it back, report it, and stop or go on. Do not retry it in
   the same run, and do not edit its commits. `finnavis-tdd` says the same about a failed phase.
 - **Do not leave a failed task's commits at HEAD.** Even when the loop stops, roll back first.
-  Otherwise the next task's baseline fails, and the report commit hides the stopped run.
+  Otherwise the next task's baseline fails, and the report commit hides the stopped run. The one
+  case where they stay is a revert conflict, and then nothing else is committed.
 - **Do not run a skipped task.** A docs, migration, ports or tests task is outside what
   `finnavis-tdd` can do. The final report names it.
 - **Do not edit `tracker.md` yourself.** `finnavis-tdd` marks a task done. A failed task stays
