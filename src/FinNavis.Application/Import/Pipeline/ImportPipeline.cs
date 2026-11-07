@@ -30,6 +30,7 @@ public sealed class ImportPipeline(
 
         ImportRun run = ImportRun.Record(
             Guid.CreateVersion7(), fileName, policy.RunKind, policy.RunAccountId, clock.UtcNow);
+        policy.LinkCreationsTo(run);
 
         foreach ((StatementRow row, RowDecision decision) in decidedRows)
         {
@@ -89,6 +90,8 @@ public sealed class ImportPipeline(
                 break;
             case RecordAsTransaction record:
                 RecordTransaction(run, record);
+                break;
+            case IgnoreRow:
                 break;
             case SetRowAside setAside:
                 run.SetAside(

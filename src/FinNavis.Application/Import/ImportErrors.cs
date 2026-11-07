@@ -13,6 +13,13 @@ internal static class ImportErrors
             "This file does not say the date or the amount, so nothing can be recorded from it.",
             new Dictionary<string, object> { ["missing"] = missingColumnNames });
 
+    public static DomainRuleViolationException MissingRequiredExportColumn(IReadOnlyList<string> missingColumnNames) =>
+        new(
+            "Import.MissingRequiredColumn",
+            "This file does not say the date or the amount, or the account each row belongs to, "
+                + "so nothing can be recorded from it.",
+            new Dictionary<string, object> { ["missing"] = missingColumnNames });
+
     public static DomainRuleViolationException AccountNotFound(Guid accountId) =>
         new(
             "Account.NotFound",
