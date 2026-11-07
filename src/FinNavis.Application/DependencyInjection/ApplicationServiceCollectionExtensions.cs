@@ -4,6 +4,7 @@ using FinNavis.Application.CategoryGroups;
 using FinNavis.Application.Import.ConfirmMappingProfile;
 using FinNavis.Application.Import.GetImportRun;
 using FinNavis.Application.Import.InspectFile;
+using FinNavis.Application.Import.UndoImportRun;
 using FinNavis.Application.Reporting;
 using FinNavis.Application.Transactions;
 using FinNavis.Application.Transfers;
@@ -45,6 +46,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<InspectFile>();
         services.AddScoped<ConfirmMappingProfile>();
         services.AddScoped<GetImportRun>();
+        services.AddScoped<UndoImportRun>();
 
         return services;
     }

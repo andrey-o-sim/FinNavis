@@ -116,14 +116,19 @@ public sealed class ImportRun
 
     public void MarkUndone()
     {
+        RequireNotUndone();
+
+        Status = ImportRunStatus.Undone;
+    }
+
+    public void RequireNotUndone()
+    {
         if (Status == ImportRunStatus.Undone)
         {
             throw new DomainRuleViolationException(
                 "Import.AlreadyUndone",
                 "This load was already undone, so there is nothing left to remove.");
         }
-
-        Status = ImportRunStatus.Undone;
     }
 
     // The file name comes from the upload, which the use case checks first, so a value that
