@@ -4,10 +4,9 @@ namespace FinNavis.Infrastructure.Import;
 
 internal static class CsvLineSplitter
 {
-    private const char Separator = ',';
     private const char Quote = '"';
 
-    public static List<string> Split(string line)
+    public static List<string> Split(string line, char separator)
     {
         List<string> values = [];
         StringBuilder value = new();
@@ -38,7 +37,7 @@ internal static class CsvLineSplitter
             {
                 insideQuotes = true;
             }
-            else if (current == Separator)
+            else if (current == separator)
             {
                 values.Add(value.ToString());
                 value.Clear();
