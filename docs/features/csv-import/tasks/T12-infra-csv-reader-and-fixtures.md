@@ -7,7 +7,7 @@ acs: ["AC-03"]
 files_hint: ["src/FinNavis.Infrastructure/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Fixtures/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T12 — Add the CSV adapter behind IStatementReader and the synthetic sample files
