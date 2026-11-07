@@ -57,7 +57,7 @@ const CONFIG = {
         '',
         '6. AC-25 WITHOUT ENDPOINTS. There are no feature endpoints yet (T25-T30 add them). Prove the unknown-id line through a route the test host adds that throws the Account.NotFound refusal: assert 404, the envelope, and the PRD wording. Do not add a feature endpoint to Program.cs.',
         '',
-        'SECOND ATTEMPT. The first attempt of this task is still in the working tree, uncommitted: Program.cs, src/FinNavis.Presentation/Errors/, Middleware/ErrorEnvelopeMiddleware.cs and tests/FinNavis.Infrastructure.IntegrationTests/Errors/. Its build and tests were green and its review stopped on two points only. Keep that work and fix just these two:',
+        'SECOND ATTEMPT. The first attempt of this task is saved in a git stash named "core-ledger T24 first attempt": Program.cs, src/FinNavis.Presentation/Errors/, Middleware/ErrorEnvelopeMiddleware.cs and tests/FinNavis.Infrastructure.IntegrationTests/Errors/. Its build and tests were green and its review stopped on two points only. Start by running "git stash list", find that entry, and run "git stash apply stash@{<n>}" for it (apply, not pop; do not drop it). Then keep that work and fix just these two:',
         '',
         '7. PIPELINE CODES ARE SETTLED. docs/adr/0005-keep-pipeline-error-codes-outside-the-feature-contracts.md (committed) accepts the six codes in src/FinNavis.Presentation/Errors/PipelineErrors.cs exactly as they are: Route.NotFound, Request.MethodNotAllowed, Request.UnsupportedMediaType, Request.Invalid, Request.ValidationFailed, Server.Unexpected, with their current messages. Do not rename them, do not change their messages, and do not add them to any contract. Keep them out of the core-ledger drift test.',
         '',
