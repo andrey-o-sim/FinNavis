@@ -11,7 +11,11 @@ public sealed class EfImportQueries(FinNavisDbContext context) : IImportQueries
 {
     private const string TransactionKind = "transaction";
 
-    private const string AccountKind = "account";
+    private const string TransferKind = "transfer";
+
+    private const string CreatedAccountKind = "account";
+
+    private const string CreatedCategoryKind = "category";
 
     public async Task<CandidateSnapshot> GetCandidateSnapshotAsync(
         IReadOnlyCollection<Guid> accountIds,
@@ -58,7 +62,7 @@ public sealed class EfImportQueries(FinNavisDbContext context) : IImportQueries
 
         return new CandidateSnapshot(
             [.. rows.Where(row => row.Kind == TransactionKind).Select(ToTransaction)],
-            [.. rows.Where(row => row.Kind != TransactionKind).Select(ToTransfer)]);
+            [.. rows.Where(row => row.Kind == TransferKind).Select(ToTransfer)]);
     }
 
     // A movement belongs to at most one run, so "outside this run" is a movement with no link to
@@ -96,8 +100,8 @@ public sealed class EfImportQueries(FinNavisDbContext context) : IImportQueries
             .ToListAsync(cancellationToken);
 
         return new ImportRunCreationsInUse(
-            [.. rows.Where(row => row.Kind == AccountKind).Select(row => row.Id)],
-            [.. rows.Where(row => row.Kind != AccountKind).Select(row => row.Id)]);
+            [.. rows.Where(row => row.Kind == CreatedAccountKind).Select(row => row.Id)],
+            [.. rows.Where(row => row.Kind == CreatedCategoryKind).Select(row => row.Id)]);
     }
 
     private static CandidateTransactionRow ToTransaction(CandidateRow row) =>
