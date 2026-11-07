@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Application.Import.InspectFile;
 using FinNavis.Application.UnitTests.Fakes;
@@ -34,6 +33,33 @@ public sealed class InspectFileTests
         inspection.SourceCategories.Should().OnlyHaveUniqueItems();
         inspection.SourceCategories.Should().BeEquivalentTo(
             ["TEST GROCERIES", "TEST TRANSPORT", "TEST TRANSFER"]);
+    }
+
+    // The real statement names its columns in Ukrainian, so the category column is found by the
+    // position the reader reports, never by its name.
+    [Fact]
+    public async Task ExecuteAsync_CategoryColumnNamedInAnotherLanguage_ListsTheCategoriesFromWhereTheReaderFoundIt()
+    {
+        StatementHeader header = new(
+            ["Дата", "Опис", "Категорія", "Сума"],
+            "дата|опис|категорія|сума",
+            new HashSet<StatementColumn> { StatementColumn.Account },
+            new Dictionary<StatementColumn, int>
+            {
+                [StatementColumn.Date] = 0,
+                [StatementColumn.Category] = 2,
+                [StatementColumn.Amount] = 3,
+            });
+        FakeStatementReader reader = new(
+            header,
+            [
+                Row(2, "2026-10-01", "TEST SHOP ONE", "TEST GROCERIES", "-12.5000"),
+                Row(3, "2026-10-02", "TEST BUS LINE", "TEST TRANSPORT", "-2.4000"),
+            ]);
+
+        FileInspection inspection = await InspectAsync(reader);
+
+        inspection.SourceCategories.Should().BeEquivalentTo(["TEST GROCERIES", "TEST TRANSPORT"]);
     }
 
     [Fact]
@@ -175,7 +201,22 @@ public sealed class InspectFileTests
             columnNames,
             ShapeKey,
             missing.ToHashSet(),
-            ReadOnlyDictionary<StatementColumn, int>.Empty);
+            ColumnPositions(columnNames));
+    }
+
+    private static Dictionary<StatementColumn, int> ColumnPositions(string[] columnNames)
+    {
+        Dictionary<StatementColumn, int> positions = [];
+
+        for (int index = 0; index < columnNames.Length; index++)
+        {
+            if (Enum.TryParse(columnNames[index], ignoreCase: true, out StatementColumn column))
+            {
+                positions[column] = index;
+            }
+        }
+
+        return positions;
     }
 
     private static StatementRow Row(int lineNumber, params string[] values) =>

@@ -7,8 +7,6 @@ namespace FinNavis.Application.Import.InspectFile;
 
 public sealed class InspectFile(IStatementReader statementReader, IMappingProfileRepository mappingProfiles)
 {
-    private const string CategoryColumnName = "category";
-
     // A statement covers the one account the owner names when handing it over, so only the date and
     // the amount are required of every file at this step.
     private static readonly Dictionary<StatementColumn, string> RequiredColumnNames = new()
@@ -53,9 +51,7 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
         StatementHeader header,
         CancellationToken cancellationToken)
     {
-        int categoryIndex = FindCategoryColumn(header);
-
-        if (categoryIndex < 0)
+        if (!header.ColumnPositions.TryGetValue(StatementColumn.Category, out int categoryIndex))
         {
             return [];
         }
@@ -73,18 +69,5 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
         }
 
         return sourceCategories;
-    }
-
-    private static int FindCategoryColumn(StatementHeader header)
-    {
-        for (int index = 0; index < header.ColumnNames.Count; index++)
-        {
-            if (string.Equals(header.ColumnNames[index], CategoryColumnName, StringComparison.OrdinalIgnoreCase))
-            {
-                return index;
-            }
-        }
-
-        return -1;
     }
 }
