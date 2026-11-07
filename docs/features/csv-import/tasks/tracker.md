@@ -24,7 +24,7 @@
 | T16 | Add the `LoadStatement` use case with the statement policy | app | L | T14 | todo |
 | T17 | Add the `MigrateHistory` use case with the migration policy | app | M | T14 | todo |
 | T18 | Add the `GetImportRun` use case | app | S | T05, T09 | done |
-| T19 | Add the `UndoImportRun` use case | app | L | T05, T09, T10 | todo |
+| T19 | Add the `UndoImportRun` use case | app | L | T05, T09, T10 | done |
 | T20 | Add the `Import` and `MappingProfile` error codes to the registry | ports | M | T02, T04, T05 | todo |
 | T21 | Add the `MappingProfiles` endpoints: `Inspect` and `Confirm` | ports | M | T13, T15, T20 | todo |
 | T22 | Add the `ImportRuns` load endpoints: `LoadStatement` and `MigrateHistory` | ports | L | T13, T16, T17, T20 | todo |

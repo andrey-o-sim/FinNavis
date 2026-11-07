@@ -7,7 +7,7 @@ acs: ["AC-16", "AC-17", "AC-18", "AC-19"]
 files_hint: ["src/FinNavis.Application/Import/UndoImportRun/", "tests/FinNavis.Application.UnitTests/Import/UndoImportRun/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T19 — Add the UndoImportRun use case
