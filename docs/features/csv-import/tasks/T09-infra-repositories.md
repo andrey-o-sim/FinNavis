@@ -7,7 +7,7 @@ acs: []
 files_hint: ["src/FinNavis.Infrastructure/Repositories/EfImportRunRepository.cs", "src/FinNavis.Infrastructure/Repositories/EfMappingProfileRepository.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Repositories/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T09 — Add EfImportRunRepository and EfMappingProfileRepository
