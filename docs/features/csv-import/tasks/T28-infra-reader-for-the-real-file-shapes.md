@@ -59,15 +59,17 @@ amounts. The 1500-row export for T25 and T26 is rebuilt the same way.
 - [ ] A file missing the date, the amount or — for an export — the account column is refused, and
       **which** one is missing is named (AC-03), under the real column names
 - [ ] A quoted field containing a comma is read as one value
+- [ ] A row with no date at the end of the export is not yielded
 - [ ] The committed sample files copy the real shapes and carry invented merchants and amounts —
       **no real statement and no real export is in the repository**
 - [ ] `./build.sh test` is green
 
 ## Notes
 
-- **Open, decide here: the export's `Account balance` rows and its trailing rows with no date.**
-  They are not movements. The set-aside reasons are a closed set (`sad.md` §8), so adding a reason
-  changes the PRD, the contract and an enum. Decide before writing the code, and ask the owner.
+- **The export's trailing rows with no date are skipped by the adapter, silently.** Decided by the
+  owner on 2026-11-07. They are not movements, so they are neither recorded nor set aside, and the
+  set-aside reasons stay a closed set. The `Account balance` rows are not this task's: the adapter
+  yields them, and T17 drops them.
 - **The real files never enter the repository** (`CLAUDE.md` Safety). They stay on the owner's own
   machine. Copy the shape only.
 - **The row ceiling stays unset.** PRD §8 was answered on 2026-11-07: no limit on the size of a file.

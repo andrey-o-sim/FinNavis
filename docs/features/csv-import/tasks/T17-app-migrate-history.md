@@ -64,6 +64,9 @@ recorded (AC-03).
   recorded a move between their own accounts in the old tracker, so no real export names one. Flow 4
   in [sad.md §6](../sad.md) keeps the branch with a note. If a later export ever names one, AC-11
   becomes its own task.
+- **An `Account balance` row is dropped silently.** The old tracker writes one per account with the
+  amount 0. It is not a movement, so it is neither recorded nor set aside, and no set-aside reason
+  is added. Decided by the owner on 2026-11-07.
 - **The export's currency column is always empty.** AC-07 never fires here; every row is recorded
   as it is. See [sad.md §7](../sad.md) for the real shape.
 - **A category group is never created by an import.** The export names categories; a created
