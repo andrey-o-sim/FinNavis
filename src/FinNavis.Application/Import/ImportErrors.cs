@@ -4,6 +4,9 @@ namespace FinNavis.Application.Import;
 
 internal static class ImportErrors
 {
+    public static DomainRuleViolationException RunNotFound(Guid importRunId) =>
+        new("Import.NotFound", $"No load in this installation has id {importRunId}.");
+
     public static DomainRuleViolationException MissingRequiredColumn(IReadOnlyList<string> missingColumnNames) =>
         new(
             "Import.MissingRequiredColumn",
