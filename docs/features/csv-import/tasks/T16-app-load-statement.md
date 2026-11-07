@@ -7,7 +7,7 @@ acs: ["AC-05", "AC-06", "AC-07", "AC-08", "AC-09", "AC-15", "AC-22"]
 files_hint: ["src/FinNavis.Application/Import/LoadStatement/", "tests/FinNavis.Application.UnitTests/Import/LoadStatement/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T16 — Add the LoadStatement use case with the statement policy
