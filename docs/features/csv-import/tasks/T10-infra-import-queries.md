@@ -7,7 +7,7 @@ acs: ["AC-17", "AC-20", "AC-21"]
 files_hint: ["src/FinNavis.Infrastructure/Queries/EfImportQueries.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CandidateSnapshotTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Queries/CreatedEntityInUseTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T10 — Implement the candidate snapshot and the AC-17 still-in-use check in EfImportQueries
