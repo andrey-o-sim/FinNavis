@@ -8,12 +8,15 @@ internal sealed class FakeStatementReader(StatementHeader header, IReadOnlyList<
 {
     public List<CancellationToken> TokensSeen { get; } = [];
 
+    public List<ImportFileKind> KindsSeen { get; } = [];
+
     public Task<StatementHeader> ReadHeaderAsync(
         Stream statement,
         ImportFileKind kind,
         CancellationToken cancellationToken)
     {
         TokensSeen.Add(cancellationToken);
+        KindsSeen.Add(kind);
 
         return Task.FromResult(header);
     }
@@ -24,6 +27,7 @@ internal sealed class FakeStatementReader(StatementHeader header, IReadOnlyList<
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         TokensSeen.Add(cancellationToken);
+        KindsSeen.Add(kind);
 
         foreach (StatementRow row in rows)
         {
