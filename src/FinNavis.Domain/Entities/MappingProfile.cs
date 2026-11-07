@@ -37,6 +37,9 @@ public sealed class MappingProfile
         return profile;
     }
 
+    public MappingRule? RuleCovering(string sourceCategory) =>
+        _rules.Find(rule => string.Equals(rule.SourceCategory, sourceCategory, StringComparison.Ordinal));
+
     public void AddRule(MappingRule rule)
     {
         ArgumentNullException.ThrowIfNull(rule);

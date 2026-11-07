@@ -28,8 +28,7 @@ internal sealed class StatementPolicy(
     public RowDecision Decide(StatementRow row)
     {
         string sourceCategory = ValueOf(row, StatementColumn.Category);
-        MappingRule? rule = profile.Rules.FirstOrDefault(rule =>
-            string.Equals(rule.SourceCategory, sourceCategory, StringComparison.Ordinal));
+        MappingRule? rule = profile.RuleCovering(sourceCategory);
 
         if (rule is null)
         {
