@@ -17,12 +17,15 @@ internal sealed class FakeImportQueries(
 
     public List<CancellationToken> TokensSeen { get; } = [];
 
+    public int SnapshotsTaken { get; private set; }
+
     public Task<CandidateSnapshot> GetCandidateSnapshotAsync(
         IReadOnlyCollection<Guid> accountIds,
         DateRange period,
         CancellationToken cancellationToken)
     {
         TokensSeen.Add(cancellationToken);
+        SnapshotsTaken++;
 
         List<CandidateTransactionRow> transactionRows =
         [
