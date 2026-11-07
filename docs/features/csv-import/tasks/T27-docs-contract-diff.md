@@ -33,7 +33,7 @@ never by editing the generated document.
 Then close the three deferrals this epic actually closed, in
 [api-sync-report.md](../contracts/api-sync-report.md) Section D:
 
-- the twelve error codes have no definition in `src/` — closed by T20;
+- the thirteen error codes have no definition in `src/` — closed by T20;
 - `application/problem+json` is still on — asserted off by T20;
 - drift point 6 unchecked — closed by this task.
 
@@ -42,7 +42,7 @@ Finally re-run the report with `--reconcile` so its Verdict reflects the code.
 ## Definition of Done
 
 - [ ] `/openapi/v1.json` and `contracts/openapi.yaml` agree on all **six** operations and all
-      **twelve** error codes
+      **thirteen** error codes
 - [ ] Every difference found is resolved in the handler or in the contract, and the resolution is
       recorded in the report
 - [ ] The three deferrals above are struck from `api-sync-report.md` Section D

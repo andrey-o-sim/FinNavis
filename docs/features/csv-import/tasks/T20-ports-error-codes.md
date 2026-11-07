@@ -16,7 +16,7 @@ status: "todo"
 
 `CLAUDE.md` §API: *"One `code` in a contract equals one constant in the error registry, returning
 the same string."* [api-sync-report.md](../contracts/api-sync-report.md) Section D parks exactly
-that as a deferral — the twelve codes have no definition in `src/` because `src/` is a skeleton.
+that as a deferral — the codes have no definition in `src/` because `src/` is a skeleton.
 This task closes it, and every endpoint task in the epic depends on it.
 
 Satisfies [AC-02](../PRD.md), [AC-03](../PRD.md), [AC-09](../PRD.md) and [AC-18](../PRD.md) — the
@@ -29,21 +29,27 @@ Two classes in `src/FinNavis.Presentation/Errors/`, next to the registry `core-l
 so `MappingProfileErrors.InvalidRule` returns `"MappingProfile.InvalidRule"`
 ([docs/adr/0003](../../../adr/0003-spell-an-error-code-in-pascalcase.md)).
 
-The twelve codes, read from [openapi.yaml](../contracts/openapi.yaml):
+The thirteen codes, read from [openapi.yaml](../contracts/openapi.yaml):
 
-| `MappingProfile` | `Import` |
-|---|---|
-| `InvalidRule` | `AccountNotFound` · `MappingProfileNotConfirmed` |
-| `CategoryNotFound` | `MovementsChangedByHand` · `AlreadyUndone` |
-| `DuplicateSourceCategory` | `MissingRequiredColumn` · `FileNotReadable` |
-| | `RunNotFound` · `InvalidPaging` · `NotRecorded` |
+| `MappingProfile` | `Import` | `Account` | `Category` |
+|---|---|---|---|
+| `InvalidRule` | `NotFound` · `MappingProfileNotConfirmed` | `NotFound` | `NotFound` |
+| `DuplicateSourceCategory` | `MovementsChangedByHand` · `AlreadyUndone` | | |
+| `ShapeKeyInvalid` | `MissingRequiredColumn` · `FileNotReadable` | | |
+| | `InvalidPaging` · `NotRecorded` | | |
+
+`Account.NotFound` and `Category.NotFound` name the aggregate that was not found, not the one the
+request worked on, so they are the same codes `core-ledger` already returns
+([docs/adr/0004](../../../adr/0004-name-the-not-found-aggregate-in-the-module.md)). They are not
+new constants of this feature. `Import.NotFound` is the import run itself, because the run is the
+`Import` aggregate.
 
 Each message is the PRD §10 wording — the seven rows already there, plus the three T02 adds. None is
 invented here.
 
 ## Definition of Done
 
-- [ ] Twelve constants return exactly the strings `contracts/openapi.yaml` advertises — a test
+- [ ] All thirteen codes return exactly the strings `contracts/openapi.yaml` advertises — a test
       compares the two lists rather than a reading
 - [ ] Every code matches `^[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*$`
 - [ ] Every message is the PRD §10 sentence word for word (AC-02, AC-03, AC-09, AC-18)
@@ -66,4 +72,4 @@ invented here.
 - **`Import.MissingRequiredColumn` is AC-03 and `Import.FileNotReadable` is the PRD §6.1 abuse
   case** — a file that is not a statement. They are two codes because they are two different things
   going wrong.
-- **Three of the twelve have no PRD §10 row until T02 lands.** That is the dependency.
+- **Three of the thirteen had no PRD §10 row until T02 landed.** That is the dependency.

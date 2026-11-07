@@ -169,7 +169,7 @@
       "layer": "ports",
       "deps": ["T02", "T04", "T05"],
       "acs": ["AC-02", "AC-03", "AC-09", "AC-18"],
-      "dod": "Twelve constants across ImportErrors and MappingProfileErrors return exactly the strings contracts/openapi.yaml advertises, each spelled Module.ErrorName, every message is the PRD §10 wording and not invented (AC-02, AC-03, AC-09, AC-18), and a test asserts no response from this feature carries application/problem+json.",
+      "dod": "All thirteen codes contracts/openapi.yaml advertises (ImportErrors and MappingProfileErrors, plus Account.NotFound and Category.NotFound reused from core-ledger) return exactly those strings, each spelled Module.ErrorName, every message is the PRD §10 wording and not invented (AC-02, AC-03, AC-09, AC-18), and a test asserts no response from this feature carries application/problem+json.",
       "files_hint": ["src/FinNavis.Presentation/Errors/", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
     },
     {
@@ -232,7 +232,7 @@
       "layer": "docs",
       "deps": ["T21", "T22", "T23"],
       "acs": [],
-      "dod": "/openapi/v1.json and contracts/openapi.yaml agree on all six operations and all twelve error codes, the three deferrals this epic closes — no registry in src/, application/problem+json still on, drift point 6 unchecked — are struck from api-sync-report.md, and the report is re-run with --reconcile to a Verdict of PASS or PASS (with deferrals).",
+      "dod": "/openapi/v1.json and contracts/openapi.yaml agree on all six operations and all thirteen error codes, the three deferrals this epic closes — no registry in src/, application/problem+json still on, drift point 6 unchecked — are struck from api-sync-report.md, and the report is re-run with --reconcile to a Verdict of PASS or PASS (with deferrals).",
       "files_hint": ["docs/features/csv-import/contracts/openapi.yaml", "docs/features/csv-import/contracts/api-sync-report.md"]
     },
     {
