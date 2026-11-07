@@ -123,13 +123,34 @@ Run all checks before any phase. On the first failure, stop with the message sho
    Else: name each dependency that is not done, with its status.
 6. Docker, when the layer needs it: `docker info --format '{{.ServerVersion}}'` succeeds.
    Else: `Docker is not running. Integration tests need it (Testcontainers).`
-7. **Resume check.** Read `git log -1 --format='%s%n%(trailers:key=Task,valueonly)'`. If the
-   trailer is `<slug>/<id>`, an earlier run of this task stopped after a phase:
-   - subject starts with `test(` → `RED_SHA` = HEAD, `BASE_SHA` = `HEAD~1`. Go to Gate 1, then
-     Phase 2. Do not stop for `--review-tests` again: a re-run after a review means "continue".
-   - subject starts with `feat(` → `GREEN_SHA` = HEAD, find `RED_SHA` with
-     `git log --grep='Task: <slug>/<id>' --format=%H`. Go to Gate 2, then Phase 3.
-   - subject starts with `refactor(` → run Gate 3 checks 2–4, then "Mark the task done".
+7. **Resume check.** List this task's commits that sit on top of HEAD — the unbroken run of
+   commits, starting at HEAD, whose `Task:` trailer is `<slug>/<id>`, newest first:
+
+   ```bash
+   git log --format='%H%x09%s%x09%(trailers:key=Task,valueonly,separator=%x2C)' \
+     | awk -F'\t' -v t="<slug>/<id>" '$3 == t { print $1 "\t" $2; next } { exit }'
+   ```
+
+   Empty → not resuming, go to check 8. Otherwise an earlier run of this task stopped after a
+   phase. Take the SHAs from that list only:
+   - `RED_SHA` = the commit whose subject starts with `test(`. `BASE_SHA` = `RED_SHA~1`.
+   - `GREEN_SHA` = the commit whose subject starts with `feat(`, if there is one.
+   - The `ALREADY_GREEN` names = `git log -1 --format='%(trailers:key=Already-Green,valueonly)'
+     RED_SHA`, one per line; join them with commas for `--allow-green`. The test-writer's report
+     is gone with the stopped run; the RED commit still carries them.
+   - The `DOD COVERAGE` block is not recoverable. The final report says so.
+
+   If the list has no `test(` commit, stop: `Cannot resume <id>: its commits at HEAD have no RED
+   commit.` + the list. Then go on by HEAD's subject:
+   - `test(` → Gate 1, then Phase 2. Do not stop for `--review-tests` again: a re-run after a
+     review means "continue".
+   - `feat(` → Gate 2, then Phase 3.
+   - `refactor(` → `REFACTOR_SHA` = HEAD. Run Gate 3 checks 2–4, then "Mark the task done".
+
+   Why only the run at HEAD, and not `git log --grep='Task: <slug>/<id>'`: the grep also finds
+   earlier attempts at the same task. finnavis-tdd-loop rolls a failed attempt back with
+   `git revert` and keeps it in history, and those commits carry the same trailer. The rollback
+   commit has no trailer, so it ends the run at HEAD.
 8. Not resuming: `BASE_SHA` = `git rev-parse HEAD`. Run a gate with `--expect green`.
    It must pass. Else: `The baseline is not green, so Gate 1 cannot tell a new failure from an old
    one. Fix these first:` + the failed lines.
@@ -150,6 +171,10 @@ Write the failing tests for this task and the stubs they need to compile, then c
 
 From its last message, take `RED phase commit: <SHA>` as `RED_SHA`, the `DOD COVERAGE` block and
 every `ALREADY_GREEN:` line.
+
+No `RED phase commit:` line means the agent stopped without a commit. Fail Gate 1 with
+`Gate 1 failed: the test-writer did not commit. HEAD is still <BASE_SHA>.` + the agent's last
+message, and stop. Do not run the checks below: they compare against a SHA that does not exist.
 
 ### Gate 1 — the RED state is real
 
@@ -190,6 +215,11 @@ Make every test green without touching tests/, then commit and stop."
 
 Take `GREEN phase commit: <SHA>` as `GREEN_SHA`, and every `FOLLOW_UP:` line.
 
+No `GREEN phase commit:` line means the agent stopped without a commit — for example, it is sure a
+test is wrong. Fail Gate 2 with `Gate 2 failed: the implementer did not commit. HEAD is still the
+RED commit <RED_SHA>.` + the agent's last message, which carries its reason, and stop. Do not run
+the checks below.
+
 ### Gate 2 — GREEN, and the tests were not touched
 
 1. `git rev-parse HEAD` equals `GREEN_SHA`, and `git status --porcelain` is empty.
@@ -220,6 +250,10 @@ Go through the R1–R7 checklist, organise the code by it without changing behav
 
 Take every `FOLLOW_UP:` line and the last line: either
 `REFACTOR phase commit: <SHA>` (`REFACTOR_SHA`) or `REFACTOR phase: no change`.
+
+Neither last line means the agent stopped without finishing. Fail Gate 3 with `Gate 3 failed: the
+refactorer reported neither a commit nor "no change". HEAD: <short HEAD SHA>.` + the agent's last
+message, and stop.
 
 ### Gate 3 — still green, behaviour unchanged
 
@@ -262,9 +296,12 @@ Gates:
 
 DoD coverage:
   <the DOD COVERAGE block from the test-writer>
+  (after a resume: not available, the run resumed — read the tests with git show <RED_SHA>)
 
 Follow-ups for the owner:
   <every ALREADY_GREEN and FOLLOW_UP line, or "none">
+  (after a resume: ALREADY_GREEN from the RED commit's Already-Green trailers; FOLLOW_UP lines of
+  phases that ran before the stop are gone)
 
 Before the PR: run ./build.sh test. The gates ran only <projects>.
 ```

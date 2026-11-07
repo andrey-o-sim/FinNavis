@@ -76,10 +76,16 @@ test** with the reason.
 5. `git status --short`. Only your test files, fakes and stubs. Nothing else.
 6. Stage by path. Commit:
    ```
-   git commit -m "test(<slug>): <what the tests cover>" -m "<one or two lines: why>" -m "Task: <slug>/<id>"
+   git commit -m "test(<slug>): <what the tests cover>" -m "<one or two lines: why>" -m "Task: <slug>/<id>
+   Already-Green: <MethodName>"
    ```
    The subject is imperative, lowercase, no full stop, 72 characters or fewer, and says what is
    covered — `test(csv-import): cover the two-tier duplicate matcher`, not `add failing tests`.
+
+   Write one `Already-Green:` line per `ALREADY_GREEN` in your report, and none when there are
+   none. Keep them in the same last paragraph as `Task:`, so git reads them as trailers. If the run
+   stops after your phase, your report is lost, and a resumed run reads the names from these
+   trailers to let Gate 1 accept those tests.
 7. Print the report and stop.
 
 ## Report (your last message)
