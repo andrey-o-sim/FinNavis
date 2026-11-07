@@ -10,7 +10,11 @@ Prints the plan as text. The last line is always one of:
 With --dry-run, a stopped run of another feature at HEAD is a warning instead of an ERROR,
 so the plan is still printed.
 
-Usage: python plan.py <slug> [--repo <path>] [--dry-run]
+--failed takes the ids that failed earlier in this loop run. They stay todo in tracker.md, so
+the planner is told about them: they are not run again, and every task that depends on them is
+skipped.
+
+Usage: python plan.py <slug> [--repo <path>] [--dry-run] [--failed T12,T15]
 """
 
 import argparse
@@ -57,7 +61,7 @@ def fail(message):
     sys.exit(1)
 
 
-def build_plan(tasks, statuses, resume_id):
+def build_plan(tasks, statuses, resume_id, failed):
     done = {tid for tid, status in statuses.items() if status == "done"}
     by_id = {task["id"]: task for task in tasks}
 
@@ -74,7 +78,7 @@ def build_plan(tasks, statuses, resume_id):
 
     candidates = [
         t["id"] for t in tasks
-        if statuses[t["id"]] == "todo" and t["layer"] in TDD_LAYERS
+        if statuses[t["id"]] == "todo" and t["layer"] in TDD_LAYERS and t["id"] not in failed
     ]
 
     # A task a stopped run left half-done goes first, so finnavis-tdd resumes it on top of
@@ -103,10 +107,11 @@ def build_plan(tasks, statuses, resume_id):
     return run, wrong_layer, not_todo, blocked
 
 
-def describe_dep(dep, by_id, statuses):
+def describe_dep(dep, by_id, statuses, failed):
     task = by_id.get(dep)
     layer = task["layer"] if task else "?"
-    return f"{dep} ({statuses.get(dep, 'unknown')}, {layer})"
+    status = "failed in this run" if dep in failed else statuses.get(dep, "unknown")
+    return f"{dep} ({status}, {layer})"
 
 
 def main():
@@ -114,7 +119,9 @@ def main():
     parser.add_argument("slug")
     parser.add_argument("--repo", default=".")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--failed", default="")
     args = parser.parse_args()
+    failed = [tid.strip() for tid in args.failed.split(",") if tid.strip()]
 
     repo = Path(args.repo)
     tasks_dir = repo / "docs" / "features" / args.slug / "tasks"
@@ -133,13 +140,16 @@ def main():
     missing_rows = [t["id"] for t in tasks if t["id"] not in statuses]
     if missing_rows:
         fail(f"tracker.md has no row for {', '.join(missing_rows)}")
+    unknown_failed = [tid for tid in failed if tid not in by_id]
+    if unknown_failed:
+        fail(f"--failed names {', '.join(unknown_failed)}, not in tasks.json")
 
     trailer = head_task_trailer(repo)
     resume_id = None
     if trailer:
         trailer_slug, _, trailer_id = trailer.partition("/")
         if trailer_slug == args.slug:
-            if trailer_id in by_id and statuses[trailer_id] != "done":
+            if trailer_id in by_id and statuses[trailer_id] != "done" and trailer_id not in failed:
                 resume_id = trailer_id
         else:
             other_tracker = repo / "docs" / "features" / trailer_slug / "tasks" / "tracker.md"
@@ -157,7 +167,7 @@ def main():
                 print(f"Warning: {message}")
                 print()
 
-    run, wrong_layer, not_todo, blocked = build_plan(tasks, statuses, resume_id)
+    run, wrong_layer, not_todo, blocked = build_plan(tasks, statuses, resume_id, failed)
 
     done_count = sum(1 for status in statuses.values() if status == "done")
     print(f"Plan for {args.slug}: {done_count} of {len(tasks)} tasks already done")
@@ -168,6 +178,12 @@ def main():
         print(f"  {tid}  {by_id[tid]['layer']:<9} {by_id[tid]['title']}{note}")
     if not run:
         print("  none")
+
+    if failed:
+        print()
+        print(f"Failed in this run, not tried again ({len(failed)}):")
+        for tid in failed:
+            print(f"  {tid}  {by_id[tid]['layer']:<9} {by_id[tid]['title']}")
 
     print()
     print(f"Skipped, layer finnavis-tdd does not take ({len(wrong_layer)}):")
@@ -180,7 +196,7 @@ def main():
     print()
     print(f"Skipped, a dependency will not be done ({len(blocked)}):")
     for tid, missing in blocked.items():
-        waits = ", ".join(describe_dep(dep, by_id, statuses) for dep in missing)
+        waits = ", ".join(describe_dep(dep, by_id, statuses, failed) for dep in missing)
         print(f"  {tid}  {by_id[tid]['layer']:<9} waits for {waits}")
     if not blocked:
         print("  none")
