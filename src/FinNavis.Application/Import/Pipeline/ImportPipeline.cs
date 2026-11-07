@@ -20,36 +20,20 @@ public sealed class ImportPipeline(
         IImportPolicy policy,
         CancellationToken cancellationToken)
     {
-        List<(StatementRow Row, RowDecision Decision)> decidedRows = [];
-
-        await foreach (StatementRow row in reader.ReadRowsAsync(file, policy.FileKind, cancellationToken))
-        {
-            decidedRows.Add((row, policy.Decide(row)));
-        }
+        List<(StatementRow Row, RowDecision Decision)> decidedRows =
+            await DecideRowsAsync(file, policy, cancellationToken);
 
         List<RecordAsTransaction> toRecord =
             [.. decidedRows.Select(decided => decided.Decision).OfType<RecordAsTransaction>()];
         DuplicateMatcher matcher =
-            await MatchAgainstSnapshotAsync(toRecord, policy.MatchWindowDays, cancellationToken);
+            await CreateMatcherOverSnapshotAsync(toRecord, policy.MatchWindowDays, cancellationToken);
 
         ImportRun run = ImportRun.Record(
             Guid.CreateVersion7(), fileName, policy.RunKind, policy.RunAccountId, clock.UtcNow);
 
         foreach ((StatementRow row, RowDecision decision) in decidedRows)
         {
-            switch (decision)
-            {
-                case RecordAsTransaction record when matcher.TryClaim(record):
-                    run.CountAlreadyPresentRow();
-                    break;
-                case RecordAsTransaction record:
-                    RecordTransaction(run, record);
-                    break;
-                case SetRowAside setAside:
-                    run.SetAside(
-                        Guid.CreateVersion7(), row.LineNumber, setAside.Reason, setAside.SourceCategory, row.RawLine);
-                    break;
-            }
+            ApplyDecision(run, matcher, row, decision);
         }
 
         importRuns.Add(run);
@@ -58,9 +42,24 @@ public sealed class ImportPipeline(
         return run;
     }
 
+    private async Task<List<(StatementRow Row, RowDecision Decision)>> DecideRowsAsync(
+        Stream file,
+        IImportPolicy policy,
+        CancellationToken cancellationToken)
+    {
+        List<(StatementRow Row, RowDecision Decision)> decidedRows = [];
+
+        await foreach (StatementRow row in reader.ReadRowsAsync(file, policy.FileKind, cancellationToken))
+        {
+            decidedRows.Add((row, policy.Decide(row)));
+        }
+
+        return decidedRows;
+    }
+
     // Taken once, before anything is written, so the run can never match a row against a movement
     // it recorded itself.
-    private async Task<DuplicateMatcher> MatchAgainstSnapshotAsync(
+    private async Task<DuplicateMatcher> CreateMatcherOverSnapshotAsync(
         IReadOnlyList<RecordAsTransaction> toRecord,
         int matchWindowDays,
         CancellationToken cancellationToken)
@@ -79,6 +78,23 @@ public sealed class ImportPipeline(
             await importQueries.GetCandidateSnapshotAsync(accountIds, period, cancellationToken);
 
         return new DuplicateMatcher(snapshot.Transactions, matchWindowDays);
+    }
+
+    private void ApplyDecision(ImportRun run, DuplicateMatcher matcher, StatementRow row, RowDecision decision)
+    {
+        switch (decision)
+        {
+            case RecordAsTransaction record when matcher.TryClaim(record):
+                run.CountAlreadyPresentRow();
+                break;
+            case RecordAsTransaction record:
+                RecordTransaction(run, record);
+                break;
+            case SetRowAside setAside:
+                run.SetAside(
+                    Guid.CreateVersion7(), row.LineNumber, setAside.Reason, setAside.SourceCategory, row.RawLine);
+                break;
+        }
     }
 
     private void RecordTransaction(ImportRun run, RecordAsTransaction record)
