@@ -94,3 +94,43 @@ Tried 6 tasks: 5 done, 1 failed.
 - T24 — tests layer, no production code to drive
 - T25 — tests layer, no production code to drive
 - T26 — tests layer, no production code to drive
+
+## Run 3 — 2026-11-07 22:18
+
+Result: finished. Continue on error: yes.
+Tried 3 tasks: 3 done, 0 failed.
+
+### Done
+- T14 — Build the shared import pipeline, the policy object and the two-tier duplicate matcher
+- T16 — Add the LoadStatement use case with the statement policy
+- T17 — Add the MigrateHistory use case with the migration policy
+
+### Failed
+- none
+
+### Needs attention
+- T14 — The DoD and the title say "two-tier", and the DoD names an exact `external_ref` tier. Only the proximity tier was built, because T01 found no stable operation number. Consider updating the DoD and the title. See [reports/T14.md](T14.md).
+- T14 — Run ./build.sh test before the PR. The gates ran only FinNavis.Application.UnitTests and FinNavis.ArchitectureTests.
+- T16 — FOLLOW_UP: the real CsvStatementReader and CsvFileLayout do not map StatementColumn.Category (bank column "категорія"). Until they do, a real statement load fails when the policy reads the category position. Infra task.
+- T16 — FOLLOW_UP: the card amount (AmountSign) is not read. Transaction.Record accepts only positive amounts, so how a refund row is recorded needs an owner decision. Not tested.
+- T16 — FOLLOW_UP: InspectFile looks for a column named "category", but the real statement header is Ukrainian, so it never finds it. This existed before T16.
+- T16 — Check that EUR is the right ledger currency. GREEN added "Ledger": { "Currency": "EUR" } to src/FinNavis.Presentation/appsettings.json.
+- T16 — T20's table names Import.AccountNotFound. The contract and ADR-0004 say Account.NotFound, and T16 follows the contract. T20's table is out of date.
+- T16 — Run ./build.sh test before the PR. The gates ran only FinNavis.Application.UnitTests and FinNavis.ArchitectureTests. See [reports/T16.md](T16.md).
+- T17 — ALREADY_GREEN: MigrateHistory_DependsOnNoMappingProfileAndNoConfirmationStep (a reflection check on the constructor parameters).
+- T17 — FOLLOW_UP: MigrateHistory does not wrap an unexpected pipeline fault in ImportErrors.NotRecorded, unlike LoadStatement. A failed history move shows the raw fault. Needs a failing test first.
+- T17 — FOLLOW_UP: MigrateHistory.RequireDateAmountAndAccount repeats InspectFile.RequireDateAndAmount. A shared helper would touch InspectFile.
+- T17 — FOLLOW_UP: CsvFileLayout.cs recognises no category column in either layout. The real reader never returns StatementColumn.Category, so StatementPolicy would throw on a real file, and the migration policy has the same need. Candidate fix for T28 or a new infra task.
+- T17 — Note: categories match by name plus kind, with the kind taken from the amount's sign. A positive row in a spending category (a refund) creates an earning category with the same name. No test covers it.
+- T17 — Note: IAccountRepository gained ListAsync, implemented in AccountRepository. That Infrastructure code is not covered by the gate test projects.
+- T17 — Run ./build.sh test before the PR. The gates ran only FinNavis.Application.UnitTests and FinNavis.ArchitectureTests. See [reports/T17.md](T17.md).
+
+### Not tried
+- T20 — ports layer, no HTTP test harness yet
+- T21 — ports layer, no HTTP test harness yet
+- T22 — ports layer, no HTTP test harness yet
+- T23 — ports layer, no HTTP test harness yet
+- T24 — tests layer, no production code to drive
+- T25 — tests layer, no production code to drive
+- T26 — tests layer, no production code to drive
+- T27 — docs layer, nothing to test
