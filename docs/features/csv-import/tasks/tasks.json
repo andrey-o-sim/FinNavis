@@ -115,7 +115,7 @@
       "layer": "app",
       "deps": ["T01", "T04", "T05", "T06", "T10"],
       "acs": ["AC-15", "AC-20", "AC-21"],
-      "dod": "One pipeline serves both entry points through a policy object (ADR-0005), the matcher tries the exact external_ref tier first and the proximity tier second with the parameters T01 settled (AC-20, AC-21), two identical rows in one file are both recorded because the snapshot was taken before the run wrote anything, a row an earlier load set aside is recorded once a rule covers it (AC-15), and src/FinNavis.Application references no EF Core.",
+      "dod": "One pipeline serves both entry points through a policy object (ADR-0005), the matcher is the proximity tier only, with the parameters T01 settled in ADR-0002's amendment — the date window a policy parameter, no text, one movement per row, closest date on a tie (AC-20, AC-21), two identical rows in one file are both recorded because the snapshot was taken before the run wrote anything, a row an earlier load set aside is recorded once a rule covers it (AC-15), and src/FinNavis.Application references no EF Core.",
       "files_hint": ["src/FinNavis.Application/Import/Pipeline/", "tests/FinNavis.Application.UnitTests/Import/Pipeline/"]
     },
     {
@@ -131,7 +131,7 @@
       "id": "T16",
       "title": "Add the LoadStatement use case with the statement policy",
       "layer": "app",
-      "deps": ["T14"],
+      "deps": ["T14", "T28"],
       "acs": ["AC-05", "AC-06", "AC-07", "AC-08", "AC-09", "AC-15", "AC-22"],
       "dod": "An unknown named account or an unconfirmed shape refuses the whole load with no account created (AC-09), a covered row is recorded on the named account with the rule's category (AC-05), a transfer rule, a foreign-currency row and an uncovered category are each set aside with their own reason and the category named back (AC-06, AC-07, AC-08), the whole run commits in one IUnitOfWork so a failure leaves every balance unchanged (AC-22), and a second load after a rule is added records only the waiting rows (AC-15).",
       "files_hint": ["src/FinNavis.Application/Import/LoadStatement/", "tests/FinNavis.Application.UnitTests/Import/LoadStatement/"]
@@ -140,9 +140,9 @@
       "id": "T17",
       "title": "Add the MigrateHistory use case with the migration policy",
       "layer": "app",
-      "deps": ["T14"],
-      "acs": ["AC-03", "AC-10", "AC-11", "AC-12"],
-      "dod": "An export naming no date, no amount or no account per row is refused and the missing one named (AC-03), every row is recorded on the account and category it names keeping its own date with accounts and categories the ledger lacks created and linked to the run (AC-10), a row naming two of the owner's accounts becomes a Transfer that leaves the total unchanged (AC-11), every write is an insert so a hand-typed month gains rows and loses none (AC-12), and no mapping profile is read.",
+      "deps": ["T14", "T28"],
+      "acs": ["AC-03", "AC-10", "AC-12"],
+      "dod": "An export naming no date, no amount or no account per row is refused and the missing one named (AC-03), every row is recorded on the account and category it names keeping its own date with accounts and categories the ledger lacks created and linked to the run (AC-10), every write is an insert so a hand-typed month gains rows and loses none (AC-12), and no mapping profile is read.",
       "files_hint": ["src/FinNavis.Application/Import/MigrateHistory/", "tests/FinNavis.Application.UnitTests/Import/MigrateHistory/"]
     },
     {
@@ -234,6 +234,15 @@
       "acs": [],
       "dod": "/openapi/v1.json and contracts/openapi.yaml agree on all six operations and all twelve error codes, the three deferrals this epic closes — no registry in src/, application/problem+json still on, drift point 6 unchecked — are struck from api-sync-report.md, and the report is re-run with --reconcile to a Verdict of PASS or PASS (with deferrals).",
       "files_hint": ["docs/features/csv-import/contracts/openapi.yaml", "docs/features/csv-import/contracts/api-sync-report.md"]
+    },
+    {
+      "id": "T28",
+      "title": "Rebuild the CSV adapter and the sample files for the real file shapes",
+      "layer": "infra",
+      "deps": ["T12"],
+      "acs": ["AC-03"],
+      "dod": "Both real shapes from sad.md §7 are read — the statement with its title line, UTF-8 and quoted fields, the export as UTF-16 LE with tabs — the shape key ignores the title line and the stray BOM, a missing date, amount or account column is named under the real column names (AC-03), and the rebuilt sample files copy the real shapes with invented merchants and amounts.",
+      "files_hint": ["src/FinNavis.Application/Abstractions/IStatementReader.cs", "src/FinNavis.Application/Abstractions/Reads/", "src/FinNavis.Infrastructure/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Import/", "tests/FinNavis.Infrastructure.IntegrationTests/Fixtures/"]
     }
   ]
 }

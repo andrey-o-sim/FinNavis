@@ -4,7 +4,7 @@ slug: "csv-import"
 stage: "02"
 feature_size: "L"
 depth: "medium"
-updated_at: "2026-10-18"
+updated_at: "2026-11-07"
 source_brief: "./idea-brief.md"
 ---
 
@@ -202,7 +202,8 @@ balance follows
 
 ### AC-07 (US-02) — error
 
-**Given** a row the file names in a currency the ledger does not keep
+**Given** a row the file names in a currency other than the one currency the ledger keeps, which
+the owner sets once for the whole installation
 **When** the file is loaded
 **Then** the row is set aside and named back to the owner
 
@@ -355,19 +356,32 @@ Two, and both answer themselves — the owner learns the answer by living a mont
 
 ## 8. Open questions
 
-- [ ] What makes two rows name the same movement? Default now: undecided — §5 states the behaviour,
-      not the rule. — owner: Andrey, due: before implementation starts (idea-brief §15)
-- [ ] Open a real statement and a real export: does either carry a stable operation number? — owner:
-      Andrey, due: before implementation starts (idea-brief §15)
-- [ ] Does the statement name a currency at all? If it does not, AC-07 cannot fire. Default now: AC-07
-      applies only when the file names one. — owner: Andrey, due: before implementation starts
-- [ ] Does the old tracker's export name a row as a move between two accounts and name both? Default
-      now: AC-11 applies when it does. — owner: Andrey, due: before implementation starts
+- [x] What makes two rows name the same movement? **Answered 2026-11-07:** the same account, exactly
+      the same amount, and a date inside a window — the file's date ±1 day for a statement, the same
+      day for the old history. The file's text takes no part. One recorded movement answers for at
+      most one row. When a row fits more than one movement, the one with the closest date is taken.
+      — owner: Andrey, due: before implementation starts (idea-brief §15)
+- [x] Open a real statement and a real export: does either carry a stable operation number?
+      **Answered 2026-11-07: no** — neither the statement nor the export has one. Every check for
+      "already there" is made on account, date and amount. — owner: Andrey, due: before
+      implementation starts (idea-brief §15)
+- [x] Does the statement name a currency at all? If it does not, AC-07 cannot fire. **Answered
+      2026-11-07: yes, twice** — the amount in the card's currency and the amount in the currency of
+      the purchase, each with its own currency. The ledger is kept in the currency of the purchase
+      (euro), so that amount is the one recorded, and AC-07 sets aside a row whose purchase currency
+      is another one. The old tracker's export names no currency, so AC-07 never fires for it. —
+      owner: Andrey, due: before implementation starts
+- [x] Does the old tracker's export name a row as a move between two accounts and name both?
+      **Answered 2026-11-07: no** — the owner never recorded a move between their own accounts in
+      the old tracker. AC-11 stays in §5 but no real export reaches it. — owner: Andrey, due: before
+      implementation starts
 - [ ] Should a move between the owner's own accounts be paired across two statements into one
       transfer? Default now: no — set aside. — owner: Andrey, due: after the first three monthly loads
       (idea-brief §15)
-- [ ] Is there a limit on the size of a file that may be handed over? Default now: none enforced. —
-      owner: Andrey, due: before implementation starts
+- [x] Is there a limit on the size of a file that may be handed over? **Answered 2026-11-07: no limit
+      is enforced.** A month's statement and six years of the old history are both a few tens of
+      kilobytes, and the installation stays off public networks (§6.1). — owner: Andrey, due: before
+      implementation starts
 - [ ] §5 carries no criterion of the authorization type. Default now: accepted; the installation stays
       off public networks. — owner: Andrey, due: when the sign-in feature is scoped
 

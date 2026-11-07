@@ -2,8 +2,8 @@
 id: T17
 title: "Add the MigrateHistory use case with the migration policy"
 layer: "app"
-deps: ["T14"]
-acs: ["AC-03", "AC-10", "AC-11", "AC-12"]
+deps: ["T14", "T28"]
+acs: ["AC-03", "AC-10", "AC-12"]
 files_hint: ["src/FinNavis.Application/Import/MigrateHistory/", "tests/FinNavis.Application.UnitTests/Import/MigrateHistory/"]
 owner: "Andrey Simonenko"
 estimate: "M"
@@ -19,7 +19,8 @@ tracker. Same pipeline as T16 with the **migration policy**, which is
 [ADR-0005](../adr/0005-run-both-import-jobs-through-one-pipeline-with-two-entry-points.md) working
 as intended.
 
-Satisfies [AC-03](../PRD.md), [AC-10](../PRD.md), [AC-11](../PRD.md) and [AC-12](../PRD.md).
+Satisfies [AC-03](../PRD.md), [AC-10](../PRD.md) and [AC-12](../PRD.md). [AC-11](../PRD.md) is not
+built — see Notes.
 
 ## What
 
@@ -31,8 +32,8 @@ The three differences from a statement load, all visible in flow 4:
    categories in the owner's own words.
 2. **What the ledger lacks is created**, not refused — every account and category the file names
    that the ledger does not have, each recorded in a creation link so AC-17 can undo it (AC-10).
-3. **A move between two of the owner's own accounts becomes a `Transfer`**, because the export names
-   both sides (AC-11). A statement sets the same row aside.
+3. **No `Transfer` is built.** AC-11 would record a move between two of the owner's own accounts as
+   a `Transfer`, but the real export never names one (T01). Every row becomes a `Transaction`.
 
 Rows keep the file's own date. Every write is an insert, so a month the owner already filled in by
 hand gains the loaded rows and loses nothing (AC-12).
@@ -47,8 +48,6 @@ recorded (AC-03).
 - [ ] Every row is recorded on the account and category it names, keeping its own date (AC-10)
 - [ ] An account or category the ledger lacks is created and linked to the run, so undo can find it
       later (AC-10, AC-17)
-- [ ] A row naming two of the owner's accounts becomes a `Transfer` with no category, and the
-      owner's total is unchanged (AC-11)
 - [ ] Rows dated in a month the owner already recorded by hand are added, and nothing hand-typed is
       changed or removed (AC-12)
 - [ ] No mapping profile is read and no confirmation step is reachable
@@ -61,9 +60,12 @@ recorded (AC-03).
   rows to fix; the one-time move of the old history is 1500, loaded once, and fixing it afterwards
   is a migration over real recorded history."* US-02 may ship before this. Close `core-ledger`'s
   question first.
-- **AC-11 may be unreachable.** PRD §8 is open on whether the export names both sides of a move
-  between accounts. Default now: AC-11 applies when it does. If T01 finds it does not, flow 4 loses
-  its Transfer branch — say so in `sad.md` rather than deleting it.
+- **AC-11 is unreachable, so it is not built.** T01 answered PRD §8 on 2026-11-07: the owner never
+  recorded a move between their own accounts in the old tracker, so no real export names one. Flow 4
+  in [sad.md §6](../sad.md) keeps the branch with a note. If a later export ever names one, AC-11
+  becomes its own task.
+- **The export's currency column is always empty.** AC-07 never fires here; every row is recorded
+  as it is. See [sad.md §7](../sad.md) for the real shape.
 - **A category group is never created by an import.** The export names categories; a created
   category simply has no group, which the breakdown reports under the Default group
   ([data-model.md](../data-model.md)).

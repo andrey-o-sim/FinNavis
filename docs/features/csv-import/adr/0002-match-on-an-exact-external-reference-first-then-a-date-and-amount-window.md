@@ -2,7 +2,7 @@
 status: Accepted
 slug: "csv-import"
 stage: "03"
-updated_at: "2026-10-17"
+updated_at: "2026-11-07"
 ---
 
 # 0002 — Match an imported row on an exact external reference first, then on a date-and-amount window
@@ -79,6 +79,7 @@ window is, whether the file's description takes part in the comparison and how i
 what happens when one file row matches two ledger movements — stay open. They need a real statement
 and a real export opened first, which is exactly what PRD §8 says. They are carried into §11 (Risks
 and technical debt) with an owner and a due date. The shape above holds whichever way they land.
+They were settled on 2026-11-07 — see the amendment below.
 
 ## Consequences
 
@@ -106,6 +107,56 @@ and technical debt) with an owner and a due date. The shape above holds whicheve
   recorded by a history migration (AC-11) is therefore reachable by the proximity tier only. In
   practice the old tracker's export is loaded once, so this costs nothing today; it is noted so the
   next reader does not assume symmetry.
+
+## Amendment 2026-11-07 — the parameters of the proximity tier
+
+The open half of this record is closed. The owner opened a real bank statement and a real export of
+the old tracker, and answered PRD §8. The shape above is unchanged, and the Status stays Accepted.
+What changed is listed here, so the original decision stays readable as it was taken.
+
+**What the real files showed:**
+
+- **Neither file carries a stable operation number.** The statement has no identifier column. The
+  export has none either. So the exact tier would be dead code for both the statement load and the
+  history migration, and the proximity tier carries everything. The exact tier is therefore **not
+  built now**: the matcher is one tier. The two-tier shape stays the decision, so the day a bank or
+  an export carries an identifier, the exact tier is added in front of the proximity tier with no
+  change to the rest.
+- **The statement names a time as well as a date** (`dd.MM.yyyy HH:mm:ss`). The time is in the
+  bank's own zone, which is not the zone the owner lives in. A purchase late in the evening can
+  carry the next day's date in the statement.
+- **The export names a date only** (`yyyy.MM.dd`). The owner typed those dates, so they are the
+  dates the owner meant.
+
+**The parameters:**
+
+| Parameter | Statement load | History migration |
+|---|---|---|
+| Account | the same account | the same account |
+| Amount | exactly equal | exactly equal |
+| Date window | the file's date ±1 day | the file's date only (window 0) |
+| The file's text | takes no part | takes no part |
+
+- **The date window is a parameter of the policy object** (ADR-0005), not one number for both
+  jobs. The statement needs ±1 day because of the time-zone shift above. The export needs no window,
+  and a narrower window means fewer false matches.
+- **Only the calendar date of the statement's timestamp is compared.** The time is read and then
+  dropped, because a movement in the ledger carries a date, not a time.
+- **The file's text takes no part, so there is no normalisation rule.** A bank description such as
+  a shop name and a city almost never equals the note the owner typed by hand. If the text took
+  part, AC-21 would almost never fire, and a hand-typed movement would be recorded a second time.
+- **One ledger movement covers at most one file row.** When a ledger movement is matched, it is
+  removed from the candidates for the rest of the run. So two identical rows in one file against one
+  hand-typed movement give one row "already there" and one row recorded. This is also what keeps
+  the *Duplicate* NOT-boundary in `GLOSSARY.md`: two real identical spends are both kept.
+- **When one file row matches more than one ledger movement**, the movement with the closest date
+  is taken. On equal distance, the movement with the smallest `id` is taken, so the result is the
+  same on every run. The row is never set aside for this, and no new set-aside reason is added. If
+  the wrong movement is taken, the worst outcome is one visible extra row later — the cheaper of the
+  two failures in the Context above.
+
+**What this does not change:** the proximity tier is still a heuristic. A false match is less
+likely with these parameters, but it is still possible. `sad.md` §11 keeps that risk.
 
 ## Links
 

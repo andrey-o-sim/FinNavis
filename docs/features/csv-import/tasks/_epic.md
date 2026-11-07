@@ -66,6 +66,7 @@ flowchart LR
     T25["T25 QG-2 all-or-nothing and reversible"]
     T26["T26 QG-3 bulk load latency"]
     T27["T27 contract diff"]
+    T28["T28 adapter and fixtures for the real shapes"]
 
     T03 --> T04
     T03 --> T05
@@ -91,6 +92,9 @@ flowchart LR
     T12 --> T15
     T14 --> T16
     T14 --> T17
+    T12 --> T28
+    T28 --> T16
+    T28 --> T17
     T05 --> T18
     T09 --> T18
     T05 --> T19
@@ -171,10 +175,10 @@ See [tracker.md](./tracker.md) for status. Machine contract: [tasks.json](./task
 | [T10](./T10-infra-import-queries.md) | Implement the candidate snapshot and the AC-17 still-in-use check in `EfImportQueries` | infra | T06, T08 | One snapshot query over accounts and dates with an index scan; an existence check that adds no index |
 | [T12](./T12-infra-csv-reader-and-fixtures.md) | Add the CSV adapter behind `IStatementReader` and the synthetic sample files | infra | T06 | Streams rows, builds the shape key, names the missing column; fixtures are synthetic |
 | [T13](./T13-wiring-dependency-injection.md) | Register the four import adapters in the Infrastructure container | wiring | T09, T10, T12 | All four ports resolve in one test; ArchitectureTests green |
-| [T14](./T14-app-pipeline-policy-and-matcher.md) | Build the shared import pipeline, the policy object and the two-tier duplicate matcher | app | T01, T04, T05, T06, T10 | One pipeline, two policies, two match tiers; two identical rows both land |
+| [T14](./T14-app-pipeline-policy-and-matcher.md) | Build the shared import pipeline, the policy object and the two-tier duplicate matcher | app | T01, T04, T05, T06, T10 | One pipeline, two policies, one proximity tier (no operation number exists); two identical rows both land |
 | [T15](./T15-app-inspect-and-confirm.md) | Add the `InspectFile` and `ConfirmMappingProfile` use cases | app | T04, T06, T09, T12 | Inspect lists the file's categories; confirm refuses an unknown category |
-| [T16](./T16-app-load-statement.md) | Add the `LoadStatement` use case with the statement policy | app | T14 | Three set-aside reasons, one refusal for an unknown account, one commit |
-| [T17](./T17-app-migrate-history.md) | Add the `MigrateHistory` use case with the migration policy | app | T14 | Creates what the ledger lacks, records a transfer, changes nothing hand-typed |
+| [T16](./T16-app-load-statement.md) | Add the `LoadStatement` use case with the statement policy | app | T14, T28 | Three set-aside reasons, one refusal for an unknown account, one commit |
+| [T17](./T17-app-migrate-history.md) | Add the `MigrateHistory` use case with the migration policy | app | T14, T28 | Creates what the ledger lacks, changes nothing hand-typed; no transfer (AC-11 unreachable) |
 | [T18](./T18-app-get-import-run.md) | Add the `GetImportRun` use case | app | T05, T09 | Counts, set-aside rows and the undone flag, read through the repository |
 | [T19](./T19-app-undo-import-run.md) | Add the `UndoImportRun` use case | app | T05, T09, T10 | Refuses on a fingerprint mismatch; removes only what nothing else names |
 | [T20](./T20-ports-error-codes.md) | Add the `Import` and `MappingProfile` error codes to the registry | ports | T02, T04, T05 | 12 constants returning exactly the contract's strings; no `problem+json` |
@@ -185,9 +189,13 @@ See [tracker.md](./tracker.md) for status. Machine contract: [tasks.json](./task
 | [T25](./T25-tests-qg2-undo-and-atomicity.md) | Quality gate QG-2 — a load is all-or-nothing, and reversible | tests | T22, T23 | Undo of 1500 rows, p95 ≤ 30 s, plus four correctness tests |
 | [T26](./T26-tests-qg3-bulk-load-latency.md) | Quality gate QG-3 — a bulk load fits inside one evening's patience | tests | T22 | ~1500 rows, p95 ≤ 60 s, with an `EXPLAIN` assertion that can fail |
 | [T27](./T27-docs-contract-diff.md) | Diff the served document against the contract and close the deferrals | docs | T21, T22, T23 | `/openapi/v1.json` agrees with the contract; three deferrals struck |
+| [T28](./T28-infra-reader-for-the-real-file-shapes.md) | Rebuild the CSV adapter and the sample files for the real file shapes | infra | T12 | Both real shapes read; shape key ignores the title line; fixtures copy the real shapes |
 
-**Acceptance-criteria coverage.** All **22** PRD §5 criteria are claimed by at least one task.
-Several are claimed more than once, because they are proved at more than one level:
+**Acceptance-criteria coverage.** **21** of the 22 PRD §5 criteria are claimed by at least one task.
+The one left out is **AC-11** (a move between two accounts in the export becomes a transfer): T01
+found on 2026-11-07 that the real export never names one, so it is not built. [sad.md §6](../sad.md)
+flow 4 keeps the branch with a note. Several criteria are claimed more than once, because they are
+proved at more than one level:
 
 - **AC-03** (a file naming no date, amount or account) — T12 detects it while streaming, T15 and T17
   refuse on it, T21 returns `Import.MissingRequiredColumn`. Four tasks, because the detection, the
@@ -254,11 +262,11 @@ the criterion it serves.
 | Should a move between the owner's own accounts be paired across two statements into one transfer? | [PRD §8](../PRD.md), idea-brief §15 | Due **after** the first three monthly loads, by the PRD's own schedule. Default now: no — set aside (AC-06) |
 | PRD §5 carries no criterion of the `authorization` type | [PRD §8](../PRD.md), [CONTEXT.md](../CONTEXT.md) § Org-filter invariant | There is no second actor to deny. The sign-in feature owns it; until then the installation stays off public networks |
 | No authentication, and this feature widens the gap — anyone reaching the installation can now load a whole file | [sad.md §11](../sad.md) | Same owner, same fix. Network isolation is the only control there is |
-| The `history` qualifier in `external_ref` is stable for one export, not across two different exports | [data-model.md](../data-model.md) § Open items | Changes no column — the fix is a different qualifier string. Moot if T01 finds no stable operation number |
+| The `history` qualifier in `external_ref` is stable for one export, not across two different exports | [data-model.md](../data-model.md) § Open items | Moot today: T01 found on 2026-11-07 that neither file carries a stable operation number, so nothing writes `external_ref`. It returns only if a later file carries one |
 | The proximity tier stays a heuristic however T01 lands | [sad.md §11](../sad.md) Accepted debt | AC-21 cannot be satisfied any other way: a hand-typed movement has no `external_ref` |
 | Undone runs accumulate; nothing deletes them | [sad.md §11](../sad.md) Accepted debt | They are the only trace in the product that a load happened and was reversed |
 | Two banks with identical header rows share one `MappingProfile` | ADR-0009, [sad.md §11](../sad.md) | Bounded: a wrong rule shows as a visible category or a set-aside row, and the load is undoable |
 | The candidate snapshot grows with the date range, so a three-year migration pulls ~20 000 movements into memory on its first run | ADR-0003, [sad.md §7](../sad.md) | Reached immediately or not at all. Revisit past ~200 000 movements |
 | `.claude/skills/finnavis-api-forge/SKILL.md` still states the superseded snake_case code spelling | [api-sync-report.md](../contracts/api-sync-report.md) Section D, new on run 3 | A skill fix, not feature work. It misleads the **next** feature, not this one — but it should be done before `/finnavis-api-forge` runs again |
 | The nightly `pg_dump` backup | [sad.md §7](../sad.md) | Inherited from `core-ledger`; parked there too |
-| RICE was scored from effort **M** while the scope written is **L** | [PRD §1](../PRD.md), [sad.md §11](../sad.md) | Re-score before this feature is scheduled. This epic measures 26 tasks and ~17 person-days, which confirms the PRD was right to flag it |
+| RICE was scored from effort **M** while the scope written is **L** | [PRD §1](../PRD.md), [sad.md §11](../sad.md) | Re-score before this feature is scheduled. This epic measures 27 tasks and ~18 person-days, which confirms the PRD was right to flag it |

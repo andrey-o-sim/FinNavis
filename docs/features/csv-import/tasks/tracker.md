@@ -7,7 +7,7 @@
 
 | # | Task | Layer | Estimate | Blocked by | Status |
 |---|---|---|---|---|---|
-| T01 | Answer PRD §8's four file questions and fix ADR-0002's proximity parameters | docs | M | — | todo |
+| T01 | Answer PRD §8's four file questions and fix ADR-0002's proximity parameters | docs | M | — | done |
 | T02 | Add the three missing refusal messages to PRD §10 | docs | S | — | todo |
 | T03 | Add the four import enums and the `MovementFingerprint` value object | domain | M | — | done |
 | T04 | Add the `MappingProfile` aggregate, its rules and `IMappingProfileRepository` | domain | M | T03 | done |
@@ -21,8 +21,8 @@
 | T13 | Register the four import adapters in the Infrastructure container | wiring | S | T09, T10, T12 | done |
 | T14 | Build the shared import pipeline, the policy object and the two-tier duplicate matcher | app | L | T01, T04, T05, T06, T10 | todo |
 | T15 | Add the `InspectFile` and `ConfirmMappingProfile` use cases | app | M | T04, T06, T09, T12 | done |
-| T16 | Add the `LoadStatement` use case with the statement policy | app | L | T14 | todo |
-| T17 | Add the `MigrateHistory` use case with the migration policy | app | M | T14 | todo |
+| T16 | Add the `LoadStatement` use case with the statement policy | app | L | T14, T28 | todo |
+| T17 | Add the `MigrateHistory` use case with the migration policy | app | M | T14, T28 | todo |
 | T18 | Add the `GetImportRun` use case | app | S | T05, T09 | done |
 | T19 | Add the `UndoImportRun` use case | app | L | T05, T09, T10 | done |
 | T20 | Add the `Import` and `MappingProfile` error codes to the registry | ports | M | T02, T04, T05 | todo |
@@ -33,8 +33,9 @@
 | T25 | Quality gate QG-2 — a load is all-or-nothing, and reversible | tests | L | T22, T23 | todo |
 | T26 | Quality gate QG-3 — a bulk load fits inside one evening's patience | tests | M | T22 | todo |
 | T27 | Diff the served document against the contract and close the deferrals | docs | M | T21, T22, T23 | todo |
+| T28 | Rebuild the CSV adapter and the sample files for the real file shapes | infra | L | T12 | todo |
 
-**Total:** 26 tasks, ~17 person-days (9 × L, 13 × M, 4 × S). T10 carries the work of the old T11, so the days stay the same.
+**Total:** 27 tasks, ~18 person-days (10 × L, 13 × M, 4 × S). T10 carries the work of the old T11, so the days stay the same. T28 was added on 2026-11-07, when T01 found that the real files do not have the shape T12 was built for.
 **Owner:** Andrey Simonenko — one owner, so the column is not repeated per row.
 
 `.size` says **L**, and ~17 person-days — roughly 30 evenings — agrees with it. `PRD.md` §1 already

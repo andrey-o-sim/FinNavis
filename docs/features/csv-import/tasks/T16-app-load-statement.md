@@ -2,7 +2,7 @@
 id: T16
 title: "Add the LoadStatement use case with the statement policy"
 layer: "app"
-deps: ["T14"]
+deps: ["T14", "T28"]
 acs: ["AC-05", "AC-06", "AC-07", "AC-08", "AC-09", "AC-15", "AC-22"]
 files_hint: ["src/FinNavis.Application/Import/LoadStatement/", "tests/FinNavis.Application.UnitTests/Import/LoadStatement/"]
 owner: "Andrey Simonenko"
@@ -69,8 +69,12 @@ as it was (AC-22).
   statement lands on the one account the owner named — if that account does not exist there is
   nothing to load onto. An export, which names accounts per row, **creates** a missing account
   instead (T17, AC-10). The two jobs differ here on purpose.
-- **AC-07 may never fire.** PRD §8 is open on whether the statement names a currency at all.
-  Default now: AC-07 applies only when the file names one. Write it so, and do not infer a currency.
+- **AC-07 fires on the purchase currency.** T01 found that the statement names two amounts, each
+  with its own currency. The amount recorded is the purchase amount, with its sign taken from the
+  card amount, and AC-07 compares the purchase currency with the ledger's one currency. That
+  currency comes from one setting (`Ledger:Currency`, euro today), not from a constant. See
+  [sad.md §7](../sad.md) for the real shape.
+- **All cards in one statement are one account.** The card column is not read.
 - **An unknown account is not a set-aside reason.** The data-model stage removed that fourth value
   — no flow draws it and no criterion reaches it, because AC-09 refuses the whole load.
 - **AC-22 costs nothing to guarantee** because ADR-0004 commits the whole run at once. The test that

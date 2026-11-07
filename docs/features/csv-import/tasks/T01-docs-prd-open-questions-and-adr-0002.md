@@ -7,7 +7,7 @@ acs: []
 files_hint: ["docs/features/csv-import/PRD.md", "docs/features/csv-import/sad.md", "docs/features/csv-import/adr/0002-match-on-an-exact-external-reference-first-then-a-date-and-amount-window.md"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T01 — Answer PRD §8's four file questions and fix ADR-0002's proximity parameters
@@ -52,14 +52,14 @@ Then:
 
 ## Definition of Done
 
-- [ ] All four PRD §8 rows are answered, with the answer written in the row rather than in a commit
+- [x] All four PRD §8 rows are answered, with the answer written in the row rather than in a commit
       message
-- [ ] ADR-0002 states the date window, whether the file's text takes part and how it is normalised,
+- [x] ADR-0002 states the date window, whether the file's text takes part and how it is normalised,
       and what happens when one file row matches two ledger movements
-- [ ] `sad.md` §11 no longer lists the four as Open questions
-- [ ] If no stable operation number exists, ADR-0002 says the exact tier is dead code for both jobs
+- [x] `sad.md` §11 no longer lists the four as Open questions
+- [x] If no stable operation number exists, ADR-0002 says the exact tier is dead code for both jobs
       and the proximity tier carries everything
-- [ ] The real statement and the real export are **not** in the repository — `git status` is clean
+- [x] The real statement and the real export are **not** in the repository — `git status` is clean
       of them
 
 ## Notes

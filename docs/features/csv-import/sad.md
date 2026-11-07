@@ -4,7 +4,7 @@ slug: "csv-import"
 stage: "03"
 feature_size: L
 depth: medium
-updated_at: "2026-10-18"
+updated_at: "2026-11-07"
 source_prd: "./PRD.md"
 target_surfaces: [backend-service]   # decided in §4. One container in §5.
 ---
@@ -635,6 +635,7 @@ sequenceDiagram
             alt the snapshot already holds this movement
                 App->>App: already there, not recorded again
             else the row names two of the Owner's own accounts
+                Note over App,Dom: unreachable by the real export — the Owner never recorded a move between own accounts in the old tracker (PRD §8, answered 2026-11-07). Kept so a future export can use it
                 App->>Dom: build a Transfer, creating either account the ledger lacks
                 Dom-->>App: a Transfer — no category, and the Owner's total unchanged
             else the row names one account and one category
@@ -804,6 +805,27 @@ that would stop it being committed. So:
   export name both sides of a move between accounts — and to build the synthetic files from.
 - `CLAUDE.md` § Safety gains a line saying so, because a commit of a real statement cannot be taken
   back without rewriting history.
+
+**The real shapes**, read from the real files on 2026-11-07. Only the shape is written here, never
+a value:
+
+| | Bank statement | Old tracker's export |
+|---|---|---|
+| Encoding | UTF-8 with a BOM | UTF-16 LE with a BOM |
+| Separator, line end | comma, CRLF | tab, CRLF — although the file is named `.csv` |
+| Before the header row | one title line naming the period | nothing |
+| Header row | `Дата`, `Категорія`, `Картка`, `Опис операції`, `Сума в валюті картки`, `Валюта картки`, `Сума в валюті транзакції`, `Валюта транзакції`, `Залишок на кінець періоду`, `Валюта залишку` | `Date`, `Amount`, `Currency`, `Account`, `Category`, `Category group`, `Note` — the last name carries a stray BOM character |
+| Date | `dd.MM.yyyy HH:mm:ss`, the bank's own time zone | `yyyy.MM.dd` |
+| Amount | card amount signed; purchase amount unsigned; 0 to 2 decimals; a dot | signed; 0 to 2 decimals; a dot |
+| Currency | one per amount, per row | the column is always empty; the currency is only part of an account's name |
+| Other | fields with a comma are quoted; rows of several cards in one file | rows with the category `Account balance`; trailing rows with no date |
+
+Three decisions follow from the statement's shape. All cards in one statement are **one account** in
+the ledger, so the card column is not read. The amount recorded is the **purchase amount**, with
+its sign taken from the card amount. The **purchase currency** is the one AC-07 checks.
+
+The fixtures committed by the first adapter task were built before these files were opened, and
+they do not match either shape. T28 in `tasks/` rebuilds the adapter and the fixtures.
 
 The residual risk is that a synthetic file is wrong about the real shape, so the suite passes
 against a format no bank produces. §11 carries it.
@@ -1044,10 +1066,10 @@ in §9, which are risks under another name.
 |---|---|---|---|
 | **`core-ledger` has no code.** PRD §9 names the ledger as a hard prerequisite, and `src/` today holds four `AssemblyMarker.cs` files and `Program.cs`. Every table this feature points at, and every inherited ADR in §2, describes something that does not exist | High | Nothing to mitigate — it is an ordering constraint. `core-ledger` ships first. Re-read §2 before starting here: anything it changes on the way is an input to this document | Andrey |
 | No integration harness, no CI pipeline and no compose stack, so neither PRD §6 number can be measured and not one §10 scenario can run | High | Confirm they landed before this feature's implementation starts, rather than discovering it at the first timing test | Andrey |
-| **A false duplicate match deletes real spending silently.** The proximity tier of ADR-0002 is a heuristic by nature, and its parameters are still open. Nothing is shown to the Owner when a row is judged already there | High | `LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth` (§10) covers the structural half. The rest is the open question below. Until it is answered, the run report counts rows as "already there" (AC-13), so the Owner can at least see the number is wrong | Andrey |
+| **A false duplicate match deletes real spending silently.** The proximity tier of ADR-0002 is a heuristic by nature, however its parameters are set. Nothing is shown to the Owner when a row is judged already there | High | `LoadStatement_FileCarriesTwoIdenticalRows_RecordsBoth` (§10) covers the structural half. The parameters were settled on 2026-11-07 and are in ADR-0002's amendment: same account, exact amount, a date window of ±1 day for a statement and 0 for the old history, no text, one movement per row. The run report still counts rows as "already there" (AC-13), so the Owner can see if the number is wrong | Andrey |
 | **The calendar-date-to-UTC question blocks US-03.** `core-ledger/sad.md` §11 carries it unresolved. A monthly statement loaded under the wrong interpretation is 30 rows to fix; the one-time move of the old history is 1500, loaded once, and fixing it afterwards is a migration over real recorded history — which is what `SPEC.md`'s safe-schema-change rule exists to avoid | High | Close `core-ledger`'s question before US-03 runs. US-02 may ship first. §8 states the interim | Andrey |
 | No authentication, and this feature widens the gap: anyone who reaches the installation could already read and edit the ledger, and can now load a whole file into it | High | Keep the installation off public networks (PRD §6.1). The later sign-in feature owns the fix; PRD §5 carries no authorization criterion for the same reason | Andrey |
-| The synthetic sample files (§7) may be wrong about the real shape, so the whole suite passes against a format no bank produces | Medium | Build them from the real statement and the real export rather than from imagination, and rebuild them if a load ever fails on a real file in a way the suite missed | Andrey |
+| The synthetic sample files (§7) may be wrong about the real shape, so the whole suite passes against a format no bank produces | Medium | Build them from the real statement and the real export rather than from imagination — the first set was not, and T28 rebuilds it from the shapes above — and rebuild them if a load ever fails on a real file in a way the suite missed | Andrey |
 | ~~**The index the candidate snapshot needs is declared nowhere.**~~ **Closed 2026-10-18** at the data-model stage. `core-ledger/data-model.md` landed the day after this document and declares `idx_transactions_occurred_on_account_id`, `idx_transactions_account_id`, `idx_transfers_occurred_on` and both `transfers` account indexes. They serve the snapshot and the AC-17 check, so this feature adds no index to either ledger table. The failure mode named here — each feature assuming the other creates it — did not happen | Closed | The `EXPLAIN` assertion inside `MigrateHistory_1500RowsSeveralAccounts_P95Under60s` (§10) still guards it. If it ever reports a sequential scan for a **monthly** load, `data-model.md` § Indexes names `transactions(account_id, occurred_on)` as the index to add, as a separate `CONCURRENTLY` migration | Andrey |
 | The candidate snapshot grows with the **date range**, not the row count (ADR-0003), so the three-year history migration pulls close to the whole ledger into memory on its very first run | Medium | §7 carries the threshold: look again past roughly 200 000 movements, or if a single file is ever allowed to cover more than a few years. Nothing grows into this gradually — it is reached immediately or not at all | Andrey |
 | Two banks whose statements carry identical headers share one Mapping profile, and the system cannot tell them apart (ADR-0009) | Medium | No mitigation today. The damage is bounded: a wrong rule produces a visible category in the run report (AC-13) or a set-aside row (AC-08), and the load is undoable as a whole (AC-16). Revisit by naming profiles if it ever happens | Andrey |
@@ -1061,11 +1083,6 @@ in §9, which are risks under another name.
 | Transfers carry no `external_ref` (`core-ledger` ADR-0006 put it on transactions only), so a Transfer recorded by a history migration is reachable only by the proximity tier | Low | Costs nothing today: the export is loaded once. Noted so nobody assumes the two tiers are symmetric | Andrey |
 | No optimistic concurrency token, and ADR-0003's snapshot cannot see a movement written while a run is in flight | Low | One owner, one client, no second writer. Accepted, and stated so the assumption is visible when one appears | Andrey |
 | `SPEC.md` draft requirements ask for an expense marker usable as a filter, which `core-ledger` §8 closed as "no". A statement's payee field is where that need becomes concrete | Low | Inherited from `core-ledger/sad.md` §11, which named this feature as the trigger. Adding it later is an additive migration plus a filter, not a rewrite | Andrey |
-| Open question: what exactly makes two rows name the same movement — how wide the date window is, whether the file's text takes part, how it is normalised, and what happens when one file row matches two ledger movements. Default now: undecided; ADR-0002 fixes only the shape | Open question | Resolve before implementation starts; carried from PRD §8. It blocks `LoadStatement_RowOverlapsAHandTypedMovement_CountsItAsAlreadyThere` (§10) and fills the snapshot query's `WHERE` clause (ADR-0003) | Andrey |
-| Open question: does a real statement or a real export carry a stable operation number? Default now: unknown; ADR-0002's exact tier is used when one exists and skipped when it does not | Open question | Resolve before implementation starts, by opening a real file; carried from PRD §8. Same sitting as the two questions below | Andrey |
-| Open question: does the statement name a currency at all? If it does not, AC-07 cannot fire. Default now: AC-07 applies only when the file names one | Open question | Resolve before implementation starts; carried from PRD §8 | Andrey |
-| Open question: does the old tracker's export name a row as a move between two accounts and name both? Default now: AC-11 applies when it does | Open question | Resolve before implementation starts; carried from PRD §8. If it does not, flow 4 in §6 loses its Transfer branch | Andrey |
-| Open question: is there a limit on the size of a file that may be handed over? Default now: none enforced. ADR-0006 makes a ceiling expressible; the value is still unset | Open question | Resolve before implementation starts; carried from PRD §8. PRD §6.1 names an oversized file as an abuse case | Andrey |
 | Open question: should a move between the Owner's own accounts be paired across two statements into one transfer? Default now: no — set aside (AC-06) | Open question | Resolve after the first three monthly loads; carried from PRD §8 and the idea-brief | Andrey |
 | Open question: PRD §5 carries no criterion of the authorization type. Default now: accepted; the installation stays off public networks | Open question | Resolve when the sign-in feature is scoped; carried from PRD §8 | Andrey |
 
@@ -1087,6 +1104,22 @@ in §9, which are risks under another name.
   Owner is waiting on — there is no unattended work to watch.
 
 **Open questions closed during this pass** (they were due at this stage, so they are no longer open):
+
+- What makes two rows name the same movement? → **same account, exact amount, a date inside a
+  window**: ±1 day for a statement, the same day for the old history. The file's text takes no
+  part; one movement answers for at most one row; on two candidates the closest date wins. Closed
+  2026-11-07 from the real files. See ADR-0002's amendment.
+- Does a real statement or a real export carry a stable operation number? → **no, neither does**.
+  ADR-0002's exact tier never fires today. Closed 2026-11-07.
+- Does the statement name a currency? → **yes, twice**: the card's currency and the purchase's
+  currency. The ledger is kept in the purchase currency (euro), read from one setting, and AC-07
+  fires on a row whose purchase currency is another one. The export names none, so AC-07 never
+  fires for it. Closed 2026-11-07.
+- Does the old tracker's export name a move between two accounts? → **no** — the owner never
+  recorded one there. AC-11 is unreachable by a real export; flow 4 in §6 keeps the branch with a
+  note. Closed 2026-11-07.
+- Is there a limit on the size of a file? → **no limit is enforced**. Both real files are a few
+  tens of kilobytes. ADR-0006's ceiling stays expressible and unset. Closed 2026-11-07.
 
 - Should a recorded entry carry its own identifier from day one? → **yes**, as a nullable
   `external_ref`. Closed by `core-ledger` ADR-0006 before this pass began, and this feature is the

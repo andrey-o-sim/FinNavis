@@ -64,6 +64,11 @@ Ids are UUID v7 from `Guid.CreateVersion7()` in this layer — `core-ledger` ADR
 
 ## Notes
 
+- **T01 settled the parameters on 2026-11-07** — see the amendment in
+  [ADR-0002](../adr/0002-match-on-an-exact-external-reference-first-then-a-date-and-amount-window.md):
+  same account, exact amount, a date window that is a policy parameter (±1 day for a statement, 0
+  for the old history), no text, one movement per row, closest date then smallest `id` on a tie.
+  **No stable operation number exists, so the matcher is one tier.**
 - **Blocked by T01 and that is the point.** The proximity tier has no date window, no text rule and
   no answer for "one row matches two movements" until PRD §8 is answered. Starting here first
   produces a matcher that has to be rewritten.
