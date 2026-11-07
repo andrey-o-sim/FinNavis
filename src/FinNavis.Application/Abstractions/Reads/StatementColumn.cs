@@ -7,4 +7,8 @@ public enum StatementColumn
     Amount = 2,
 
     Account = 3,
+
+    AmountSign = 4,
+
+    Currency = 5,
 }

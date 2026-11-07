@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Application.Import.InspectFile;
 using FinNavis.Application.UnitTests.Fakes;
@@ -141,7 +142,10 @@ public sealed class InspectFileTests
         using var cancellation = new CancellationTokenSource();
         using var statement = new MemoryStream();
 
-        await new InspectFile(reader, _profiles).ExecuteAsync(statement, cancellation.Token);
+        await new InspectFile(reader, _profiles).ExecuteAsync(
+            statement,
+            ImportFileKind.Statement,
+            cancellation.Token);
 
         reader.TokensSeen.Should().NotBeEmpty().And.AllSatisfy(
             token => token.Should().Be(cancellation.Token));
@@ -167,7 +171,11 @@ public sealed class InspectFileTests
                 column => string.Equals(column.ToString(), name, StringComparison.OrdinalIgnoreCase))),
         ];
 
-        return new StatementHeader(columnNames, ShapeKey, missing.ToHashSet());
+        return new StatementHeader(
+            columnNames,
+            ShapeKey,
+            missing.ToHashSet(),
+            ReadOnlyDictionary<StatementColumn, int>.Empty);
     }
 
     private static StatementRow Row(int lineNumber, params string[] values) =>
@@ -177,6 +185,9 @@ public sealed class InspectFileTests
     {
         using var statement = new MemoryStream();
 
-        return await new InspectFile(reader, _profiles).ExecuteAsync(statement, CancellationToken.None);
+        return await new InspectFile(reader, _profiles).ExecuteAsync(
+            statement,
+            ImportFileKind.Statement,
+            CancellationToken.None);
     }
 }

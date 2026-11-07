@@ -27,3 +27,7 @@ Dockerfile text eol=lf
 *.jpg binary
 *.ico binary
 *.pdf binary
+
+# The sample statement and export copy the real files byte for byte in shape: encoding, BOM and
+# CRLF line ends. Normalising them would make the suite pass against a shape no bank produces.
+tests/**/Fixtures/*.csv -text

@@ -35,7 +35,7 @@ public sealed class CsvStatementReaderRowsTests
     }
 
     [Fact]
-    public async Task ReadRowsAsync_ExportOf1500Rows_YieldsEveryRow()
+    public async Task ReadRowsAsync_SampleExport_YieldsEveryDatedRow()
     {
         List<StatementRow> rows = await ReadAllRowsAsync(await File.ReadAllBytesAsync(SampleFiles.ExportPath));
 
@@ -51,7 +51,7 @@ public sealed class CsvStatementReaderRowsTests
         await using ReadCountingStream statement = new(File.OpenRead(SampleFiles.ExportPath));
 
         await using IAsyncEnumerator<StatementRow> rows = reader
-            .ReadRowsAsync(statement, CancellationToken.None)
+            .ReadRowsAsync(statement, ImportFileKind.Export, CancellationToken.None)
             .GetAsyncEnumerator();
 
         (await rows.MoveNextAsync()).Should().BeTrue();
@@ -69,7 +69,7 @@ public sealed class CsvStatementReaderRowsTests
 
         Func<Task> readAll = async () =>
         {
-            await foreach (StatementRow _ in reader.ReadRowsAsync(statement, cancellation.Token))
+            await foreach (StatementRow _ in reader.ReadRowsAsync(statement, ImportFileKind.Export, cancellation.Token))
             {
                 rowsRead++;
                 if (rowsRead == rowsBeforeCancel)
@@ -97,7 +97,7 @@ public sealed class CsvStatementReaderRowsTests
 
         Func<Task> readAll = async () =>
         {
-            await foreach (StatementRow _ in reader.ReadRowsAsync(statement, CancellationToken.None))
+            await foreach (StatementRow _ in reader.ReadRowsAsync(statement, ImportFileKind.Export, CancellationToken.None))
             {
                 rowsRead++;
             }
@@ -109,17 +109,21 @@ public sealed class CsvStatementReaderRowsTests
     }
 
     [Fact]
-    public async Task ReadRowsAsync_FileExactlyAtTheRowCeiling_YieldsEveryRow()
+    public async Task ReadRowsAsync_SampleExportExactlyAtTheRowCeiling_YieldsEveryDatedRow()
     {
         CsvStatementReader reader = new(new CsvStatementReaderOptions(RowCeiling: SampleFiles.ExportRowCount));
         await using FileStream statement = File.OpenRead(SampleFiles.ExportPath);
         int rowsRead = 0;
 
-        await foreach (StatementRow _ in reader.ReadRowsAsync(statement, CancellationToken.None))
+        Func<Task> readAll = async () =>
         {
-            rowsRead++;
-        }
+            await foreach (StatementRow _ in reader.ReadRowsAsync(statement, ImportFileKind.Export, CancellationToken.None))
+            {
+                rowsRead++;
+            }
+        };
 
+        await readAll.Should().NotThrowAsync();
         rowsRead.Should().Be(SampleFiles.ExportRowCount);
     }
 
@@ -129,7 +133,7 @@ public sealed class CsvStatementReaderRowsTests
         using MemoryStream statement = new(file);
         List<StatementRow> rows = [];
 
-        await foreach (StatementRow row in reader.ReadRowsAsync(statement, CancellationToken.None))
+        await foreach (StatementRow row in reader.ReadRowsAsync(statement, ImportFileKind.Export, CancellationToken.None))
         {
             rows.Add(row);
         }

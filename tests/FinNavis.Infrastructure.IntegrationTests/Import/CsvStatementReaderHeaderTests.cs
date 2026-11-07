@@ -88,6 +88,6 @@ public sealed class CsvStatementReaderHeaderTests
         CsvStatementReader reader = new(CsvStatementReaderOptions.WithoutCeiling);
         using MemoryStream statement = new(file);
 
-        return await reader.ReadHeaderAsync(statement, CancellationToken.None);
+        return await reader.ReadHeaderAsync(statement, ImportFileKind.Export, CancellationToken.None);
     }
 }

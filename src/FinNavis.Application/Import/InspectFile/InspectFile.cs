@@ -17,13 +17,16 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
         [StatementColumn.Amount] = "amount",
     };
 
-    public async Task<FileInspection> ExecuteAsync(Stream statement, CancellationToken cancellationToken)
+    public async Task<FileInspection> ExecuteAsync(
+        Stream statement,
+        ImportFileKind kind,
+        CancellationToken cancellationToken)
     {
-        StatementHeader header = await statementReader.ReadHeaderAsync(statement, cancellationToken);
+        StatementHeader header = await statementReader.ReadHeaderAsync(statement, kind, cancellationToken);
         RequireDateAndAmount(header);
 
         IReadOnlyList<string> sourceCategories =
-            await ReadSourceCategoriesAsync(statement, header, cancellationToken);
+            await ReadSourceCategoriesAsync(statement, kind, header, cancellationToken);
         MappingProfile? profile = await mappingProfiles.GetByShapeKeyAsync(header.ShapeKey, cancellationToken);
 
         return new FileInspection(header.ShapeKey, profile?.Id, sourceCategories);
@@ -46,6 +49,7 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
 
     private async Task<IReadOnlyList<string>> ReadSourceCategoriesAsync(
         Stream statement,
+        ImportFileKind kind,
         StatementHeader header,
         CancellationToken cancellationToken)
     {
@@ -58,7 +62,7 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
 
         List<string> sourceCategories = [];
 
-        await foreach (StatementRow row in statementReader.ReadRowsAsync(statement, cancellationToken))
+        await foreach (StatementRow row in statementReader.ReadRowsAsync(statement, kind, cancellationToken))
         {
             bool rowHasCategory = categoryIndex < row.Values.Count;
 

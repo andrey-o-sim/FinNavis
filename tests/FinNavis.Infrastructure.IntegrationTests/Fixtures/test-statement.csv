@@ -1,32 +1,40 @@
-Date,Description,Category,Amount,Currency
-01.03.2026,Sunny Fuel Stop,Fuel,-12.66,UAH
-02.03.2026,Corner Bakery,Groceries,-33.90,UAH
-03.03.2026,Corner Bakery,Groceries,-83.50,UAH
-04.03.2026,Northside Grocer,Groceries,-28.62,UAH
-05.03.2026,Corner Bakery,Groceries,-63.50,UAH
-06.03.2026,Sunny Fuel Stop,Fuel,-68.06,UAH
-07.03.2026,Sunny Fuel Stop,Fuel,-63.26,UAH
-08.03.2026,Sunny Fuel Stop,Fuel,-40.46,UAH
-09.03.2026,Northside Grocer,Groceries,-58.62,UAH
-10.03.2026,Sunny Fuel Stop,Fuel,-46.46,UAH
-11.03.2026,Sunny Fuel Stop,Fuel,-53.66,UAH
-12.03.2026,Corner Bakery,Groceries,-20.70,UAH
-13.03.2026,Maple Street Market,Groceries,-72.78,UAH
-14.03.2026,Pixel Books,Books,-9.34,UAH
-15.03.2026,Corner Bakery,Groceries,-33.10,UAH
-16.03.2026,Corner Bakery,Groceries,-71.10,UAH
-17.03.2026,Sunny Fuel Stop,Fuel,-30.06,UAH
-18.03.2026,Corner Bakery,Groceries,-30.70,UAH
-19.03.2026,Northside Grocer,Groceries,-20.22,UAH
-20.03.2026,Pixel Books,Books,-3.34,UAH
-21.03.2026,Corner Bakery,Groceries,-79.10,UAH
-22.03.2026,Maple Street Market,Groceries,-46.78,UAH
-23.03.2026,Pixel Books,Books,-78.94,UAH
-24.03.2026,Northside Grocer,Groceries,-30.62,UAH
-25.03.2026,Sunny Fuel Stop,Fuel,-12.06,UAH
-26.03.2026,Maple Street Market,Groceries,-55.98,UAH
-27.03.2026,Corner Bakery,Groceries,-29.10,UAH
-28.03.2026,Maple Street Market,Groceries,-43.18,UAH
-29.03.2026,Pixel Books,Books,-8.94,UAH
-30.03.2026,Corner Bakery,Groceries,-45.10,UAH
-31.03.2026,Pixel Books,Books,-70.54,UAH
+﻿Виписка за період 01.03.2026 - 31.03.2026,,,,,,,,,
+Дата,Категорія,Картка,Опис операції,Сума в валюті картки,Валюта картки,Сума в валюті транзакції,Валюта транзакції,Залишок на кінець періоду,Валюта залишку
+01.03.2026 19:08:34,Продукти,**** 0001,Northside Grocer,-132.3,UAH,132.3,UAH,24867.7,UAH
+02.03.2026 11:13:09,Продукти,**** 0002,Northside Grocer,-760,UAH,760,UAH,24107.7,UAH
+03.03.2026 11:12:01,Продукти,**** 0002,Northside Grocer,-76.5,UAH,76.5,UAH,24031.2,UAH
+03.03.2026 13:44:52,Продукти,**** 0001,Northside Grocer,-815.04,UAH,815.04,UAH,23216.16,UAH
+04.03.2026 19:46:42,Кафе,**** 0002,Blue Kettle Cafe,-220.81,UAH,220.81,UAH,22995.35,UAH
+04.03.2026 15:08:12,Пальне,**** 0001,Sunny Fuel Stop,-575.2,UAH,575.2,UAH,22420.15,UAH
+05.03.2026 16:34:58,Надходження,**** 0002,Test Employer Payroll,11176.95,UAH,11176.95,UAH,33597.1,UAH
+06.03.2026 10:12:23,Продукти,**** 0001,Corner Bakery,-395,UAH,395,UAH,33202.1,UAH
+07.03.2026 10:24:51,Книги,**** 0002,"Pixel Books, Ltd",-791.8,UAH,791.8,UAH,32410.3,UAH
+08.03.2026 10:14:11,Кафе,**** 0002,Blue Kettle Cafe,-182.93,UAH,182.93,UAH,32227.37,UAH
+08.03.2026 16:26:01,Продукти,**** 0001,Northside Grocer,-69.3,UAH,69.3,UAH,32158.07,UAH
+09.03.2026 18:44:48,Продукти,**** 0002,Corner Bakery,-457,UAH,457,UAH,31701.07,UAH
+10.03.2026 15:33:13,Кафе,**** 0002,Blue Kettle Cafe,-392.48,UAH,392.48,UAH,31308.59,UAH
+10.03.2026 14:15:29,Книги,**** 0002,"Pixel Books, Ltd",-220,UAH,220,UAH,31088.59,UAH
+11.03.2026 14:26:43,Книги,**** 0002,"Pixel Books, Ltd",-136.72,UAH,136.72,UAH,30951.87,UAH
+12.03.2026 16:58:00,Подорожі,**** 0002,Harbour View Hotel,-1991.85,UAH,45.58,EUR,28960.02,UAH
+12.03.2026 13:05:14,Продукти,**** 0002,Northside Grocer,-507.63,UAH,507.63,UAH,28452.39,UAH
+13.03.2026 09:43:41,Кафе,**** 0002,Blue Kettle Cafe,-552.1,UAH,552.1,UAH,27900.29,UAH
+14.03.2026 10:48:48,Продукти,**** 0001,Northside Grocer,-727,UAH,727,UAH,27173.29,UAH
+15.03.2026 16:20:32,Транспорт,**** 0002,City Tram Pass,-881.13,UAH,881.13,UAH,26292.16,UAH
+16.03.2026 14:48:25,Пальне,**** 0001,Sunny Fuel Stop,-228.48,UAH,228.48,UAH,26063.68,UAH
+17.03.2026 17:36:59,Кафе,**** 0002,Blue Kettle Cafe,-93.5,UAH,93.5,UAH,25970.18,UAH
+18.03.2026 18:49:25,Книги,**** 0002,"Pixel Books, Ltd",-771,UAH,771,UAH,25199.18,UAH
+19.03.2026 19:05:25,Продукти,**** 0001,Corner Bakery,-132.7,UAH,132.7,UAH,25066.48,UAH
+19.03.2026 18:12:01,Кафе,**** 0001,Blue Kettle Cafe,-525,UAH,525,UAH,24541.48,UAH
+20.03.2026 08:15:04,Надходження,**** 0001,Test Employer Payroll,11628.6,UAH,11628.6,UAH,36170.08,UAH
+21.03.2026 08:46:52,Книги,**** 0002,"Pixel Books, Ltd",-757.3,UAH,757.3,UAH,35412.78,UAH
+22.03.2026 13:13:49,Пальне,**** 0001,Sunny Fuel Stop,-625,UAH,625,UAH,34787.78,UAH
+23.03.2026 13:32:07,Пальне,**** 0001,Sunny Fuel Stop,-81.3,UAH,81.3,UAH,34706.48,UAH
+24.03.2026 17:10:34,Подорожі,**** 0002,Harbour View Hotel,-2961.99,UAH,67.78,EUR,31744.49,UAH
+25.03.2026 18:53:31,Продукти,**** 0001,Northside Grocer,-740.7,UAH,740.7,UAH,31003.79,UAH
+26.03.2026 12:13:24,Пальне,**** 0001,Sunny Fuel Stop,-750.2,UAH,750.2,UAH,30253.59,UAH
+26.03.2026 11:23:20,Пальне,**** 0002,Sunny Fuel Stop,-526.94,UAH,526.94,UAH,29726.65,UAH
+27.03.2026 14:20:02,Транспорт,**** 0002,City Tram Pass,-709.55,UAH,709.55,UAH,29017.1,UAH
+28.03.2026 17:24:55,Пальне,**** 0001,Sunny Fuel Stop,-857,UAH,857,UAH,28160.1,UAH
+29.03.2026 17:31:00,Продукти,**** 0002,Corner Bakery,-46,UAH,46,UAH,28114.1,UAH
+30.03.2026 09:31:19,Транспорт,**** 0002,City Tram Pass,-541.4,UAH,541.4,UAH,27572.7,UAH
+30.03.2026 14:17:07,Продукти,**** 0002,Corner Bakery,-437,UAH,437,UAH,27135.7,UAH

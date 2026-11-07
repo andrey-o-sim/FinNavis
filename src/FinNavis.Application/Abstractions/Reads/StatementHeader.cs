@@ -6,4 +6,5 @@ namespace FinNavis.Application.Abstractions.Reads;
 public sealed record StatementHeader(
     IReadOnlyList<string> ColumnNames,
     string ShapeKey,
-    IReadOnlySet<StatementColumn> MissingColumns);
+    IReadOnlySet<StatementColumn> MissingColumns,
+    IReadOnlyDictionary<StatementColumn, int> ColumnPositions);

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using FinNavis.Application.Abstractions;
@@ -17,7 +18,10 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         [StatementColumn.Account] = "account",
     };
 
-    public async Task<StatementHeader> ReadHeaderAsync(Stream statement, CancellationToken cancellationToken)
+    public async Task<StatementHeader> ReadHeaderAsync(
+        Stream statement,
+        ImportFileKind kind,
+        CancellationToken cancellationToken)
     {
         using StreamReader reader = OpenReader(statement);
         string headerLine = await reader.ReadLineAsync(cancellationToken) ?? string.Empty;
@@ -28,11 +32,13 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         return new StatementHeader(
             columnNames,
             string.Join(ShapeKeySeparator, normalisedNames),
-            FindMissingColumns(normalisedNames));
+            FindMissingColumns(normalisedNames),
+            ReadOnlyDictionary<StatementColumn, int>.Empty);
     }
 
     public async IAsyncEnumerable<StatementRow> ReadRowsAsync(
         Stream statement,
+        ImportFileKind kind,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using StreamReader reader = OpenReader(statement);

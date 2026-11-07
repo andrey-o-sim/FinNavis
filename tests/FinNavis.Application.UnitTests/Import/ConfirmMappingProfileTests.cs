@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Reflection;
 using FinNavis.Application.Abstractions;
 using FinNavis.Application.Abstractions.Reads;
@@ -69,12 +70,16 @@ public sealed class ConfirmMappingProfileTests
             new StatementHeader(
                 ["Date", "Description", "Category", "Amount"],
                 ShapeKey,
-                statementHasNoAccountColumn),
+                statementHasNoAccountColumn,
+                ReadOnlyDictionary<StatementColumn, int>.Empty),
             [new StatementRow(2, ["2026-11-01", "TEST SHOP ONE", "TEST GROCERIES", "-9.9000"], "")]);
         using var statement = new MemoryStream();
 
         FileInspection inspection =
-            await new InspectFile(nextFile, _profiles).ExecuteAsync(statement, CancellationToken.None);
+            await new InspectFile(nextFile, _profiles).ExecuteAsync(
+                statement,
+                ImportFileKind.Statement,
+                CancellationToken.None);
 
         inspection.MappingProfileId.Should().Be(confirmation.Profile.Id);
     }
