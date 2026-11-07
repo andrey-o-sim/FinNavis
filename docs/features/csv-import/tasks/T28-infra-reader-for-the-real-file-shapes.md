@@ -37,7 +37,12 @@ The real shapes, from [sad.md §7](../sad.md):
 The adapter has to:
 
 - read both encodings and both separators;
-- find the header row when a title line comes before it, and keep the shape key of
+- take the kind of file as an input — a statement or an export. `IStatementReader` gains it, and
+  every caller passes it. For a statement the first line is always skipped and never read; for an
+  export the first line is the header row. Decided by the owner on 2026-11-07: the title line is no
+  use to the business logic, and guessing it from its content is fragile — the real one ends with
+  9 commas;
+- keep the shape key of
   [ADR-0009](../adr/0009-recognise-a-statement-shape-by-its-header-row.md) built from the header row
   only — the title line names a period and changes every month;
 - recognise the date, amount and account columns under the real names, not only `date`, `amount`
@@ -52,8 +57,10 @@ amounts. The 1500-row export for T25 and T26 is rebuilt the same way.
 
 ## Definition of Done
 
-- [ ] A statement with a title line before the header row is read; its shape key is the same for
-      two months whose title lines differ
+- [ ] A statement's first line is skipped without being read, whatever it holds — including a title
+      line padded with trailing commas, as the real one is; its shape key is the same for two months
+      whose title lines differ
+- [ ] An export's first line is read as the header row
 - [ ] A UTF-16 LE, tab-separated export is read, and the stray BOM in the last header name does not
       change the shape key
 - [ ] A file missing the date, the amount or — for an export — the account column is refused, and

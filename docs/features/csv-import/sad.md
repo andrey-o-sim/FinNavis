@@ -813,12 +813,18 @@ a value:
 |---|---|---|
 | Encoding | UTF-8 with a BOM | UTF-16 LE with a BOM |
 | Separator, line end | comma, CRLF | tab, CRLF — although the file is named `.csv` |
-| Before the header row | one title line naming the period | nothing |
+| Before the header row | one title line naming the period, padded by Excel with 9 trailing commas to the header's 10 columns — so it is not a line without commas | nothing |
 | Header row | `Дата`, `Категорія`, `Картка`, `Опис операції`, `Сума в валюті картки`, `Валюта картки`, `Сума в валюті транзакції`, `Валюта транзакції`, `Залишок на кінець періоду`, `Валюта залишку` | `Date`, `Amount`, `Currency`, `Account`, `Category`, `Category group`, `Note` — the last name carries a stray BOM character |
 | Date | `dd.MM.yyyy HH:mm:ss`, the bank's own time zone | `yyyy.MM.dd` |
 | Amount | card amount signed; purchase amount unsigned; 0 to 2 decimals; a dot | signed; 0 to 2 decimals; a dot |
 | Currency | one per amount, per row | the column is always empty; the currency is only part of an account's name |
 | Other | fields with a comma are quoted; rows of several cards in one file | rows with the category `Account balance`; trailing rows with no date |
+
+The title line carries nothing the import needs. **The reader is told which kind of file it was
+handed** — a statement or an export — and for a statement it always skips the first line without
+reading it; for an export the first line is the header row. Guessing from the line's content was
+rejected: the padded title line looks like a row with one value, and a heuristic on that breaks on
+the first file that differs.
 
 Three decisions follow from the statement's shape. All cards in one statement are **one account** in
 the ledger, so the card column is not read. The amount recorded is the **purchase amount**, with
