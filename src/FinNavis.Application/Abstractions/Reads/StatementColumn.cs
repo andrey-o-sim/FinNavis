@@ -11,4 +11,6 @@ public enum StatementColumn
     AmountSign = 4,
 
     Currency = 5,
+
+    Category = 6,
 }
