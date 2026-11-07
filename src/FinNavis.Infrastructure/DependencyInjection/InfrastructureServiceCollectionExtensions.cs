@@ -30,6 +30,8 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IImportRunRepository, EfImportRunRepository>();
+        services.AddScoped<IMappingProfileRepository, EfMappingProfileRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
