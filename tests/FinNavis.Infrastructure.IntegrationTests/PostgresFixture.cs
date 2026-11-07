@@ -1,6 +1,7 @@
 using FinNavis.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 using Npgsql;
 
@@ -32,10 +33,11 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public Task DisposeAsync() => _container.DisposeAsync().AsTask();
 
-    public FinNavisDbContext CreateDbContext()
+    public FinNavisDbContext CreateDbContext(params IInterceptor[] interceptors)
     {
         var options = new DbContextOptionsBuilder<FinNavisDbContext>()
             .UseNpgsql(ConnectionString)
+            .AddInterceptors(interceptors)
             .Options;
 
         return new FinNavisDbContext(options);
