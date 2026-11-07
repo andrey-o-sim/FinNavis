@@ -16,6 +16,7 @@ internal sealed record CsvFileLayout(
         RecognisedColumnNames: new Dictionary<StatementColumn, string>
         {
             [StatementColumn.Date] = "дата",
+            [StatementColumn.Category] = "категорія",
             [StatementColumn.AmountSign] = "сума в валюті картки",
             [StatementColumn.Amount] = "сума в валюті транзакції",
             [StatementColumn.Currency] = "валюта транзакції",
@@ -31,6 +32,7 @@ internal sealed record CsvFileLayout(
             [StatementColumn.Amount] = "amount",
             [StatementColumn.Currency] = "currency",
             [StatementColumn.Account] = "account",
+            [StatementColumn.Category] = "category",
         },
         SkipsRowsWithNoDate: true);
 

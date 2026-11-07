@@ -83,7 +83,7 @@ public sealed class CsvStatementReaderStatementTests
     // The amount recorded is the purchase amount, which the bank writes unsigned; its sign comes from
     // the card amount, and the purchase currency is the one checked against the ledger's currency.
     [Fact]
-    public async Task ReadHeaderAsync_StatementWithTheRealHeaderRow_PointsAtThePurchaseAmountItsSignAndItsCurrency()
+    public async Task ReadHeaderAsync_StatementWithTheRealHeaderRow_PointsAtTheCategoryThePurchaseAmountItsSignAndItsCurrency()
     {
         StatementHeader header = await ReadHeaderAsync(SyntheticFile.Statement(
             SyntheticFile.StatementTitle(MarchTitle), SyntheticFile.StatementHeader, BakeryRow));
@@ -91,6 +91,7 @@ public sealed class CsvStatementReaderStatementTests
         header.ColumnPositions.Should().BeEquivalentTo(new Dictionary<StatementColumn, int>
         {
             [StatementColumn.Date] = 0,
+            [StatementColumn.Category] = 1,
             [StatementColumn.AmountSign] = 4,
             [StatementColumn.Amount] = 6,
             [StatementColumn.Currency] = 7,

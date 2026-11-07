@@ -77,7 +77,7 @@ public sealed class CsvStatementReaderExportTests
     // An export writes one signed amount and no separate sign column. Its currency column is always
     // empty, but it is still where the column is.
     [Fact]
-    public async Task ReadHeaderAsync_ExportWithTheRealHeaderRow_PointsAtTheDateTheAmountTheCurrencyAndTheAccount()
+    public async Task ReadHeaderAsync_ExportWithTheRealHeaderRow_PointsAtTheDateTheAmountTheCurrencyTheAccountAndTheCategory()
     {
         StatementHeader header = await ReadHeaderAsync(SyntheticFile.Export(SyntheticFile.ExportHeader, GroceriesRow));
 
@@ -87,6 +87,7 @@ public sealed class CsvStatementReaderExportTests
             [StatementColumn.Amount] = 1,
             [StatementColumn.Currency] = 2,
             [StatementColumn.Account] = 3,
+            [StatementColumn.Category] = 4,
         });
     }
 
