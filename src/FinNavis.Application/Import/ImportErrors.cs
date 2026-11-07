@@ -7,18 +7,6 @@ internal static class ImportErrors
     public static DomainRuleViolationException RunNotFound(Guid importRunId) =>
         new("Import.NotFound", $"No load in this installation has id {importRunId}.");
 
-    public static DomainRuleViolationException MovementsChangedByHand(
-        IReadOnlyList<Guid> changedTransactionIds,
-        IReadOnlyList<Guid> changedTransferIds) =>
-        new(
-            "Import.MovementsChangedByHand",
-            "Some rows from this load were changed by hand afterwards, so the load cannot be undone as a whole.",
-            new Dictionary<string, object>
-            {
-                ["transaction_ids"] = changedTransactionIds,
-                ["transfer_ids"] = changedTransferIds,
-            });
-
     public static DomainRuleViolationException MissingRequiredColumn(IReadOnlyList<string> missingColumnNames) =>
         new(
             "Import.MissingRequiredColumn",

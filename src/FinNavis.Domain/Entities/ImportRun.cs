@@ -131,6 +131,49 @@ public sealed class ImportRun
         }
     }
 
+    public void RequireUnchangedByHand(
+        IReadOnlyCollection<Transaction> stillRecordedTransactions,
+        IReadOnlyCollection<Transfer> stillRecordedTransfers)
+    {
+        Dictionary<Guid, Transaction> transactionsById =
+            stillRecordedTransactions.ToDictionary(transaction => transaction.Id);
+        Dictionary<Guid, Transfer> transfersById =
+            stillRecordedTransfers.ToDictionary(transfer => transfer.Id);
+
+        List<Guid> changedTransactionIds =
+        [
+            .. _transactionLinks
+                .Where(link => transactionsById.TryGetValue(link.TransactionId, out Transaction? transaction)
+                    && !link.StillMatches(transaction))
+                .Select(link => link.TransactionId),
+        ];
+
+        List<Guid> changedTransferIds =
+        [
+            .. _transferLinks
+                .Where(link => transfersById.TryGetValue(link.TransferId, out Transfer? transfer)
+                    && !link.StillMatches(transfer))
+                .Select(link => link.TransferId),
+        ];
+
+        if (changedTransactionIds.Count > 0 || changedTransferIds.Count > 0)
+        {
+            throw MovementsChangedByHand(changedTransactionIds, changedTransferIds);
+        }
+    }
+
+    private static DomainRuleViolationException MovementsChangedByHand(
+        IReadOnlyList<Guid> changedTransactionIds,
+        IReadOnlyList<Guid> changedTransferIds) =>
+        new(
+            "Import.MovementsChangedByHand",
+            "Some rows from this load were changed by hand afterwards, so the load cannot be undone as a whole.",
+            new Dictionary<string, object>
+            {
+                ["transaction_ids"] = changedTransactionIds,
+                ["transfer_ids"] = changedTransferIds,
+            });
+
     // The file name comes from the upload, which the use case checks first, so a value that
     // reaches this point out of bounds is a defect, not owner input.
     private static void RequireValidFileName(string fileName)

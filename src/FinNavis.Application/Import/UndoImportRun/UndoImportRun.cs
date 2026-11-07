@@ -21,24 +21,24 @@ public sealed class UndoImportRun(
 
         run.RequireNotUndone();
 
-        List<(ImportTransactionLink Link, Transaction Transaction)> recordedTransactions =
-            await LoadRecordedTransactionsAsync(run, cancellationToken);
-        List<(ImportTransferLink Link, Transfer Transfer)> recordedTransfers =
-            await LoadRecordedTransfersAsync(run, cancellationToken);
+        List<Transaction> stillRecordedTransactions =
+            await LoadStillRecordedTransactionsAsync(run, cancellationToken);
+        List<Transfer> stillRecordedTransfers =
+            await LoadStillRecordedTransfersAsync(run, cancellationToken);
 
-        RefuseIfAnyChangedByHand(recordedTransactions, recordedTransfers);
+        run.RequireUnchangedByHand(stillRecordedTransactions, stillRecordedTransfers);
 
         ImportRunCreationsInUse creationsInUse =
             await importQueries.GetCreationsNamedOutsideRunAsync(run.Id, cancellationToken);
 
         run.MarkUndone();
 
-        foreach ((_, Transaction transaction) in recordedTransactions)
+        foreach (Transaction transaction in stillRecordedTransactions)
         {
             transactions.Remove(transaction);
         }
 
-        foreach ((_, Transfer transfer) in recordedTransfers)
+        foreach (Transfer transfer in stillRecordedTransfers)
         {
             transfers.Remove(transfer);
         }
@@ -51,11 +51,11 @@ public sealed class UndoImportRun(
 
     // A movement the owner deleted by hand is simply absent: there is nothing left to remove, and
     // its absence must not block the undo of the rest.
-    private async Task<List<(ImportTransactionLink Link, Transaction Transaction)>> LoadRecordedTransactionsAsync(
+    private async Task<List<Transaction>> LoadStillRecordedTransactionsAsync(
         ImportRun run,
         CancellationToken cancellationToken)
     {
-        List<(ImportTransactionLink, Transaction)> recorded = [];
+        List<Transaction> recorded = [];
 
         foreach (ImportTransactionLink link in run.TransactionLinks)
         {
@@ -63,18 +63,18 @@ public sealed class UndoImportRun(
 
             if (transaction is not null)
             {
-                recorded.Add((link, transaction));
+                recorded.Add(transaction);
             }
         }
 
         return recorded;
     }
 
-    private async Task<List<(ImportTransferLink Link, Transfer Transfer)>> LoadRecordedTransfersAsync(
+    private async Task<List<Transfer>> LoadStillRecordedTransfersAsync(
         ImportRun run,
         CancellationToken cancellationToken)
     {
-        List<(ImportTransferLink, Transfer)> recorded = [];
+        List<Transfer> recorded = [];
 
         foreach (ImportTransferLink link in run.TransferLinks)
         {
@@ -82,35 +82,11 @@ public sealed class UndoImportRun(
 
             if (transfer is not null)
             {
-                recorded.Add((link, transfer));
+                recorded.Add(transfer);
             }
         }
 
         return recorded;
-    }
-
-    private static void RefuseIfAnyChangedByHand(
-        List<(ImportTransactionLink Link, Transaction Transaction)> recordedTransactions,
-        List<(ImportTransferLink Link, Transfer Transfer)> recordedTransfers)
-    {
-        List<Guid> changedTransactionIds =
-        [
-            .. recordedTransactions
-                .Where(recorded => !recorded.Link.StillMatches(recorded.Transaction))
-                .Select(recorded => recorded.Transaction.Id),
-        ];
-
-        List<Guid> changedTransferIds =
-        [
-            .. recordedTransfers
-                .Where(recorded => !recorded.Link.StillMatches(recorded.Transfer))
-                .Select(recorded => recorded.Transfer.Id),
-        ];
-
-        if (changedTransactionIds.Count > 0 || changedTransferIds.Count > 0)
-        {
-            throw ImportErrors.MovementsChangedByHand(changedTransactionIds, changedTransferIds);
-        }
     }
 
     private async Task RemoveCreatedAccountsNobodyElseNamesAsync(
