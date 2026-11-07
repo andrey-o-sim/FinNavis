@@ -10,28 +10,10 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
     private const string ShapeKeySeparator = "|";
     private const char Comma = ',';
     private const char Tab = '\t';
-    private const char ByteOrderMark = '﻿';
+    private const string ByteOrderMark = "\uFEFF";
 
     private static readonly StatementColumn[] RequiredColumns =
         [StatementColumn.Date, StatementColumn.Amount, StatementColumn.Account];
-
-    // The statement records the purchase amount, which the bank writes unsigned, and takes its sign
-    // from the card amount. A statement covers one account, so it has no account column.
-    private static readonly Dictionary<StatementColumn, string> StatementColumnNames = new()
-    {
-        [StatementColumn.Date] = "дата",
-        [StatementColumn.AmountSign] = "сума в валюті картки",
-        [StatementColumn.Amount] = "сума в валюті транзакції",
-        [StatementColumn.Currency] = "валюта транзакції",
-    };
-
-    private static readonly Dictionary<StatementColumn, string> ExportColumnNames = new()
-    {
-        [StatementColumn.Date] = "date",
-        [StatementColumn.Amount] = "amount",
-        [StatementColumn.Currency] = "currency",
-        [StatementColumn.Account] = "account",
-    };
 
     public async Task<StatementHeader> ReadHeaderAsync(
         Stream statement,
@@ -39,7 +21,7 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         CancellationToken cancellationToken)
     {
         using StreamReader reader = OpenReader(statement);
-        FileHeader fileHeader = await ReadFileHeaderAsync(reader, kind, cancellationToken);
+        FileHeader fileHeader = await ReadFileHeaderAsync(reader, CsvFileLayout.For(kind), cancellationToken);
 
         return new StatementHeader(
             fileHeader.ColumnNames,
@@ -53,8 +35,9 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         ImportFileKind kind,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        CsvFileLayout layout = CsvFileLayout.For(kind);
         using StreamReader reader = OpenReader(statement);
-        FileHeader fileHeader = await ReadFileHeaderAsync(reader, kind, cancellationToken);
+        FileHeader fileHeader = await ReadFileHeaderAsync(reader, layout, cancellationToken);
 
         int lineNumber = fileHeader.LineNumber;
         int rowsRead = 0;
@@ -67,7 +50,7 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
             lineNumber++;
 
             List<string> values = CsvLineSplitter.Split(line, fileHeader.Separator);
-            if (kind == ImportFileKind.Export && HasNoDate(values, fileHeader.ColumnPositions))
+            if (layout.SkipsRowsWithNoDate && HasNoDate(values, fileHeader.ColumnPositions))
             {
                 continue;
             }
@@ -84,15 +67,13 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         return new StreamReader(statement, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
     }
 
-    // A statement opens with a title line that names the period. It is skipped unread, because its
-    // content changes every month and the bank pads it with commas so it looks like a row.
     private static async Task<FileHeader> ReadFileHeaderAsync(
         StreamReader reader,
-        ImportFileKind kind,
+        CsvFileLayout layout,
         CancellationToken cancellationToken)
     {
         int lineNumber = 0;
-        if (kind == ImportFileKind.Statement)
+        if (layout.OpensWithTitleLine)
         {
             await reader.ReadLineAsync(cancellationToken);
             lineNumber++;
@@ -104,7 +85,7 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         char separator = headerLine.Contains(Tab) ? Tab : Comma;
         List<string> columnNames = [.. CsvLineSplitter.Split(headerLine, separator).Select(CleanColumnName)];
         List<string> normalisedNames = NormaliseColumnNames(columnNames);
-        Dictionary<StatementColumn, int> columnPositions = FindColumnPositions(normalisedNames, kind);
+        Dictionary<StatementColumn, int> columnPositions = FindColumnPositions(normalisedNames, layout);
 
         return new FileHeader(lineNumber, separator, columnNames, normalisedNames, columnPositions);
     }
@@ -112,7 +93,7 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
     // The old tracker writes a stray byte order mark into its last column name.
     private static string CleanColumnName(string name)
     {
-        return name.Replace(ByteOrderMark.ToString(), string.Empty, StringComparison.Ordinal).Trim();
+        return name.Replace(ByteOrderMark, string.Empty, StringComparison.Ordinal).Trim();
     }
 
     private static List<string> NormaliseColumnNames(IEnumerable<string> columnNames)
@@ -128,12 +109,9 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
 
     private static Dictionary<StatementColumn, int> FindColumnPositions(
         List<string> normalisedNames,
-        ImportFileKind kind)
+        CsvFileLayout layout)
     {
-        Dictionary<StatementColumn, string> recognisedNames =
-            kind == ImportFileKind.Statement ? StatementColumnNames : ExportColumnNames;
-
-        return recognisedNames
+        return layout.RecognisedColumnNames
             .Select(recognised => (Column: recognised.Key, Position: normalisedNames.IndexOf(recognised.Value)))
             .Where(found => found.Position >= 0)
             .ToDictionary(found => found.Column, found => found.Position);
@@ -144,7 +122,6 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         return [.. RequiredColumns.Where(column => !columnPositions.ContainsKey(column))];
     }
 
-    // The export ends with the tracker's own totals, which carry no date. They are not movements.
     private static bool HasNoDate(List<string> values, Dictionary<StatementColumn, int> columnPositions)
     {
         return columnPositions.TryGetValue(StatementColumn.Date, out int datePosition)
