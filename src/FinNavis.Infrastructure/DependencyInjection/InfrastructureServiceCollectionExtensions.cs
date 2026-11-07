@@ -1,4 +1,5 @@
 using FinNavis.Application.Abstractions;
+using FinNavis.Application.Common;
 using FinNavis.Domain.Abstractions;
 using FinNavis.Infrastructure.Import;
 using FinNavis.Infrastructure.Persistence;
@@ -14,6 +15,8 @@ namespace FinNavis.Infrastructure.DependencyInjection;
 public static class InfrastructureServiceCollectionExtensions
 {
     public const string ConnectionStringName = "FinNavisDb";
+
+    public const string LedgerCurrencySetting = "Ledger:Currency";
 
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
@@ -47,6 +50,9 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton(CsvStatementReaderOptions.WithoutCeiling);
         services.AddSingleton<IStatementReader, CsvStatementReader>();
+        // Unlike the connection string, read on first use: only a statement load needs the
+        // currency, so an installation that never loads a file can start without it.
+        services.AddSingleton(_ => new LedgerOptions(RequireLedgerCurrency(configuration)));
 
         return services;
     }
@@ -64,5 +70,19 @@ public static class InfrastructureServiceCollectionExtensions
         }
 
         return connectionString;
+    }
+
+    private static string RequireLedgerCurrency(IConfiguration configuration)
+    {
+        string? currency = configuration[LedgerCurrencySetting];
+
+        if (string.IsNullOrWhiteSpace(currency))
+        {
+            throw new InvalidOperationException(
+                $"The setting '{LedgerCurrencySetting}' is not configured. "
+                    + "Set Ledger__Currency in the environment or in appsettings.json.");
+        }
+
+        return currency;
     }
 }
