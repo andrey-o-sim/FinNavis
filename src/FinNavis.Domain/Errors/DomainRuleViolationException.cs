@@ -20,7 +20,8 @@ public sealed class DomainRuleViolationException : Exception
         IReadOnlyDictionary<string, object> details)
         : base(message)
     {
-        throw new NotImplementedException();
+        Code = code;
+        Details = details;
     }
 
     public string Code { get; }

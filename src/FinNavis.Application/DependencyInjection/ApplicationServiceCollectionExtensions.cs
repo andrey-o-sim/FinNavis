@@ -1,6 +1,8 @@
 using FinNavis.Application.Accounts;
 using FinNavis.Application.Categories;
 using FinNavis.Application.CategoryGroups;
+using FinNavis.Application.Import.ConfirmMappingProfile;
+using FinNavis.Application.Import.InspectFile;
 using FinNavis.Application.Reporting;
 using FinNavis.Application.Transactions;
 using FinNavis.Application.Transfers;
@@ -38,6 +40,9 @@ public static class ApplicationServiceCollectionExtensions
 
         services.AddScoped<GetHistory>();
         services.AddScoped<GetBreakdown>();
+
+        services.AddScoped<InspectFile>();
+        services.AddScoped<ConfirmMappingProfile>();
 
         return services;
     }
