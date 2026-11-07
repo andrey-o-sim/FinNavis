@@ -7,12 +7,10 @@ namespace FinNavis.Infrastructure.Import;
 
 public sealed class CsvStatementReader(CsvStatementReaderOptions options) : IStatementReader
 {
-    private const char Separator = ',';
-    private const char Quote = '"';
     private const string ShapeKeySeparator = "|";
-    private const int FirstDataLineNumber = 2;
+    private const int HeaderLineCount = 1;
 
-    private static readonly Dictionary<StatementColumn, string> RequiredColumnNames = new()
+    private static readonly Dictionary<StatementColumn, string> RecognisedColumnNames = new()
     {
         [StatementColumn.Date] = "date",
         [StatementColumn.Amount] = "amount",
@@ -24,18 +22,13 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         using StreamReader reader = OpenReader(statement);
         string headerLine = await reader.ReadLineAsync(cancellationToken) ?? string.Empty;
 
-        List<string> columnNames = [.. SplitLine(headerLine).Select(name => name.Trim())];
-        List<string> normalisedNames = [.. columnNames.Select(name => name.ToLowerInvariant())];
-        DropTrailingEmptyNames(normalisedNames);
+        List<string> columnNames = [.. CsvLineSplitter.Split(headerLine).Select(name => name.Trim())];
+        List<string> normalisedNames = NormaliseColumnNames(columnNames);
 
-        HashSet<StatementColumn> missingColumns =
-        [
-            .. RequiredColumnNames
-                .Where(required => !normalisedNames.Contains(required.Value))
-                .Select(required => required.Key),
-        ];
-
-        return new StatementHeader(columnNames, string.Join(ShapeKeySeparator, normalisedNames), missingColumns);
+        return new StatementHeader(
+            columnNames,
+            string.Join(ShapeKeySeparator, normalisedNames),
+            FindMissingColumns(normalisedNames));
     }
 
     public async IAsyncEnumerable<StatementRow> ReadRowsAsync(
@@ -45,7 +38,6 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         using StreamReader reader = OpenReader(statement);
         await reader.ReadLineAsync(cancellationToken);
 
-        int lineNumber = FirstDataLineNumber;
         int rowsRead = 0;
 
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
@@ -54,14 +46,9 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
             // so a cancel that lands while the next lines are already buffered would go unnoticed.
             cancellationToken.ThrowIfCancellationRequested();
             rowsRead++;
-            if (rowsRead > options.RowCeiling)
-            {
-                throw new InvalidDataException(
-                    $"The file has more than {options.RowCeiling} rows, which is more than a statement can hold.");
-            }
+            EnsureWithinRowCeiling(rowsRead);
 
-            yield return new StatementRow(lineNumber, SplitLine(line), line);
-            lineNumber++;
+            yield return new StatementRow(HeaderLineCount + rowsRead, CsvLineSplitter.Split(line), line);
         }
     }
 
@@ -70,57 +57,33 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         return new StreamReader(statement, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
     }
 
-    private static List<string> SplitLine(string line)
+    private static List<string> NormaliseColumnNames(IEnumerable<string> columnNames)
     {
-        List<string> values = [];
-        StringBuilder value = new();
-        bool insideQuotes = false;
-
-        for (int index = 0; index < line.Length; index++)
+        List<string> normalisedNames = [.. columnNames.Select(name => name.ToLowerInvariant())];
+        while (normalisedNames.Count > 0 && normalisedNames[^1].Length == 0)
         {
-            char current = line[index];
-
-            if (insideQuotes)
-            {
-                bool isEscapedQuote = current == Quote && index + 1 < line.Length && line[index + 1] == Quote;
-                if (isEscapedQuote)
-                {
-                    value.Append(Quote);
-                    index++;
-                }
-                else if (current == Quote)
-                {
-                    insideQuotes = false;
-                }
-                else
-                {
-                    value.Append(current);
-                }
-            }
-            else if (current == Quote)
-            {
-                insideQuotes = true;
-            }
-            else if (current == Separator)
-            {
-                values.Add(value.ToString());
-                value.Clear();
-            }
-            else
-            {
-                value.Append(current);
-            }
+            normalisedNames.RemoveAt(normalisedNames.Count - 1);
         }
 
-        values.Add(value.ToString());
-        return values;
+        return normalisedNames;
     }
 
-    private static void DropTrailingEmptyNames(List<string> names)
+    private static HashSet<StatementColumn> FindMissingColumns(List<string> normalisedNames)
     {
-        while (names.Count > 0 && names[^1].Length == 0)
+        return
+        [
+            .. RecognisedColumnNames
+                .Where(recognised => !normalisedNames.Contains(recognised.Value))
+                .Select(recognised => recognised.Key),
+        ];
+    }
+
+    private void EnsureWithinRowCeiling(int rowsRead)
+    {
+        if (rowsRead > options.RowCeiling)
         {
-            names.RemoveAt(names.Count - 1);
+            throw new InvalidDataException(
+                $"The file has more than {options.RowCeiling} rows, which is more than a statement can hold.");
         }
     }
 }
