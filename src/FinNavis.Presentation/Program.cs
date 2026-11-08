@@ -1,5 +1,7 @@
+using System.Text.Json;
 using FinNavis.Application.DependencyInjection;
 using FinNavis.Infrastructure.DependencyInjection;
+using FinNavis.Presentation.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,8 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenApi();
+builder.Services.AddErrorEnvelope();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower);
 
 var app = builder.Build();
+
+// First in the pipeline, so a failure anywhere after it answers the same envelope.
+app.UseErrorEnvelope();
 
 if (app.Environment.IsDevelopment())
 {

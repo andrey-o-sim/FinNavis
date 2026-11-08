@@ -7,7 +7,7 @@ acs: ["AC-25"]
 files_hint: ["src/FinNavis.Presentation/Errors/", "src/FinNavis.Presentation/Middleware/", "src/FinNavis.Presentation/Program.cs", "tests/FinNavis.Presentation.UnitTests/Errors/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T24 — Build the error registry and route every failure through the flat envelope

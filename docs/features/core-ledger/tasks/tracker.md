@@ -30,7 +30,7 @@
 | T21 | 3 transaction use cases | app | Andrey Simonenko | M | T13 | done |
 | T22 | 3 transfer use cases | app | Andrey Simonenko | M | T13 | done |
 | T23 | History + breakdown use cases | app | Andrey Simonenko | M | T15, T16 | done |
-| T24 | Error registry + flat envelope | ports | Andrey Simonenko | M | T05, T04 | todo |
+| T24 | Error registry + flat envelope | ports | Andrey Simonenko | M | T05, T04 | done |
 | T25 | 4 account endpoints | ports | Andrey Simonenko | M | T18, T24, T17 | todo |
 | T26 | 4 category-group endpoints | ports | Andrey Simonenko | M | T19, T24, T17 | todo |
 | T27 | 5 category endpoints | ports | Andrey Simonenko | M | T20, T24, T17 | todo |
