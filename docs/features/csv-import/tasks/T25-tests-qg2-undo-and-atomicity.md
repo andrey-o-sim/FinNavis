@@ -7,7 +7,7 @@ acs: ["AC-16", "AC-17", "AC-18", "AC-19", "AC-22"]
 files_hint: ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/UndoAndAtomicityTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Seeding/"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T25 — Quality gate QG-2 — a load is all-or-nothing, and reversible
