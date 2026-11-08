@@ -43,7 +43,7 @@ public sealed class MappingRule
         DateTimeOffset createdAt)
     {
         RequireValidSourceCategory(sourceCategory);
-        RequireTargetCategoryMatchesTarget(target, targetCategoryId);
+        RequireTargetCategoryMatchesTarget(sourceCategory, target, targetCategoryId);
 
         return new MappingRule(id, sourceCategory, target, targetCategoryId, createdAt);
     }
@@ -62,20 +62,33 @@ public sealed class MappingRule
         }
     }
 
-    private static void RequireTargetCategoryMatchesTarget(MappingRuleTarget target, Guid? targetCategoryId)
+    private static void RequireTargetCategoryMatchesTarget(
+        string sourceCategory,
+        MappingRuleTarget target,
+        Guid? targetCategoryId)
     {
         if (target == MappingRuleTarget.Category && targetCategoryId is null)
         {
             throw new DomainRuleViolationException(
                 InvalidRule,
-                "A rule that files a row under a category must name that category.");
+                "A rule that files a row under a category must name that category.",
+                RuleDetails(sourceCategory, target));
         }
 
         if (target == MappingRuleTarget.TransferBetweenOwnAccounts && targetCategoryId is not null)
         {
             throw new DomainRuleViolationException(
                 InvalidRule,
-                "A rule for a move between your own accounts records no category.");
+                "A rule for a move between your own accounts records no category.",
+                RuleDetails(sourceCategory, target));
         }
     }
+
+    // A confirm request carries many rules, so the refusal names the one that is wrong.
+    private static Dictionary<string, object> RuleDetails(string sourceCategory, MappingRuleTarget target) =>
+        new()
+        {
+            ["source_category"] = sourceCategory,
+            ["target"] = target.ToString(),
+        };
 }

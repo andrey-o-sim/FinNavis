@@ -192,6 +192,11 @@ public sealed class MappingProfileTests
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(InvalidRule);
         refusal.Message.Should().Be("A rule that files a row under a category must name that category.");
+        refusal.Details.Should().BeEquivalentTo(new Dictionary<string, object>
+        {
+            ["source_category"] = "TEST GROCERIES",
+            ["target"] = "Category",
+        });
     }
 
     [Fact]
@@ -208,6 +213,11 @@ public sealed class MappingProfileTests
             .Throw<DomainRuleViolationException>().Which;
         refusal.Code.Should().Be(InvalidRule);
         refusal.Message.Should().Be("A rule for a move between your own accounts records no category.");
+        refusal.Details.Should().BeEquivalentTo(new Dictionary<string, object>
+        {
+            ["source_category"] = "TEST TRANSFER",
+            ["target"] = "TransferBetweenOwnAccounts",
+        });
     }
 
     [Fact]
