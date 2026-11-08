@@ -7,7 +7,7 @@ acs: []
 files_hint: ["docs/features/csv-import/contracts/openapi.yaml", "docs/features/csv-import/contracts/api-sync-report.md"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T27 — Diff the served document against the contract and close the deferrals
