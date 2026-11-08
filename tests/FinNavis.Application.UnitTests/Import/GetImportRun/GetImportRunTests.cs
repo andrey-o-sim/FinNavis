@@ -53,7 +53,7 @@ public sealed class GetImportRunTests
 
         ImportRunReport report = await ReadAsync(run.Id);
 
-        report.SetAside.Should().BeEquivalentTo(
+        report.SetAside.Items.Should().BeEquivalentTo(
             [
                 new ReportedSetAsideRow(
                     4, SetAsideReason.NoRuleCovers, "TEST HOBBIES", "2026-10-04,TEST SHOP,TEST HOBBIES,-9.9000"),
@@ -63,8 +63,8 @@ public sealed class GetImportRunTests
             options => options.WithStrictOrdering());
     }
 
-    // The endpoint pages the list by a cursor over row_number, so the list it receives must already
-    // be in file order, whatever order the rows were stored in.
+    // The list is paged by a cursor over row_number, so a page must be in file order, whatever order
+    // the rows were stored in.
     [Fact]
     public async Task ExecuteAsync_SetAsideRowsStoredOutOfOrder_ReturnsThemOrderedByRowNumber()
     {
@@ -76,7 +76,7 @@ public sealed class GetImportRunTests
 
         ImportRunReport report = await ReadAsync(run.Id);
 
-        report.SetAside.Select(row => row.RowNumber).Should().Equal(3, 8, 12);
+        report.SetAside.Items.Select(row => row.RowNumber).Should().Equal(3, 8, 12);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class GetImportRunTests
 
         ImportRunReport report = await ReadAsync(run.Id);
 
-        report.SetAside.Should().BeEmpty();
+        report.SetAside.Items.Should().BeEmpty();
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class GetImportRunTests
         report.Status.Should().Be(ImportRunStatus.Undone);
         report.RecordedRowCount.Should().Be(1);
         report.AlreadyPresentRowCount.Should().Be(1);
-        report.SetAside.Should().ContainSingle().Which.RowNumber.Should().Be(5);
+        report.SetAside.Items.Should().ContainSingle().Which.RowNumber.Should().Be(5);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public sealed class GetImportRunTests
         ImportRunReport second = await ReadAsync(run.Id);
 
         first.RecordedRowCount.Should().Be(0);
-        second.SetAside.Should().ContainSingle().Which.RowNumber.Should().Be(4);
+        second.SetAside.Items.Should().ContainSingle().Which.RowNumber.Should().Be(4);
         run.SetAsideRows.Should().ContainSingle();
         run.TransactionLinks.Should().BeEmpty();
         run.TransferLinks.Should().BeEmpty();
@@ -190,7 +190,7 @@ public sealed class GetImportRunTests
         _runs.Seed(run);
         using var cancellation = new CancellationTokenSource();
 
-        await new GetImportRunUseCase(_runs).ExecuteAsync(run.Id, cancellation.Token);
+        await new GetImportRunUseCase(_runs).ExecuteAsync(run.Id, SetAsidePageRequest.FirstPage, cancellation.Token);
 
         _runs.RequestedIds.Should().Equal(run.Id);
         _runs.TokensSeen.Should().Equal(cancellation.Token);
@@ -229,5 +229,5 @@ public sealed class GetImportRunTests
     }
 
     private Task<ImportRunReport> ReadAsync(Guid importRunId) =>
-        new GetImportRunUseCase(_runs).ExecuteAsync(importRunId, CancellationToken.None);
+        new GetImportRunUseCase(_runs).ExecuteAsync(importRunId, SetAsidePageRequest.FirstPage, CancellationToken.None);
 }

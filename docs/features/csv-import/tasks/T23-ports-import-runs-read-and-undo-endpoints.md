@@ -7,7 +7,7 @@ acs: ["AC-13", "AC-16", "AC-18"]
 files_hint: ["src/FinNavis.Presentation/Endpoints/ImportRuns/Get/", "src/FinNavis.Presentation/Endpoints/ImportRuns/Undo/", "src/FinNavis.Presentation/Program.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T23 — Add the ImportRuns read and undo endpoints: Get and Undo

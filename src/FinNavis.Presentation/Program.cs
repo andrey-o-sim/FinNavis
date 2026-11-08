@@ -2,8 +2,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FinNavis.Application.DependencyInjection;
 using FinNavis.Infrastructure.DependencyInjection;
+using FinNavis.Presentation.Endpoints.ImportRuns.Get;
 using FinNavis.Presentation.Endpoints.ImportRuns.LoadStatement;
 using FinNavis.Presentation.Endpoints.ImportRuns.MigrateHistory;
+using FinNavis.Presentation.Endpoints.ImportRuns.Undo;
 using FinNavis.Presentation.Endpoints.MappingProfiles;
 using FinNavis.Presentation.Errors;
 
@@ -45,6 +47,8 @@ app.MapMappingProfiles();
 RouteGroupBuilder importRuns = app.MapGroup("/api/v1/import-runs").WithTags("Import runs");
 importRuns.MapLoadStatement();
 importRuns.MapMigrateHistory();
+importRuns.MapGetImportRun();
+importRuns.MapUndoImportRun();
 
 app.Run();
 

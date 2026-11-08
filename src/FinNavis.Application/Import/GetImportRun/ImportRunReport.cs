@@ -11,4 +11,4 @@ public sealed record ImportRunReport(
     int RecordedRowCount,
     int AlreadyPresentRowCount,
     DateTimeOffset CreatedAt,
-    IReadOnlyList<ReportedSetAsideRow> SetAside);
+    SetAsideRowPage SetAside);
