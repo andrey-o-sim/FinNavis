@@ -50,6 +50,12 @@
 # PRD §10, which gained a row for each — Import.MappingProfileNotConfirmed, Import.AlreadyUndone
 # and Import.NotRecorded. Import.AlreadyUndone keeps the drafted sentence; the other two were
 # reworded. No code, field, path or status moved; info.version stays 0.1.0.
+#
+# Hand edit (2026-11-08, T27 served-document diff): undoImportRun no longer lists
+# 400 Import.InvalidPaging. The operation takes no paging parameters — its report is always the
+# first page, and the rest is read through getImportRun — so that refusal could never happen.
+# MappingProfile.InvalidRule examples are unchanged: the code now carries their details. No code,
+# field or path moved; info.version stays 0.1.0.
 openapi: 3.1.0
 
 info:
@@ -599,8 +605,6 @@ paths:
                   has_prev: false
                   next_cursor: null
                   prev_cursor: null
-        "400":
-          $ref: "#/components/responses/ImportInvalidPaging"
         "404":
           $ref: "#/components/responses/ImportRunNotFound"
         "409":

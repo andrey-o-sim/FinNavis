@@ -17,7 +17,6 @@ public static class UndoImportRunEndpoint
             .MapPost("/{import_run_id:guid}/undo", UndoAsync)
             .WithName("undoImportRun")
             .DisableAntiforgery()
-            .Produces<ErrorEnvelope>(StatusCodes.Status400BadRequest)
             .Produces<ErrorEnvelope>(StatusCodes.Status404NotFound)
             .Produces<ErrorEnvelope>(StatusCodes.Status409Conflict);
 
