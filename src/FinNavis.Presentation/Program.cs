@@ -20,10 +20,12 @@ builder.Services.AddErrorEnvelope();
 
 // The contract marks a field required and says when it may be null, so a body that leaves one out
 // is refused at binding instead of reaching a use case half-filled. Enums cross the wire by their
-// name, the same string the database stores, never by their number.
+// name, the same string the database stores, never by their number. A number is a JSON number,
+// never a string that happens to hold digits.
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
     options.SerializerOptions.RespectNullableAnnotations = true;
     options.SerializerOptions.RespectRequiredConstructorParameters = true;
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: null, allowIntegerValues: false));

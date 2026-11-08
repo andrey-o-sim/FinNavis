@@ -65,6 +65,20 @@ public sealed class ErrorEnvelopeTests : IDisposable
         body.GetProperty("code").GetString().Should().Be("Request.Invalid");
     }
 
+    // The contracts type every number as a JSON number, so a number sent as a string is a client
+    // bug to refuse, not a value to guess at.
+    [Fact]
+    public async Task Post_NumberSentAsAString_ReturnsInvalidRequestEnvelope()
+    {
+        using var content = new StringContent(
+            """{ "display_name": "x", "count": "5" }""", Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _client.PostAsync(ProbeRoutes.Body, content);
+
+        JsonElement body = await response.ShouldBeEnvelopeAsync(HttpStatusCode.BadRequest);
+        body.GetProperty("code").GetString().Should().Be("Request.Invalid");
+    }
+
     [Fact]
     public async Task Post_BodyWithWrongContentType_ReturnsUnsupportedMediaTypeEnvelope()
     {
