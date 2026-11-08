@@ -29,7 +29,7 @@
 | T21 | Add the `MappingProfiles` endpoints: `Inspect` and `Confirm` | ports | M | T13, T15, T20 | done |
 | T22 | Add the `ImportRuns` load endpoints: `LoadStatement` and `MigrateHistory` | ports | L | T13, T16, T17, T20 | done |
 | T23 | Add the `ImportRuns` read and undo endpoints: `Get` and `Undo` | ports | M | T13, T18, T19, T20 | done |
-| T24 | Quality gate QG-1 — nothing is recorded twice | tests | M | T22 | todo |
+| T24 | Quality gate QG-1 — nothing is recorded twice | tests | M | T22 | done |
 | T25 | Quality gate QG-2 — a load is all-or-nothing, and reversible | tests | L | T22, T23 | todo |
 | T26 | Quality gate QG-3 — a bulk load fits inside one evening's patience | tests | M | T22 | todo |
 | T27 | Diff the served document against the contract and close the deferrals | docs | M | T21, T22, T23 | todo |

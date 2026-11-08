@@ -7,7 +7,7 @@ acs: ["AC-15", "AC-20", "AC-21"]
 files_hint: ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/DuplicateSafetyTests.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T24 — Quality gate QG-1 — nothing is recorded twice
