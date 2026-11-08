@@ -56,6 +56,8 @@ internal sealed class ProbeRoutes : IStartupFilter
             () => ThrowRefusalWithDetails());
 
         endpoints.MapGet(Unexpected, () => ThrowUnexpected());
+
+        ImportProbeRoutes.Map(endpoints);
     }
 
     private static IResult ThrowRefusalWithDetails() =>

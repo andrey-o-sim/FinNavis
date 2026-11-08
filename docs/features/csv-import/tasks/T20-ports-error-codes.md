@@ -7,7 +7,7 @@ acs: ["AC-02", "AC-03", "AC-09", "AC-18"]
 files_hint: ["src/FinNavis.Application/Import/ImportErrors.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Errors/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T20 — Add the Import and MappingProfile error codes to the registry

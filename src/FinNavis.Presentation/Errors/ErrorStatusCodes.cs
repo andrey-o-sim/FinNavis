@@ -41,6 +41,19 @@ public static class ErrorStatusCodes
         ["History.InvalidFilter"] = StatusCodes.Status400BadRequest,
 
         ["Breakdown.InvalidPeriod"] = StatusCodes.Status400BadRequest,
+
+        ["Import.MissingRequiredColumn"] = StatusCodes.Status400BadRequest,
+        ["Import.FileNotReadable"] = StatusCodes.Status400BadRequest,
+        ["Import.InvalidPaging"] = StatusCodes.Status400BadRequest,
+        ["Import.NotFound"] = StatusCodes.Status404NotFound,
+        ["Import.MappingProfileNotConfirmed"] = StatusCodes.Status409Conflict,
+        ["Import.MovementsChangedByHand"] = StatusCodes.Status409Conflict,
+        ["Import.AlreadyUndone"] = StatusCodes.Status409Conflict,
+        ["Import.NotRecorded"] = StatusCodes.Status500InternalServerError,
+
+        ["MappingProfile.InvalidRule"] = StatusCodes.Status400BadRequest,
+        ["MappingProfile.ShapeKeyInvalid"] = StatusCodes.Status400BadRequest,
+        ["MappingProfile.DuplicateSourceCategory"] = StatusCodes.Status409Conflict,
     };
 
     public static IReadOnlyDictionary<string, int> All => StatusByCode;

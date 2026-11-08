@@ -6,6 +6,8 @@ internal static class ImportErrors
 {
     private const string MissingRequiredColumnCode = "Import.MissingRequiredColumn";
 
+    private const string InvalidPagingCode = "Import.InvalidPaging";
+
     public static DomainRuleViolationException RunNotFound(Guid importRunId) =>
         new("Import.NotFound", $"No load in this installation has id {importRunId}.");
 
@@ -21,6 +23,21 @@ internal static class ImportErrors
             "This file does not say the date or the amount, or the account each row belongs to, "
                 + "so nothing can be recorded from it.",
             new Dictionary<string, object> { ["missing"] = missingColumnNames });
+
+    public static DomainRuleViolationException FileNotReadable(Exception readFailure) =>
+        new(
+            "Import.FileNotReadable",
+            "This file could not be read as a statement, so nothing was recorded.",
+            readFailure);
+
+    public static DomainRuleViolationException PagingLimitOutOfRange(int limit, int minLimit, int maxLimit) =>
+        new(
+            InvalidPagingCode,
+            $"'limit' must be between {minLimit} and {maxLimit}.",
+            new Dictionary<string, object> { ["limit"] = limit });
+
+    public static DomainRuleViolationException PagingCursorNotMinted() =>
+        new(InvalidPagingCode, "That is not a cursor this server handed out.");
 
     public static DomainRuleViolationException AccountNotFound(Guid accountId) =>
         new(
