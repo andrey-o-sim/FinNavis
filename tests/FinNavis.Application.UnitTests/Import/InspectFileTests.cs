@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using FinNavis.Application.Abstractions;
 using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Application.Import.InspectFile;
 using FinNavis.Application.UnitTests.Fakes;
@@ -10,6 +12,7 @@ namespace FinNavis.Application.UnitTests.Import;
 public sealed class InspectFileTests
 {
     private const string ShapeKey = "date|description|category|amount";
+    private const string NotReadableMessage = "This file could not be read as a statement, so nothing was recorded.";
     private const string MissingColumnMessage =
         "This file does not say the date or the amount, so nothing can be recorded from it.";
 
@@ -179,6 +182,36 @@ public sealed class InspectFileTests
             token => token.Should().Be(cancellation.Token));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_ReaderRefusesTheRows_IsRefusedAsAFileThatIsNotAStatement()
+    {
+        InvalidDataException readFailure = new("The file has more than 3 rows.");
+        UnreadableStatementReader reader = new(Header(StatementColumn.Account), failingStep: ReadStep.Rows, readFailure);
+
+        Func<Task> inspect = () => InspectAsync(reader);
+
+        DomainRuleViolationException refusal =
+            (await inspect.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.FileNotReadable");
+        refusal.Message.Should().Be(NotReadableMessage);
+        refusal.InnerException.Should().BeSameAs(readFailure);
+        _profiles.Stored.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ReaderRefusesTheHeader_IsRefusedAsAFileThatIsNotAStatement()
+    {
+        UnreadableStatementReader reader = new(
+            Header(StatementColumn.Account),
+            failingStep: ReadStep.Header,
+            new InvalidDataException("The header row is longer than 1000 characters."));
+
+        Func<Task> inspect = () => InspectAsync(reader);
+
+        (await inspect.Should().ThrowAsync<DomainRuleViolationException>())
+            .Which.Code.Should().Be("Import.FileNotReadable");
+    }
+
     private static IEnumerable<string> MissingNames(DomainRuleViolationException refusal)
     {
         refusal.Details.Should().NotBeNull().And.ContainKey("missing");
@@ -222,7 +255,7 @@ public sealed class InspectFileTests
     private static StatementRow Row(int lineNumber, params string[] values) =>
         new(lineNumber, values, string.Join(',', values));
 
-    private async Task<FileInspection> InspectAsync(FakeStatementReader reader)
+    private async Task<FileInspection> InspectAsync(IStatementReader reader)
     {
         using var statement = new MemoryStream();
 
@@ -230,5 +263,39 @@ public sealed class InspectFileTests
             statement,
             ImportFileKind.Statement,
             CancellationToken.None);
+    }
+
+    private enum ReadStep
+    {
+        Header,
+        Rows,
+    }
+
+    // Stands in for a reader that finds the file is not a statement part-way through, the way the
+    // CSV reader does when a file goes over its row ceiling.
+    private sealed class UnreadableStatementReader(
+        StatementHeader header,
+        ReadStep failingStep,
+        InvalidDataException readFailure) : IStatementReader
+    {
+        public Task<StatementHeader> ReadHeaderAsync(
+            Stream statement,
+            ImportFileKind kind,
+            CancellationToken cancellationToken) =>
+            failingStep == ReadStep.Header ? Task.FromException<StatementHeader>(readFailure) : Task.FromResult(header);
+
+        public async IAsyncEnumerable<StatementRow> ReadRowsAsync(
+            Stream statement,
+            ImportFileKind kind,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            yield return Row(2, "2026-10-01", "TEST SHOP ONE", "TEST GROCERIES", "-12.5000");
+            await Task.Yield();
+
+            if (failingStep == ReadStep.Rows)
+            {
+                throw readFailure;
+            }
+        }
     }
 }

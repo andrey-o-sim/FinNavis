@@ -1,6 +1,8 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using FinNavis.Application.DependencyInjection;
 using FinNavis.Infrastructure.DependencyInjection;
+using FinNavis.Presentation.Endpoints.MappingProfiles;
 using FinNavis.Presentation.Errors;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +14,16 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenApi();
 builder.Services.AddErrorEnvelope();
 
+// The contract marks a field required and says when it may be null, so a body that leaves one out
+// is refused at binding instead of reaching a use case half-filled. Enums cross the wire by their
+// name, the same string the database stores, never by their number.
 builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower);
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+    options.SerializerOptions.RespectNullableAnnotations = true;
+    options.SerializerOptions.RespectRequiredConstructorParameters = true;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(namingPolicy: null, allowIntegerValues: false));
+});
 
 var app = builder.Build();
 
@@ -28,6 +38,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // TODO: map feature endpoints (accounts, categories, transactions, transfers).
+app.MapMappingProfiles();
 
 app.Run();
 

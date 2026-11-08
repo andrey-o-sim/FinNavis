@@ -26,7 +26,7 @@
 | T18 | Add the `GetImportRun` use case | app | S | T05, T09 | done |
 | T19 | Add the `UndoImportRun` use case | app | L | T05, T09, T10 | done |
 | T20 | Add the `Import` and `MappingProfile` error codes to the registry | ports | M | T02, T04, T05 | done |
-| T21 | Add the `MappingProfiles` endpoints: `Inspect` and `Confirm` | ports | M | T13, T15, T20 | todo |
+| T21 | Add the `MappingProfiles` endpoints: `Inspect` and `Confirm` | ports | M | T13, T15, T20 | done |
 | T22 | Add the `ImportRuns` load endpoints: `LoadStatement` and `MigrateHistory` | ports | L | T13, T16, T17, T20 | todo |
 | T23 | Add the `ImportRuns` read and undo endpoints: `Get` and `Undo` | ports | M | T13, T18, T19, T20 | todo |
 | T24 | Quality gate QG-1 — nothing is recorded twice | tests | M | T22 | todo |

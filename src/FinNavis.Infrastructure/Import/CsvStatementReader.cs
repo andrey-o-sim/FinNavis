@@ -62,8 +62,16 @@ public sealed class CsvStatementReader(CsvStatementReaderOptions options) : ISta
         }
     }
 
+    // A StreamReader pulls bytes ahead of the line it hands back, so after one pass the stream stands
+    // somewhere past the header, not at the line the next pass expects. Every pass therefore starts
+    // from the first byte when the stream allows it.
     private static StreamReader OpenReader(Stream statement)
     {
+        if (statement.CanSeek)
+        {
+            statement.Position = 0;
+        }
+
         return new StreamReader(statement, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
     }
 

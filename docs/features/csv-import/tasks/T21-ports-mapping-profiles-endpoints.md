@@ -7,7 +7,7 @@ acs: ["AC-01", "AC-02", "AC-03"]
 files_hint: ["src/FinNavis.Presentation/Endpoints/MappingProfiles/", "src/FinNavis.Presentation/Program.cs"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T21 — Add the MappingProfiles endpoints: Inspect and Confirm

@@ -20,14 +20,35 @@ public sealed class InspectFile(IStatementReader statementReader, IMappingProfil
         ImportFileKind kind,
         CancellationToken cancellationToken)
     {
-        StatementHeader header = await statementReader.ReadHeaderAsync(statement, kind, cancellationToken);
-        RequireDateAndAmount(header);
+        (string shapeKey, IReadOnlyList<string> sourceCategories) =
+            await ReadShapeAndCategoriesAsync(statement, kind, cancellationToken);
+        MappingProfile? profile = await mappingProfiles.GetByShapeKeyAsync(shapeKey, cancellationToken);
 
-        IReadOnlyList<string> sourceCategories =
-            await ReadSourceCategoriesAsync(statement, kind, header, cancellationToken);
-        MappingProfile? profile = await mappingProfiles.GetByShapeKeyAsync(header.ShapeKey, cancellationToken);
+        return new FileInspection(shapeKey, profile?.Id, sourceCategories);
+    }
 
-        return new FileInspection(header.ShapeKey, profile?.Id, sourceCategories);
+    // The reader throws InvalidDataException when the file turns out not to be a statement, for
+    // example when it goes over the row ceiling. That is the owner handing over the wrong file, not a
+    // fault, so it is refused like any other unusable file.
+    private async Task<(string ShapeKey, IReadOnlyList<string> SourceCategories)> ReadShapeAndCategoriesAsync(
+        Stream statement,
+        ImportFileKind kind,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            StatementHeader header = await statementReader.ReadHeaderAsync(statement, kind, cancellationToken);
+            RequireDateAndAmount(header);
+
+            IReadOnlyList<string> sourceCategories =
+                await ReadSourceCategoriesAsync(statement, kind, header, cancellationToken);
+
+            return (header.ShapeKey, sourceCategories);
+        }
+        catch (InvalidDataException readFailure)
+        {
+            throw ImportErrors.FileNotReadable(readFailure);
+        }
     }
 
     private static void RequireDateAndAmount(StatementHeader header)
