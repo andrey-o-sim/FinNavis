@@ -3,6 +3,7 @@ using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Application.Import.Pipeline;
 using FinNavis.Domain.Abstractions;
 using FinNavis.Domain.Entities;
+using FinNavis.Domain.Errors;
 
 namespace FinNavis.Application.Import.MigrateHistory;
 
@@ -27,8 +28,7 @@ public sealed class MigrateHistory(
         string fileName,
         CancellationToken cancellationToken)
     {
-        StatementHeader header =
-            await statementReader.ReadHeaderAsync(export, ImportFileKind.Export, cancellationToken);
+        StatementHeader header = await ReadHeaderAsync(export, cancellationToken);
         RequireDateAmountAndAccount(header);
 
         LedgerByName ledger = new(
@@ -39,7 +39,22 @@ public sealed class MigrateHistory(
             clock.UtcNow);
         MigrationPolicy policy = new(header, ledger);
 
-        return await pipeline.RunAsync(export, fileName, policy, cancellationToken);
+        return await RunAsOneLoadAsync(export, fileName, policy, cancellationToken);
+    }
+
+    // The reader throws InvalidDataException when the file turns out not to be an export, for
+    // example when it goes over the row ceiling. That is the owner handing over the wrong file, not a
+    // fault, so it is refused like any other unusable file.
+    private async Task<StatementHeader> ReadHeaderAsync(Stream export, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await statementReader.ReadHeaderAsync(export, ImportFileKind.Export, cancellationToken);
+        }
+        catch (InvalidDataException readFailure)
+        {
+            throw ImportErrors.FileNotReadable(readFailure);
+        }
     }
 
     private static void RequireDateAmountAndAccount(StatementHeader header)
@@ -54,6 +69,30 @@ public sealed class MigrateHistory(
         if (missingColumnNames.Count > 0)
         {
             throw ImportErrors.MissingRequiredExportColumn(missingColumnNames);
+        }
+    }
+
+    // The whole run commits at once, so whatever stopped it, nothing of it reached the ledger — not
+    // the movements and not the accounts and categories it would have created. The owner is told
+    // exactly that, rather than shown the fault itself. A file that turns out not to be an export
+    // while its rows stream is still the wrong file, not a failed load.
+    private async Task<ImportRun> RunAsOneLoadAsync(
+        Stream export,
+        string fileName,
+        MigrationPolicy policy,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await pipeline.RunAsync(export, fileName, policy, cancellationToken);
+        }
+        catch (InvalidDataException readFailure)
+        {
+            throw ImportErrors.FileNotReadable(readFailure);
+        }
+        catch (Exception fault) when (fault is not DomainRuleViolationException and not OperationCanceledException)
+        {
+            throw ImportErrors.NotRecorded(fault);
         }
     }
 }

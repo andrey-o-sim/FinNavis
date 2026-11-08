@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using FinNavis.Application.Abstractions;
 using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Application.Import.ConfirmMappingProfile;
 using FinNavis.Application.Import.InspectFile;
@@ -29,6 +31,11 @@ public sealed class MigrateHistoryTests
     private const string MissingColumnMessage =
         "This file does not say the date or the amount, or the account each row belongs to, "
         + "so nothing can be recorded from it.";
+
+    private const string NotRecordedMessage =
+        "The load stopped before it finished, so nothing from it was recorded and every balance is unchanged.";
+
+    private const string NotReadableMessage = "This file could not be read as a statement, so nothing was recorded.";
 
     private const int DateColumn = 0;
     private const int AmountColumn = 1;
@@ -270,6 +277,62 @@ public sealed class MigrateHistoryTests
         _transactions.Stored.Should().ContainSingle().Which.CategoryId.Should().Be(_groceries.Id);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_CommitFails_RecordsNothingAndSaysTheLoadDidNotHappen()
+    {
+        InvalidOperationException fault = new("Test fault at the commit.");
+        FakeUnitOfWork failingUnitOfWork = new(() => throw fault);
+        FakeStatementReader reader = ExportReader(
+            Row(2, January7, -20m, JarName, BooksName),
+            Row(3, January7.AddDays(1), -12.5m, WalletName, GroceriesName));
+
+        Func<Task> migrate = () => MigrateAsync(reader, failingUnitOfWork);
+
+        DomainRuleViolationException refusal =
+            (await migrate.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.NotRecorded");
+        refusal.Message.Should().Be(NotRecordedMessage);
+        refusal.InnerException.Should().BeSameAs(fault);
+        _runs.Stored.Should().BeEmpty();
+        _transactions.Stored.Should().BeEmpty();
+        _accounts.Stored.Should().HaveCount(2).And.NotContain(account => account.Name == JarName);
+        _categories.Stored.Should().HaveCount(2).And.NotContain(category => category.Name == BooksName);
+    }
+
+    // The reader throws InvalidDataException when the file turns out not to be an export, for
+    // example when it goes over the row ceiling. That is the owner handing over the wrong file, so
+    // it is refused as such and never reported as a load that broke part-way.
+    [Fact]
+    public async Task ExecuteAsync_ReaderRefusesTheRows_IsRefusedAsAFileThatIsNotAStatement()
+    {
+        InvalidDataException readFailure = new("The file has more than 1 rows.");
+        UnreadableExportReader reader = new(Header(), ReadStep.Rows, readFailure);
+
+        Func<Task> migrate = () => MigrateAsync(reader);
+
+        DomainRuleViolationException refusal =
+            (await migrate.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.FileNotReadable");
+        refusal.Message.Should().Be(NotReadableMessage);
+        refusal.InnerException.Should().BeSameAs(readFailure);
+        AssertNothingWritten();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ReaderRefusesTheHeader_IsRefusedAsAFileThatIsNotAStatement()
+    {
+        InvalidDataException readFailure = new("The header row is not an export header.");
+        UnreadableExportReader reader = new(Header(), ReadStep.Header, readFailure);
+
+        Func<Task> migrate = () => MigrateAsync(reader);
+
+        DomainRuleViolationException refusal =
+            (await migrate.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.FileNotReadable");
+        refusal.InnerException.Should().BeSameAs(readFailure);
+        AssertNothingWritten();
+    }
+
     // The export already names accounts and categories in the owner's own words, so there is no
     // rule to look up and nothing for the owner to confirm before the history moves across.
     [Fact]
@@ -370,14 +433,14 @@ public sealed class MigrateHistoryTests
         _categories.Stored.Should().HaveCount(2);
     }
 
-    private async Task<ImportRun> MigrateAsync(FakeStatementReader reader)
+    private async Task<ImportRun> MigrateAsync(IStatementReader reader, FakeUnitOfWork? unitOfWork = null)
     {
         ImportPipeline pipeline = new(
             reader,
             _importQueries,
             _transactions,
             _runs,
-            _unitOfWork,
+            unitOfWork ?? _unitOfWork,
             new FixedClock(LoadedAt));
 
         MigrateHistoryUseCase migrateHistory = new(
@@ -388,5 +451,34 @@ public sealed class MigrateHistoryTests
             new FixedClock(LoadedAt));
 
         return await migrateHistory.ExecuteAsync(Stream.Null, FileName, CancellationToken.None);
+    }
+
+    private enum ReadStep
+    {
+        Header,
+        Rows,
+    }
+
+    private sealed class UnreadableExportReader(
+        StatementHeader header,
+        ReadStep failingStep,
+        InvalidDataException readFailure) : IStatementReader
+    {
+        public Task<StatementHeader> ReadHeaderAsync(
+            Stream statement,
+            ImportFileKind kind,
+            CancellationToken cancellationToken) =>
+            failingStep == ReadStep.Header ? Task.FromException<StatementHeader>(readFailure) : Task.FromResult(header);
+
+        public async IAsyncEnumerable<StatementRow> ReadRowsAsync(
+            Stream statement,
+            ImportFileKind kind,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            yield return Row(2, January7, -20m, JarName, BooksName);
+            await Task.Yield();
+
+            throw readFailure;
+        }
     }
 }

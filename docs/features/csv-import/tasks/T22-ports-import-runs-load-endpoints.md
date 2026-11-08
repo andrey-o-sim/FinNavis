@@ -7,7 +7,7 @@ acs: ["AC-05", "AC-09", "AC-13", "AC-22"]
 files_hint: ["src/FinNavis.Presentation/Endpoints/ImportRuns/LoadStatement/", "src/FinNavis.Presentation/Endpoints/ImportRuns/MigrateHistory/", "src/FinNavis.Presentation/Program.cs"]
 owner: "Andrey Simonenko"
 estimate: "L"
-status: "todo"
+status: "done"
 ---
 
 # T22 — Add the ImportRuns load endpoints: LoadStatement and MigrateHistory

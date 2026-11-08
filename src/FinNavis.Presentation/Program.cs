@@ -2,6 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FinNavis.Application.DependencyInjection;
 using FinNavis.Infrastructure.DependencyInjection;
+using FinNavis.Presentation.Endpoints.ImportRuns.LoadStatement;
+using FinNavis.Presentation.Endpoints.ImportRuns.MigrateHistory;
 using FinNavis.Presentation.Endpoints.MappingProfiles;
 using FinNavis.Presentation.Errors;
 
@@ -39,6 +41,10 @@ app.UseHttpsRedirection();
 
 // TODO: map feature endpoints (accounts, categories, transactions, transfers).
 app.MapMappingProfiles();
+
+RouteGroupBuilder importRuns = app.MapGroup("/api/v1/import-runs").WithTags("Import runs");
+importRuns.MapLoadStatement();
+importRuns.MapMigrateHistory();
 
 app.Run();
 

@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
+using FinNavis.Application.Abstractions;
 using FinNavis.Application.Abstractions.Reads;
 using FinNavis.Application.Common;
 using FinNavis.Application.Import.Pipeline;
@@ -31,6 +33,11 @@ public sealed class LoadStatementTests
 
     private const string NotRecordedMessage =
         "The load stopped before it finished, so nothing from it was recorded and every balance is unchanged.";
+
+    private const string NotReadableMessage = "This file could not be read as a statement, so nothing was recorded.";
+
+    private const string MissingColumnMessage =
+        "This file does not say the date or the amount, so nothing can be recorded from it.";
 
     private const int DateColumn = 0;
     private const int CategoryColumn = 1;
@@ -318,6 +325,66 @@ public sealed class LoadStatementTests
         _transactions.Stored.Should().HaveCount(2).And.OnlyContain(transaction => transaction.AccountId == _wallet.Id);
     }
 
+    // The reader throws InvalidDataException when the file turns out not to be a statement, for
+    // example when it goes over the row ceiling. That is the owner handing over the wrong file, so
+    // it is refused as such and never reported as a load that broke part-way.
+    [Fact]
+    public async Task ExecuteAsync_ReaderRefusesTheRows_IsRefusedAsAFileThatIsNotAStatement()
+    {
+        SeedProfile(coverCafe: true);
+        InvalidDataException readFailure = new("The file has more than 1 rows.");
+        UnreadableStatementReader reader = new(Header(), ReadStep.Rows, readFailure);
+
+        Func<Task> load = () => LoadAsync(reader, _unitOfWork, _wallet.Id);
+
+        DomainRuleViolationException refusal =
+            (await load.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.FileNotReadable");
+        refusal.Message.Should().Be(NotReadableMessage);
+        refusal.InnerException.Should().BeSameAs(readFailure);
+        AssertNothingWritten();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ReaderRefusesTheHeader_IsRefusedAsAFileThatIsNotAStatement()
+    {
+        SeedProfile(coverCafe: true);
+        InvalidDataException readFailure = new("The header row is not a statement header.");
+        UnreadableStatementReader reader = new(Header(), ReadStep.Header, readFailure);
+
+        Func<Task> load = () => LoadAsync(reader, _unitOfWork, _wallet.Id);
+
+        DomainRuleViolationException refusal =
+            (await load.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.FileNotReadable");
+        refusal.InnerException.Should().BeSameAs(readFailure);
+        AssertNothingWritten();
+    }
+
+    [Theory]
+    [InlineData(StatementColumn.Date, "date")]
+    [InlineData(StatementColumn.Amount, "amount")]
+    public async Task ExecuteAsync_StatementMissingDateOrAmount_RefusesNamingTheColumnAndRecordsNothing(
+        StatementColumn missing,
+        string missingName)
+    {
+        SeedProfile(coverCafe: true);
+        FakeStatementReader reader = new(
+            HeaderWithout(missing),
+            [Row(3, StatementDay, 12.5m, GroceriesInFile)]);
+
+        Func<Task> load = () => LoadAsync(reader, _unitOfWork, _wallet.Id);
+
+        DomainRuleViolationException refusal =
+            (await load.Should().ThrowAsync<DomainRuleViolationException>()).Which;
+        refusal.Code.Should().Be("Import.MissingRequiredColumn");
+        refusal.Message.Should().Be(MissingColumnMessage);
+        refusal.Details.Should().NotBeNull().And.ContainKey("missing");
+        refusal.Details!["missing"].Should().BeAssignableTo<IEnumerable<string>>()
+            .Which.Should().Equal(missingName);
+        AssertNothingWritten();
+    }
+
     private static StatementRow Row(
         int lineNumber,
         DateOnly day,
@@ -368,6 +435,19 @@ public sealed class LoadStatementTests
         }
 
         return new StatementHeader(ColumnNames, ShapeKey, missing, positions);
+    }
+
+    private static StatementHeader HeaderWithout(StatementColumn missing)
+    {
+        StatementHeader header = Header();
+        Dictionary<StatementColumn, int> positions = new(header.ColumnPositions);
+        positions.Remove(missing);
+
+        return new StatementHeader(
+            header.ColumnNames,
+            header.ShapeKey,
+            new HashSet<StatementColumn>(header.MissingColumns) { missing },
+            positions);
     }
 
     private static MappingRule CategoryRule(string sourceCategory, Guid categoryId) =>
@@ -429,7 +509,7 @@ public sealed class LoadStatementTests
         LoadAsync(new FakeStatementReader(Header(), rows), unitOfWork, accountId);
 
     private async Task<ImportRun> LoadAsync(
-        FakeStatementReader reader,
+        IStatementReader reader,
         FakeUnitOfWork unitOfWork,
         Guid accountId)
     {
@@ -449,5 +529,34 @@ public sealed class LoadStatementTests
             new LedgerOptions(LedgerCurrency));
 
         return await loadStatement.ExecuteAsync(Stream.Null, FileName, accountId, CancellationToken.None);
+    }
+
+    private enum ReadStep
+    {
+        Header,
+        Rows,
+    }
+
+    private sealed class UnreadableStatementReader(
+        StatementHeader header,
+        ReadStep failingStep,
+        InvalidDataException readFailure) : IStatementReader
+    {
+        public Task<StatementHeader> ReadHeaderAsync(
+            Stream statement,
+            ImportFileKind kind,
+            CancellationToken cancellationToken) =>
+            failingStep == ReadStep.Header ? Task.FromException<StatementHeader>(readFailure) : Task.FromResult(header);
+
+        public async IAsyncEnumerable<StatementRow> ReadRowsAsync(
+            Stream statement,
+            ImportFileKind kind,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            yield return Row(3, StatementDay, 12.5m, GroceriesInFile);
+            await Task.Yield();
+
+            throw readFailure;
+        }
     }
 }
