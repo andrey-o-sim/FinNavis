@@ -1,4 +1,3 @@
-using System.Globalization;
 using FinNavis.Infrastructure.IntegrationTests.Fixtures;
 
 namespace FinNavis.Infrastructure.IntegrationTests.Seeding;
@@ -21,8 +20,6 @@ internal static class SyntheticExport
     private const int IncomeEvery = 20;
 
     private const int RandomSeed = 1_500;
-
-    private const string DateFormat = "yyyy.MM.dd";
 
     private const string IncomeGroup = "Test earnings";
 
@@ -48,32 +45,47 @@ internal static class SyntheticExport
     // seeded movement already in the ledger and every row is recorded.
     public static DateOnly FirstDay => LedgerSeeder.LastDay.AddDays(1);
 
-    public static byte[] Create(int rowCount, IReadOnlyList<string> accountNames)
-    {
-        Random random = new(RandomSeed);
-        string[][] rows = [.. Enumerable.Range(0, rowCount).Select(index => Row(index, accountNames, random))];
+    public static byte[] Create(int rowCount, IReadOnlyList<string> accountNames) =>
+        ToFile(Rows(rowCount, accountNames, index => FirstDay.AddDays(index / RowsPerDay)));
 
-        return SyntheticFile.Export(SyntheticFile.ExportHeader, rows);
+    // The same three years the seeded ledger covers, so a load reads the seeded movements of the
+    // accounts it names into its candidate snapshot instead of an empty stretch of the ledger.
+    public static IReadOnlyList<SyntheticExportRow> RowsAcrossSeededYears(
+        int rowCount,
+        IReadOnlyList<string> accountNames)
+    {
+        int seededDays = LedgerSeeder.LastDay.DayNumber - LedgerSeeder.FirstDay.DayNumber + 1;
+
+        return Rows(rowCount, accountNames, index => LedgerSeeder.FirstDay.AddDays(index * seededDays / rowCount));
     }
 
-    private static string[] Row(int index, IReadOnlyList<string> accountNames, Random random)
+    public static byte[] ToFile(IEnumerable<SyntheticExportRow> rows) =>
+        SyntheticFile.Export(SyntheticFile.ExportHeader, [.. rows.Select(row => row.ToFields())]);
+
+    private static SyntheticExportRow[] Rows(
+        int rowCount,
+        IReadOnlyList<string> accountNames,
+        Func<int, DateOnly> dayOf)
     {
-        string date = FirstDay.AddDays(index / RowsPerDay).ToString(DateFormat, CultureInfo.InvariantCulture);
+        Random random = new(RandomSeed);
+
+        return [.. Enumerable.Range(0, rowCount).Select(index => Row(index, dayOf(index), accountNames, random))];
+    }
+
+    private static SyntheticExportRow Row(int index, DateOnly day, IReadOnlyList<string> accountNames, Random random)
+    {
         string account = accountNames[index % accountNames.Count];
 
         if (index % IncomeEvery == 0)
         {
             decimal pay = random.Next(100_000, 3_000_000) / 100m;
 
-            return [date, Format(pay), string.Empty, account, IncomeCategoryName, IncomeGroup, IncomeMerchant];
+            return new SyntheticExportRow(day, pay, account, IncomeCategoryName, IncomeGroup, IncomeMerchant);
         }
 
         (string category, string group, string merchant) = Spends[index % Spends.Length];
         decimal spent = random.Next(100, 200_000) / 100m;
 
-        return [date, Format(-spent), string.Empty, account, category, group, merchant];
+        return new SyntheticExportRow(day, -spent, account, category, group, merchant);
     }
-
-    // The real file drops trailing zeros: "-468", "-412.15".
-    private static string Format(decimal amount) => amount.ToString("0.##", CultureInfo.InvariantCulture);
 }

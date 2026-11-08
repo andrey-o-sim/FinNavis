@@ -31,7 +31,7 @@
 | T23 | Add the `ImportRuns` read and undo endpoints: `Get` and `Undo` | ports | M | T13, T18, T19, T20 | done |
 | T24 | Quality gate QG-1 — nothing is recorded twice | tests | M | T22 | done |
 | T25 | Quality gate QG-2 — a load is all-or-nothing, and reversible | tests | L | T22, T23 | done |
-| T26 | Quality gate QG-3 — a bulk load fits inside one evening's patience | tests | M | T22 | todo |
+| T26 | Quality gate QG-3 — a bulk load fits inside one evening's patience | tests | M | T22 | done |
 | T27 | Diff the served document against the contract and close the deferrals | docs | M | T21, T22, T23 | todo |
 | T28 | Rebuild the CSV adapter and the sample files for the real file shapes | infra | L | T12 | done |
 

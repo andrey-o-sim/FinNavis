@@ -7,7 +7,7 @@ acs: ["AC-10"]
 files_hint: ["tests/FinNavis.Infrastructure.IntegrationTests/Quality/MigrateHistoryLatencyTests.cs", "tests/FinNavis.Infrastructure.IntegrationTests/Seeding/"]
 owner: "Andrey Simonenko"
 estimate: "M"
-status: "todo"
+status: "done"
 ---
 
 # T26 — Quality gate QG-3 — a bulk load fits inside one evening's patience
