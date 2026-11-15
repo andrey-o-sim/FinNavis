@@ -119,6 +119,23 @@ function Set-WEnvPort([string]$Path, [int]$Port) {
     Write-WUtf8File $Path $text
 }
 
+# Host and port only. The rest of the connection string holds the password.
+function Get-WServer([string]$ConnectionString) {
+    $server = 'localhost'
+    $port = '5432'
+    foreach ($part in $ConnectionString -split ';') {
+        $key, $value = $part -split '=', 2
+        if ($key.Trim() -match '^(host|server)$') { $server = $value.Trim() }
+        if ($key.Trim() -match '^port$') { $port = $value.Trim() }
+    }
+    "${server}:$port"
+}
+
+function Write-WErrorTail([string[]]$Output) {
+    Write-Host '   Last lines of the output:'
+    $Output | Where-Object { $_.Trim() -and $_ -notmatch '^\s+at ' } | Select-Object -Last 8 | ForEach-Object { Write-Host "     $_" }
+}
+
 # build.ps1 ends with `exit`, so it runs in a child process. The child inherits the variable;
 # the parent clears it again in `finally`.
 function Invoke-WWithConnection([string]$Directory, [string]$ConnectionString, [string[]]$Command) {
@@ -126,8 +143,8 @@ function Invoke-WWithConnection([string]$Directory, [string]$ConnectionString, [
     [Environment]::SetEnvironmentVariable($script:WConnectionVariable, $ConnectionString, 'Process')
     Push-Location $Directory
     try {
-        & $Command[0] $Command[1..($Command.Length - 1)] *> $null
-        $LASTEXITCODE -eq 0
+        $output = & $Command[0] $Command[1..($Command.Length - 1)] 2>&1 | ForEach-Object { "$_" }
+        [pscustomobject]@{ Succeeded = ($LASTEXITCODE -eq 0); Output = @($output) }
     }
     finally {
         Pop-Location
@@ -188,10 +205,13 @@ function w {
         } else {
             Write-Host "w: creating database $database and applying migrations ..."
             $shell = (Get-Process -Id $PID).Path
-            $applied = Invoke-WWithConnection $dir $connectionString @($shell, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', './build.ps1', 'db-update')
-            if (-not $applied) {
-                Write-Warning ("w: database not ready. Is PostgreSQL running? Then, inside ${dir}: " +
-                    "set `$env:$($script:WConnectionVariable) to the connection string from launchSettings.json and run ./build.ps1 db-update")
+            $result = Invoke-WWithConnection $dir $connectionString @($shell, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', './build.ps1', 'db-update')
+            if (-not $result.Succeeded) {
+                Write-Warning "w: migrations not applied. Server $(Get-WServer $connectionString), database $database."
+                Write-WErrorTail $result.Output
+                Write-Host '   Fix the cause, then run:'
+                Write-Host ('   cd "{0}"; $env:{1} = (Get-Content -Raw {2} | ConvertFrom-Json).profiles.http.environmentVariables.{1}; ./build.ps1 db-update' -f
+                    $dir, $script:WConnectionVariable, $script:WLaunchSettings)
             }
         }
     }
@@ -237,11 +257,13 @@ function w-rm {
         if ($answer -cne $database) {
             throw 'w-rm: names do not match. Nothing was changed.'
         }
-        $dropped = Invoke-WWithConnection $dir $connectionString @(
+        $result = Invoke-WWithConnection $dir $connectionString @(
             'dotnet', 'ef', 'database', 'drop', '--force',
             '--project', 'src/FinNavis.Infrastructure',
             '--startup-project', 'src/FinNavis.Presentation')
-        if (-not $dropped) {
+        if (-not $result.Succeeded) {
+            Write-Host "   Server $(Get-WServer $connectionString), database $database."
+            Write-WErrorTail $result.Output
             throw 'w-rm: could not drop the database. The worktree is kept.'
         }
     }

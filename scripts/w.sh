@@ -112,6 +112,20 @@ _w_connection_string() {
     '.profiles.http.environmentVariables[$var] // empty' "$1" | tr -d '\r'
 }
 
+# Host and port only. The rest of the connection string holds the password.
+_w_server() {
+  printf '%s' "$1" | tr ';' '\n' | awk -F= '
+    { key = tolower($1); gsub(/ /, "", key); value = $2; gsub(/^ +| +$/, "", value) }
+    key == "host" || key == "server" { host = value }
+    key == "port" { port = value }
+    END { printf "%s:%s", (host == "" ? "localhost" : host), (port == "" ? "5432" : port) }'
+}
+
+_w_print_error_tail() {
+  echo "   Last lines of the output:" >&2
+  grep -Ev '^[[:space:]]*$|^[[:space:]]+at ' "$1" | tail -n 8 | sed 's/^/     /' >&2
+}
+
 w() {
   local branch="$1"
   if [ -z "$branch" ]; then
@@ -168,11 +182,17 @@ w() {
       echo "w: warning — no $_W_CONNECTION_VARIABLE in the http profile, migrations skipped" >&2
     else
       echo "w: creating database $database and applying migrations ..."
-      if ! (cd "$dir" && export "$_W_CONNECTION_VARIABLE=$connection_string" && ./build.sh db-update >/dev/null 2>&1); then
-        echo "w: warning — database not ready. Is PostgreSQL running? Then, inside $dir:" >&2
-        echo "   export $_W_CONNECTION_VARIABLE=<connection string from launchSettings.json>" >&2
-        echo "   ./build.sh db-update" >&2
+      local log
+      log="$(mktemp)"
+      if ! (cd "$dir" && export "$_W_CONNECTION_VARIABLE=$connection_string" && ./build.sh db-update >"$log" 2>&1); then
+        echo "w: warning — migrations not applied." >&2
+        echo "   Server $(_w_server "$connection_string"), database $database." >&2
+        _w_print_error_tail "$log"
+        echo "   Fix the cause, then run:" >&2
+        printf "   cd \"%s\" && export %s=\"\$(jq -r '.profiles.http.environmentVariables.%s' %s)\" && ./build.sh db-update\n" \
+          "$dir" "$_W_CONNECTION_VARIABLE" "$_W_CONNECTION_VARIABLE" "$_W_LAUNCH_SETTINGS" >&2
       fi
+      rm -f "$log"
     fi
   fi
 
@@ -230,13 +250,19 @@ w-rm() {
       echo "w-rm: names do not match. Nothing was changed." >&2
       return 1
     fi
+    local log
+    log="$(mktemp)"
     (cd "$dir" && export "$_W_CONNECTION_VARIABLE=$connection_string" &&
       dotnet ef database drop --force \
         --project src/FinNavis.Infrastructure \
-        --startup-project src/FinNavis.Presentation) || {
+        --startup-project src/FinNavis.Presentation >"$log" 2>&1) || {
       echo "w-rm: could not drop the database. The worktree is kept." >&2
+      echo "   Server $(_w_server "$connection_string"), database $database." >&2
+      _w_print_error_tail "$log"
+      rm -f "$log"
       return 1
     }
+    rm -f "$log"
   fi
 
   git -C "$main_root" worktree remove "$dir" || {
