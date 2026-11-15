@@ -247,7 +247,7 @@ dotnet ef database update \
 
 ## Git
 
-Branch names, commit format and the pull request flow are in `.claude/rules/git.md`.
+- Branch names, commit format and the pull request flow are in `.claude/rules/git.md`.
 
 ## Safety
 

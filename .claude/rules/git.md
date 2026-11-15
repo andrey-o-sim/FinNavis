@@ -12,6 +12,32 @@ merge step and protect nothing. Add them in this file when releases start, not b
 Everything else is a short-lived work branch, cut from `master` and merged back into `master` by
 pull request.
 
+## Merging worktree branches back
+- Merge one branch at a time, never all at once. Land the first, confirm `master`
+  is intact, then take the next. That way you always know which merge broke
+  something if anything does.
+- Review every branch before merging it: read the diff with `git diff master..<branch>`
+  (or `/diff` inside a session). No worktree branch enters `master` unreviewed.
+- Run `git pull` before you push, so other people's merges into `master` arrive
+  first and conflicts get resolved locally. Conflicts on shared files are the
+  normal cost of parallel work, not a surprise: plan for the resolution step.
+
+## Pushing
+- Always push to a named branch with an explicit name, for example
+  `git push origin worktree-feature-a`. Never push straight to `master`.
+- A push hook (`.claude/hooks/block-master-push.sh`) catches an accidental push to
+  `master` and stops it. The real protection is server-side branch protection; the
+  hook only backs you up against the obvious cases.
+
+## Cleanup
+- Push first, then remove. `git worktree remove` (or removing on session exit)
+  discards uncommitted work and even commits, so an unpushed branch is lost work.
+- Make `git worktree remove` and `git worktree prune` a habit: clean up a
+  worktree as soon as you finish with its branch, so the repo never fills up with
+  abandoned worktrees.
+- A manual `git worktree remove` only removes the directory. The branch stays, so
+  delete it separately with `git branch -d <branch>` once it is merged.
+
 ### Prefix — pick by the task
 
 | Prefix     | Use it for                                                              |
