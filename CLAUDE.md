@@ -216,6 +216,8 @@ Use the task runner. It is the same set of tasks on both platforms:
 On Windows PowerShell use `./build.ps1` with the same task names, for example
 `./build.ps1 migrate AddAccounts`.
 
+For a parallel worktree with its own port and its own database, use `scripts/w.sh` (`source scripts/w.sh; w feature/<slug>`) or `scripts/w.ps1` — usage is in the file header.
+
 Before the first `run`, `migrate`, or `db-update`, create the local settings file:
 
 ```bash
