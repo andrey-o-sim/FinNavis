@@ -59,16 +59,19 @@ build green, it stops being a chore and becomes `feature/` or `bugfix/`.
 ### Name
 
 ```
+<prefix>/<task id>
 <prefix>/<short-slug>
 ```
 
-- Lowercase, dash-separated, no spaces, no underscores.
-- Three or four words. The slug says what changes, not how: `feature/csv-import-endpoint`, not
-  `feature/add-new-endpoint-for-the-csv-import-feature`.
-- No issue number. This repo has no issue tracker.
+- Dash-separated, no spaces, no underscores.
+- It's preferable to have the task id right after the prefix: `feature/T01`. The task id is the
+  `T<NN>` from `docs/features/<slug>/tasks/tasks.json`. One branch carries out one task.
+- A branch with no task uses a slug of three or four words. The slug says what changes, not how:
+  `feature/csv-import-endpoint`, not `feature/add-new-endpoint-for-the-csv-import-feature`.
+- No external issue number. This repo has no issue tracker — the task id is the only id.
 
-Good: `feature/transfer-rounding`, `docs/git-rules`, `bugfix/balance-off-by-one`,
-`test/account-repository-integration`, `chore/bump-npgsql`.
+Good: `feature/T01`, `bugfix/T07`, `feature/transfer-rounding`, `docs/git-rules`,
+`bugfix/balance-off-by-one`, `test/account-repository-integration`, `chore/bump-npgsql`.
 
 Bad: `feature/1`, `feature/2-skill`, `my-branch`, `fix_stuff`.
 
@@ -142,8 +145,16 @@ test(domain): cover the transfer rounding edge cases
 chore(skills): add finnavis-fix-term as the one owner of the glossary
 ```
 
-**Claude:** commit without asking. A commit is local and reversible — the gate that matters is the
-push. One logical change per commit: do not bundle a refactor into a feature commit.
+### Before every commit
+
+- `./build.sh build` passes. Warnings are errors here, so a warning is a failure.
+- `./build.sh test` passes, architecture tests included.
+- No `launchSettings.json`, `.env`, `*.pem`, `*.key` or real financial data in the staged diff
+  (`CLAUDE.md` §Safety).
+
+**Claude:** commit without asking, once the three checks above pass. A commit is local and
+reversible — the gate that matters is the push. One logical change per commit: do not bundle a
+refactor into a feature commit.
 
 ## Pull requests
 
@@ -154,18 +165,9 @@ agent.
 - **Merge** is a squash merge. The branch is short-lived and its intermediate commits are noise;
   the squashed subject is the branch's one Conventional Commit line.
 - **Delete** the branch after the merge, local and remote.
-- **Title** follows the same Conventional Commit format as a commit subject — it becomes the
-  squashed commit.
-- **Body** states what changed and why in short bullets, and links the ADR, PRD or feature document
-  the work follows.
+- **Title, body and task reference** are set by `.claude/skills/finnavis-pr-create/SKILL.md`.
+  Open a PR through that skill.
 - The PR is self-review. There is no second reviewer. Read your own diff before you open it.
-
-### Before opening a PR
-
-- `./build.sh build` passes. Warnings are errors here, so a warning is a failure.
-- `./build.sh test` passes, architecture tests included.
-- No `launchSettings.json`, `.env`, `*.pem`, `*.key` or real financial data in the diff
-  (`CLAUDE.md` §Safety).
 
 **Claude:** two gates, both explicit.
 
