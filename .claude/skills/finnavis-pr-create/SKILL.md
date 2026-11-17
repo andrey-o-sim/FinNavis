@@ -3,18 +3,19 @@ name: finnavis-pr-create
 description: >
   Opens a pull request into master for the current work branch of FinNavis (a solo, self-hosted
   .NET pet project on GitHub). Owns the PR title convention — a Conventional Commit line that
-  becomes the squash commit, with the task ids at the end, for example
-  "feat(csv-import): match a row on its external reference (T14)" — the fixed body template, and
-  the link to the task file under docs/features/<slug>/tasks/. Finds the task ids by itself from
-  the arguments, the branch name, the commit messages and tracker.md, and checks them against
-  tasks.json. Picks the commit type from the diff and asks only when the code does not make it
-  clear. Keeps the two approval gates of .claude/rules/git.md: one before git push, one before
+  becomes the squash commit, with the task id as the scope: "feat(t14): match a row on its
+  external reference", or "chore: bump npgsql" when there is no task — the fixed body template,
+  and the link to the task file under docs/features/<slug>/tasks/. Takes the task id first from
+  the branch name (feature/T14 means task T14), then from the arguments, the commit messages and
+  tracker.md, and checks it against tasks.json. One branch carries out one task. Picks the commit
+  type from the diff and asks only when the code does not make it clear. Keeps the two approval gates of .claude/rules/git.md: one before git push, one before
   gh pr create. Use this whenever the user wants to open, create, prepare or draft a PR, or push a
   branch for review in this repo — including phrasings like "создай PR", "открой пулл реквест",
   "сделай PR для T14", "подготовь описание PR", "запушь и открой PR", "/finnavis-pr-create" —
   even when they do not say the words pull request. Prefer it over a generic PR flow in this repo.
-  Refuses on master, with a dirty tree, and on a branch with no commits ahead of master.
-argument-hint: "[task ids, e.g. T14 or csv-import/T09,T10] [--dry-run]"
+  Refuses on master, with a dirty tree, on a branch with no commits ahead of master, and on a
+  branch that carries out more than one task.
+argument-hint: "[task id, e.g. T14 or csv-import/T14] [--dry-run]"
 allowed-tools: Bash, Read, Grep, Glob, Write, AskUserQuestion
 ---
 
@@ -33,7 +34,8 @@ Talk to the user in the language they wrote in. The title and body are always En
 
 ## Arguments
 
-- Task ids, optional: `T14`, `T09,T10`, or with the feature slug `csv-import/T14`.
+- Task id, optional: `T14`, or with the feature slug `csv-import/T14`. Usually not needed — the
+  branch name already carries it.
 - `--dry-run`: build the title and body, write them to a file, and stop. No push, no PR. Write to
   the path the user gives, or else to `pr-draft.md` in the scratchpad directory. The file holds the
   title on the first line, an empty line, then the body.
@@ -60,31 +62,43 @@ For a large diff, read the stat first and then only the files that decide the ty
 subject. Also check `gh pr list --head <branch>`: if a PR already exists for this branch, tell the
 user and stop — this skill opens PRs, it does not edit them.
 
-## Step 3 — Find the tasks
+## Step 3 — Find the task
 
 A task is an internal one: a `T<NN>` entry in `docs/features/<slug>/tasks/tasks.json`, with its
 file `docs/features/<slug>/tasks/T<NN>-<name>.md`. There is no external tracker.
 
-Look for task ids in this order, and collect every one you find:
+One branch carries out one task. So the result of this step is exactly one task, or none.
+
+**The branch name comes first.** A branch named `<prefix>/T<NN>` — for example `feature/T01` or
+`bugfix/t07` — is the work of task `T<NN>`. The id is the part right after the prefix; match it
+without regard to case. When the branch name gives an id, use it and treat the sources below only
+as a cross-check.
+
+When the branch name gives no id, look in this order:
 
 1. The skill arguments.
-2. The branch name, for example `feature/csv-import-t14-matcher`.
-3. The commit messages on the branch.
-4. The diff of any `docs/features/<slug>/tasks/tracker.md` — a row whose status changed to `done`
-   or `review` on this branch is a task this branch carries out.
+2. The commit messages on the branch.
+3. The diff of any `docs/features/<slug>/tasks/tracker.md` — a row whose status changed to `done`
+   or `review` on this branch is the task this branch carries out.
 
-Then check each id:
+Then check the id:
 
-- The slug comes from the argument, the commit scope, or the tracker path. If two features both
-  have a `T14` and nothing tells which one, ask.
+- The branch name does not carry the feature slug, and the same `T<NN>` can exist in several
+  features. Find the slug from the argument, the tracker path, the feature folder the diff
+  touches, or the commit scope. Check `tasks.json` of every feature. If the id exists in more than
+  one feature and nothing on the branch tells which one, ask.
 - The id must exist in that feature's `tasks.json`. An id that does not exist is a mistake —
   tell the user and ask, do not drop it silently and do not invent a task.
 - Find the task file with `ls docs/features/<slug>/tasks/T<NN>-*.md`.
 
-No task found is a normal outcome — a `chore/` or `docs/` branch often has none. Then the title has
-no task suffix and the body has no `## Task` section. Do not ask the user for a task in that case.
+Stop and ask when the sources disagree — the branch says `T01` and a commit or the tracker says
+`T02` — or when the branch clearly carries out more than one task. One branch per task is the
+rule; tell the user and suggest splitting the branch. Do not pick one task yourself.
 
-## Step 4 — Pick the type and the scope
+No task found is a normal outcome — a `chore/` or `docs/` branch often has none. Then the title has
+no scope and the body has no `## Task` section. Do not ask the user for a task in that case.
+
+## Step 4 — Pick the type
 
 The type list is closed: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`,
 `perf`. Pick by what the squashed change does to `master` as a whole, not by the first commit:
@@ -106,35 +120,42 @@ If the diff does not make the type clear — for example a change that could be 
 depending on whether the old behaviour was intended — ask the user with `AskUserQuestion`. Give the
 two candidate types and one line each on why. Do not guess.
 
-Scope: the feature slug when the work belongs to one feature (`csv-import`), else the layer or
-area (`domain`, `infrastructure`, `presentation`, `build`, `skills`). Leave it out only when the
-change really is repo-wide.
-
 Breaking change: a removed or renamed endpoint, field, or error code, or a changed meaning of an
-existing one. Mark it with `!` after the scope and add the footer in the body (see below).
+existing one. Mark it with `!` right before the colon and add the footer in the body (see below).
 
 ## Step 5 — Write the title
 
+The PR title has its own scope rule. It is not the commit scope from `git.md`: in a PR title the
+scope is the task id, and nothing else.
+
+With a task:
+
 ```
-<type>(<scope>)<!>: <subject> (<task ids>)
+<type>(<task id>)<!>: <subject>
 ```
 
+Without a task:
+
+```
+<type><!>: <subject>
+```
+
+- Task id: lowercase, exactly as `tasks.json` numbers it — `t01`, `t14`. No feature slug, no
+  layer, no area.
+- No task → no brackets at all. Do not put a slug or a layer there instead.
 - Subject: imperative mood, lowercase, no full stop. It says what changed for the product or the
   repo, not which files changed.
-- Task ids: `(T14)` for one, `(T09, T10)` for several, in number order. The slug is not repeated —
-  it is already the scope. If the scope is not the slug (rare), write `(csv-import/T14)`.
-- No task → no brackets at the end.
-- The whole title, suffix included, is 72 characters or fewer. If it is longer, shorten the
-  subject. Never drop the task ids to make it fit.
+- The whole title is 72 characters or fewer. If it is longer, shorten the subject. Never drop the
+  task id to make it fit.
 
 Examples:
 
 ```
-feat(csv-import): match a row on its external reference first (T14)
-feat(core-ledger): record a transfer between two accounts (T09, T22)
-fix(infrastructure): keep the money scale at four decimals on read
-chore(skills): add finnavis-pr-create for the pr title and body
-feat(presentation)!: move history under /api/v1/history (T31)
+feat(t14): match a row on its external reference first
+fix(t07): keep the money scale at four decimals on read
+feat(t31)!: move history under /api/v1/history
+chore: add finnavis-pr-create for the pr title and body
+fix: point the master push hook at the real script
 ```
 
 ## Step 6 — Write the body
@@ -169,7 +190,8 @@ Rules for each part:
   Matcher.cs". The diff is already in the PR.
 - **Why** — the reason, in full. If the reason is in an ADR, say it in one sentence and link the ADR
   under Docs.
-- **Task** — one bullet per task, with the title copied from `tasks.json`. Link the task file with
+- **Task** — one bullet, with the feature slug, the id and the title copied from `tasks.json`.
+  The title does not carry the slug, so this bullet is where the feature is named. Link the task file with
   the absolute `blob/master` URL: the branch is deleted after the merge, so a branch link would
   break, and a relative link does not resolve in a PR body. Leave the section out when there is no
   task.
