@@ -179,6 +179,11 @@ public sealed class LedgerHistoryQueries(FinNavisDbContext context)
             conditions.Add("t.category_id = @category_id");
         }
 
+        if (!string.IsNullOrWhiteSpace(filter.NoteContains))
+        {
+            conditions.Add($"t.note ILIKE '%{filter.NoteContains}%'");
+        }
+
         if (boundary is not null)
         {
             conditions.Add($"(t.occurred_on, t.id) {Comparison(readingForward)} (@cursor_day, @cursor_id)");
