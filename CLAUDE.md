@@ -267,3 +267,9 @@ These are planned but do not exist. Do not assume they work.
 - React PWA in `src/web`
 - Playwright suite in `tests/e2e`
 - CI pipeline
+
+## Review guidelines
+
+The rules for a code review live in `AGENTS.md`, so Codex and Claude read one copy.
+
+@AGENTS.md
