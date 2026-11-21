@@ -273,7 +273,7 @@ w-rm() {
 
   if ! git -C "$main_root" branch -d "$branch" >/dev/null 2>&1; then
     echo "w-rm: branch $branch kept — it is not merged into the current branch." >&2
-    echo "   After a squash merge this is expected. Delete it with: git branch -D $branch" >&2
+    echo "   If it was merged on GitHub, pull master first. To delete it anyway: git branch -D $branch" >&2
   else
     echo "w-rm: deleted branch $branch"
   fi

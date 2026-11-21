@@ -3,7 +3,7 @@ name: finnavis-pr-create
 description: >
   Opens a pull request into master for the current work branch of FinNavis (a solo, self-hosted
   .NET pet project on GitHub). Owns the PR title convention — a Conventional Commit line that
-  becomes the squash commit, with the task id as the scope: "feat(t14): match a row on its
+  goes into the merge commit, with the task id as the scope: "feat(t14): match a row on its
   external reference", or "chore: bump npgsql" when there is no task — the fixed body template,
   and the link to the task file under docs/features/<slug>/tasks/. Takes the task id first from
   the branch name (feature/T14 means task T14), then from the arguments, the commit messages and
@@ -21,8 +21,9 @@ allowed-tools: Bash, Read, Grep, Glob, Write, AskUserQuestion
 
 # Create a pull request — FinNavis
 
-The PR title becomes the one commit that lands on `master` (squash merge). So the title is the
-long-lived history of the repo, and the body is the record of why the change was made. Both are
+The PR title goes into the merge commit that lands the branch on `master`. So the title is the
+one line that names the whole branch in the history, and the body is the record of why the change
+was made. Both are
 read later by the owner, who reads English as a second language. Write simply: short sentences,
 one idea per sentence, plain words. Keep technical terms as they are.
 
@@ -101,7 +102,7 @@ no scope and the body has no `## Task` section. Do not ask the user for a task i
 ## Step 4 — Pick the type
 
 The type list is closed: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`,
-`perf`. Pick by what the squashed change does to `master` as a whole, not by the first commit:
+`perf`. Pick by what the whole branch does to `master`, not by the first commit:
 
 - new behaviour or an extended one → `feat`;
 - a defect fixed in work already on `master` → `fix`;
@@ -201,7 +202,7 @@ Rules for each part:
   document that this branch creates is not on `master` yet, but the link works after the merge.
   Leave the section out when there is none.
 - **BREAKING CHANGE** — only with `!` in the title. It goes last, as a plain line, so it lands in
-  the squash commit as the footer.
+  the merge commit as the footer.
 
 ## Step 7 — Show, then the two gates
 

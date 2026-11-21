@@ -318,7 +318,7 @@ Do not push and do not open a PR. Both need the owner's approval (`.claude/rules
   or the tests. Stop, show the owner the failure, and let them decide. Do not retry with another
   agent, and do not edit the commit.
 - **Do not squash the phase commits.** Three commits are how the owner sees that RED came first.
-  The PR is squash-merged later anyway.
+  The branch is merged with a merge commit, so all three stay in the history of `master`.
 - **Do not reset on failure.** `git reset --hard` is denied to Claude in this repo. Give the owner
   the command and the SHA instead.
 

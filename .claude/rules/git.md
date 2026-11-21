@@ -162,8 +162,11 @@ Every change reaches `master` through a pull request. No direct push to `master`
 agent.
 
 - **Base** is always `master`.
-- **Merge** is a squash merge. The branch is short-lived and its intermediate commits are noise;
-  the squashed subject is the branch's one Conventional Commit line.
+- **Merge** is a merge commit, never a squash and never a fast-forward. Every commit of the branch
+  stays in the history of `master`, and the merge commit marks where the branch starts and ends.
+  `finnavis-changelog` reads the branch's commits through that merge commit (`<sha>^1..<sha>^2`),
+  so a squash or a fast-forward leaves it with nothing to read. Each commit on the branch is
+  therefore permanent history: keep it a clean Conventional Commit.
 - **Delete** the branch after the merge, local and remote.
 - **Title, body and task reference** are set by `.claude/skills/finnavis-pr-create/SKILL.md`.
   Open a PR through that skill.
