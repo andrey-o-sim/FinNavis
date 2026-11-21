@@ -6,8 +6,8 @@ apply to the agent only — the owner is free to work directly.
 ## Branches
 
 `master` is the trunk. It is the only long-lived branch. There is no `develop` and no `release/*`
-— this project has one owner, no release windows and no tags, so an integration branch would add a
-merge step and protect nothing. Add them in this file when releases start, not before.
+— this project has one owner and no release windows, so an integration branch would add a
+merge step and protect nothing. Add them in this file when release windows start, not before.
 
 Everything else is a short-lived work branch, cut from `master` and merged back into `master` by
 pull request.
@@ -28,6 +28,13 @@ pull request.
 - A push hook (`.claude/hooks/block-master-push.sh`) catches an accidental push to
   `master` and stops it. The real protection is server-side branch protection; the
   hook only backs you up against the obvious cases.
+
+## Tags
+- A release is a tag `v<x.y.z>`, the same number as the newest release in `CHANGELOG.md`. A GitHub
+  workflow creates it after the merge into `master`. That workflow is not set up yet.
+- The version lives only in `CHANGELOG.md` and the tag. `Directory.Build.props` has no `<Version>`.
+- Never move or re-create a tag that exists. A wrong release gets a new number.
+- **Claude:** do not create or push a tag. Tagging is the workflow's job.
 
 ## Cleanup
 - Push first, then remove. `git worktree remove` (or removing on session exit)
