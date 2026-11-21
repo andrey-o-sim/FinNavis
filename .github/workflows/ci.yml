@@ -16,6 +16,10 @@ concurrency:
 jobs:
   build-and-test:
     name: Build and test
+    # A bot pull request is the Release-PR from release.yml. It changes only CHANGELOG.md, so
+    # building and testing it repeats the run that the merge before it already passed. The push
+    # to master after its merge still runs this job.
+    if: github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
