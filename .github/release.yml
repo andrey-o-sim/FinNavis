@@ -1,0 +1,21 @@
+# The GitHub-native list of the merged pull requests of a release. GitHub builds it when a release
+# is created with generated notes, and groups each pull request by its label.
+#
+# .github/workflows/release.yml uses it as the second half of the release description: Claude's
+# release notes come first, this list follows. The same workflow sets the label to the
+# Conventional Commit type of the pull request title, so nobody labels a pull request by hand.
+changelog:
+  exclude:
+    labels:
+      - chore
+      - test
+      - ci
+      - docs
+      - refactor
+  categories:
+    - title: New feature
+      labels: [feat]
+    - title: Fixes
+      labels: [fix]
+    - title: Other
+      labels: ["*"] # catch-all for everything else

@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "status": {"type": "string", "enum": ["written", "nothing_notable", "stopped"]},
+    "version": {"type": "string"},
+    "report": {"type": "string"}
+  },
+  "required": ["status", "version", "report"]
+}

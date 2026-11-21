@@ -289,7 +289,9 @@ Show, in the user's language:
 5. Any judgement call the user may disagree with: an entry that could be Fixed or Added, a change
    you marked breaking without a marker, a group of commits you merged into one entry.
 6. Next step: `git diff CHANGELOG.md`, then commit it — `docs: add the changelog for <x.y.z>`.
-   Do not create a tag. A GitHub workflow tags the release after the merge into `master`.
+   Do not create a tag. `.github/workflows/release.yml` tags the release after the merge into
+   `master`. A local run is optional: when a branch has no release of its own, that workflow runs
+   this skill on the merge and opens a Release-PR with the result.
 
 If the user changes an entry or a section after the report, apply it. If the change is a rule this
 skill does not cover yet, say so with ⚠️ — it may belong in this file.

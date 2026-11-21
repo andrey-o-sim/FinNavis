@@ -30,8 +30,16 @@ pull request.
   hook only backs you up against the obvious cases.
 
 ## Tags
-- A release is a tag `v<x.y.z>`, the same number as the newest release in `CHANGELOG.md`. A GitHub
-  workflow creates it after the merge into `master`. That workflow is not set up yet.
+- A release is a tag `v<x.y.z>`, the same number as the newest release in `CHANGELOG.md`.
+  `.github/workflows/release.yml` creates it. The flow has two merges:
+  1. A pull request lands on `master`. The workflow builds its changelog with `finnavis-changelog`
+     and opens a Release-PR from `docs/release-<x.y.z>`. A merge with no notable change opens none.
+  2. The owner reviews the entries and merges the Release-PR. The workflow tags that merge commit,
+     writes the notes with `finnavis-release-notes` and publishes the GitHub Release.
+- A branch that already wrote its own release into `CHANGELOG.md` skips step 1: its merge is
+  released directly.
+- Only one Release-PR is open at a time. A merge that lands while one is open fails the workflow
+  on purpose. Merge the Release-PR, then re-run the failed job.
 - The version lives only in `CHANGELOG.md` and the tag. `Directory.Build.props` has no `<Version>`.
 - Never move or re-create a tag that exists. A wrong release gets a new number.
 - **Claude:** do not create or push a tag. Tagging is the workflow's job.
