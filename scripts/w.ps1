@@ -276,7 +276,7 @@ function w-rm {
 
     git -C $mainRoot branch -d $Branch *> $null
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "w-rm: branch $Branch kept - it is not merged into the current branch. After a squash merge this is expected. Delete it with: git branch -D $Branch"
+        Write-Warning "w-rm: branch $Branch kept - it is not merged into the current branch. If it was merged on GitHub, pull master first. To delete it anyway: git branch -D $Branch"
     } else {
         Write-Host "w-rm: deleted branch $Branch"
     }

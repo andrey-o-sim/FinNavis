@@ -235,7 +235,8 @@ Run these steps in order, with or without `--continue-on-error`.
      on top of red tests. After a rollback there is nothing to resume, so the report is safe to
      commit, and the next run starts the task clean.
    - `git reset --hard` is denied to Claude in this repo, and it would lose the attempt. `revert`
-     keeps the attempt in history, and the squash merge removes it from the PR.
+     keeps the attempt in history. The attempt and its revert stay in `master` after the merge,
+     and that is expected.
 
    The rollback commit carries no `Task:` trailer on purpose. With one, the planner would treat it
    as an interrupted run of that task.
