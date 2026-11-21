@@ -6,8 +6,8 @@ description: >
   built from that release's section in CHANGELOG.md, with the user's own wording taken from the
   feature's PRD §4 (User stories). Same release as the changelog, different reader: the changelog
   is the developer's list by section, the release notes are prose with no endpoint paths, error
-  codes, table names, file names or commit hashes. Keeps only what a user notices, and adds one
-  "before you start" line when the release needs an action, such as a migration to apply.
+  codes, table names, file names or commit hashes. Keeps only what a user notices: install steps
+  such as a migration to apply stay in CHANGELOG.md.
   Prints the notes to the chat to seed a GitHub Release description; writes no file and commits
   nothing. Run by hand only: "/finnavis-release-notes", "/finnavis-release-notes 0.1.0".
   Refuses when CHANGELOG.md or the asked release is missing — run finnavis-changelog first.
@@ -89,12 +89,10 @@ let the owner import a statement are one capability.
 - table names, column names, endpoint paths, field names, file names, commit hashes, task ids, AC
   ids.
 - anything only a developer reading the code would care about.
-
-**The one exception — what the owner must do.** FinNavis is self-hosted, so the owner also installs
-each release. When the release has a migration, a new required setting or a new environment
-variable, add one short "Before you start" line with the action and the command:
-"Apply the database update first: `./build.sh db-update`." This is the only place a command or a
-setting name may appear.
+- install steps: a migration to apply, a new setting, a new environment variable, any command.
+  They are work for whoever installs the release, not for the user of the app, and the changelog
+  entry already carries them. Once a deploy applies migrations, a manual step in the notes would
+  also be wrong.
 
 ## Step 4 — Write the notes
 
