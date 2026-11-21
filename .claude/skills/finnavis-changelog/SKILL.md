@@ -16,7 +16,7 @@ description: >
   including phrasings like "собери changelog", "changelog для ветки", "changelog для мержа a1b2c3d",
   "что попадёт в CHANGELOG", "обнови CHANGELOG.md", "какая будет версия", "changelog для фичи
   csv-import", "/finnavis-changelog" — even when they do not say the word changelog. Never creates
-  a git tag. Refuses on master without a merge commit, and on a commit that is not a
+  a git tag: the tag comes from a GitHub workflow after the merge. Refuses on master without a merge commit, and on a commit that is not a
   merge (a squash or a fast-forward has no branch boundary to read).
 argument-hint: "[merge commit sha | --scope <feature slug>] [--dry-run]"
 allowed-tools: Bash, Read, Edit, Write, Grep, Glob
@@ -115,7 +115,10 @@ commit can reveal what the feature really does. The diff is the evidence.
 
 **A changelog already on the branch.** If the range itself changes `CHANGELOG.md`, the branch
 already has entries — from an earlier run of this skill, or written by hand. Do not count
-`CHANGELOG.md` as a change, and do not add a second copy. Rebuild the branch's entries from all of
+`CHANGELOG.md` as a change, and do not add a second copy. In merge mode this is the normal case
+— the branch wrote its release before the merge. Do not write it again: check that the release in
+`CHANGELOG.md` covers the branch's changes, report any gap, and stop. There is nothing to write. In branch
+mode, rebuild the branch's entries from all of
 its commits, then replace the release section the branch added with the new one. Keep its version
 number unless the new entries call for a different bump. Leave releases that came from other
 branches alone.
@@ -254,8 +257,8 @@ Then:
   Fixed, Security.
 - Leave out a section with no entries. Do not write an empty heading.
 - Never change an older release. It describes what was already shipped.
-- No link references at the bottom (`[0.2.0]: https://…/compare/…`). They compare tags, and this
-  skill does not create tags.
+- No link references at the bottom (`[0.2.0]: https://…/compare/…`). They need the tags on
+  `origin`, and the tags come from a GitHub workflow, not from this skill.
 
 Before the write, check the current branch with `git branch --show-current`. The file is written
 into the working tree, so it lands on whatever branch is checked out:
@@ -267,7 +270,7 @@ into the working tree, so it lands on whatever branch is checked out:
 
 In `--dry-run`, skip the write and show the block that would be written.
 
-**Do not commit and do not tag.** The user reviews the file and commits it. In branch mode the
+**Do not commit.** The user reviews the file and commits it. In branch mode the
 commit belongs on the branch, so it lands with the branch. In merge and scope mode the user is usually on `master`, where
 `.claude/rules/git.md` forbids direct work — the user moves the change to a branch.
 
@@ -286,9 +289,7 @@ Show, in the user's language:
 5. Any judgement call the user may disagree with: an entry that could be Fixed or Added, a change
    you marked breaking without a marker, a group of commits you merged into one entry.
 6. Next step: `git diff CHANGELOG.md`, then commit it — `docs: add the changelog for <x.y.z>`.
-   The skill does not tag. If the user wants a tag, give the command and do not run it — a tag
-   goes on the merge commit, and pushing it needs approval like any push:
-   `git tag -a v<x.y.z> <merge sha> -m "v<x.y.z>"`.
+   Do not create a tag. A GitHub workflow tags the release after the merge into `master`.
 
 If the user changes an entry or a section after the report, apply it. If the change is a rule this
 skill does not cover yet, say so with ⚠️ — it may belong in this file.
