@@ -60,7 +60,7 @@ jobs:
         run: |
           parents=$(( $(git rev-list --parents -n 1 "$MERGE_SHA" | wc -w) - 1 ))
           if [[ "$parents" -ne 2 ]]; then
-            echo "::error::#$PR_NUMBER landed as $MERGE_SHA with $parents parent(s). The release flow needs a merge commit with two parents: merge with 'Create a merge commit'."
+            echo "::error::#$PR_NUMBER landed as $MERGE_SHA with $parents parent(s). The release flow needs a merge commit with two parents: merge with 'Merge pull request', not with a squash or a rebase."
             exit 1
           fi
 
