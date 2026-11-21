@@ -1,20 +1,24 @@
 ---
 name: finnavis-changelog
 description: >
-  Builds the changelog of one branch of FinNavis (a solo, self-hosted .NET pet project) in the six
+  Builds the changelog of one branch or one feature of FinNavis (a solo, self-hosted .NET pet project) in the six
   sections of Keep a Changelog 1.1.0 — Added, Changed, Deprecated, Removed, Fixed, Security — and
-  writes it under "## [Unreleased]" in CHANGELOG.md. Two inputs: the current work branch (its
-  commits master..HEAD), or the merge commit that landed a branch on master (its commits
-  <sha>^1..<sha>^2). Sorts by what the change does for a reader of the changelog, not by the commit
+  writes it to CHANGELOG.md as a new Semantic Versioning release, "## [0.2.0] - 2026-11-21", with
+  the bump picked from the entries (breaking or Removed → major, a new or changed feature → minor,
+  only fixes → patch; below 1.0.0 a breaking change bumps minor). Three inputs: the current work
+  branch (its commits master..HEAD), the merge commit that landed a branch on master (its commits
+  <sha>^1..<sha>^2), or --scope <feature slug> for old history that has no merge commit. Sorts by what the change does for a reader of the changelog, not by the commit
   type: a fix of code written on the same branch is not Fixed, a refactor with no visible effect is
   left out, and .claude/ skills, workflows and the task tracker never appear. Writes the file and
   stops; never commits. Use this whenever the user wants a changelog, a CHANGELOG entry, "what
-  changed" in keepachangelog sections, or release-style notes for a branch or a merge in this repo —
+  changed" in keepachangelog sections, the next version number, or release-style notes for a
+  branch, a merge or a feature in this repo —
   including phrasings like "собери changelog", "changelog для ветки", "changelog для мержа a1b2c3d",
-  "что попадёт в CHANGELOG", "обнови CHANGELOG.md", "/finnavis-changelog" — even when they do not
-  say the word changelog. Refuses on master without a merge commit, and on a commit that is not a
+  "что попадёт в CHANGELOG", "обнови CHANGELOG.md", "какая будет версия", "changelog для фичи
+  csv-import", "/finnavis-changelog" — even when they do not say the word changelog. Never creates
+  a git tag. Refuses on master without a merge commit, and on a commit that is not a
   merge (a squash or a fast-forward has no branch boundary to read).
-argument-hint: "[merge commit sha] [--dry-run]"
+argument-hint: "[merge commit sha | --scope <feature slug>] [--dry-run]"
 allowed-tools: Bash, Read, Edit, Write, Grep, Glob
 ---
 
@@ -24,6 +28,10 @@ A changelog is for a person, not for a machine. Keep a Changelog 1.1.0 says it l
 changes, grouped by what they do, newest first. `git log` already exists for everything else. So
 the work of this skill is mostly judgement: which changes a reader of this repo cares about, and
 which of the six sections each one belongs to.
+
+One run is one release. This project has one owner and no release windows, so what lands on
+`master` is released: every branch, merge or feature this skill describes gets its own version
+number. There is no `[Unreleased]` section to collect entries in.
 
 The reader is the owner, in two roles: the person who calls the API, and the developer who builds
 and runs the project. They read English as a second language. Write each entry simply: one short
@@ -37,7 +45,11 @@ Talk to the user in the language they wrote in. `CHANGELOG.md` is always English
 - A commit sha: the merge commit that landed a branch on `master`. Its commits are
   `<sha>^1..<sha>^2` — everything reachable from the branch tip and not from `master` before the
   merge.
-- `--dry-run`: build the entries and show them. Do not touch `CHANGELOG.md`.
+- `--scope <feature slug>`: old history that landed on `master` without a merge commit, before
+  `.claude/rules/git.md` required one. Its commits are the ones whose Conventional Commit scope is
+  that slug — `feat(csv-import): …`. Use it only for that history; for anything merged since, the
+  merge commit is the reliable boundary.
+- `--dry-run`: build the entries and the version and show them. Do not touch `CHANGELOG.md`.
 
 ## Step 1 — Find the range, or refuse
 
@@ -53,16 +65,37 @@ git rev-list --parents -n 1 <sha>      # the sha, then its parents
   §Pull requests requires a merge commit for exactly this reason. Do not guess a range from dates
   or commit subjects.
 - More than two parents (an octopus merge) — stop and ask which parent is the branch.
-- Base is `<sha>^1`, tip is `<sha>^2`. Take the branch name from the merge subject when it has one
+- Base is `<sha>^1`, tip is `<sha>^2`. The release date is the date of the merge commit
+  (`git log -1 --format=%cs <sha>`). Take the branch name from the merge subject when it has one
   (`Merge pull request #12 from owner/feature/T14`, `Merge branch 'feature/T14'`).
 - If `git merge-base --is-ancestor <sha> master` fails, the merge is not on local `master`. Say so
   and continue — the user may be ahead of or behind `origin`.
+
+**With `--scope <slug>`:**
+
+```bash
+git log --reverse --format='%h %ad %s' --date=short master | grep -E '^[0-9a-f]+ \S+ [a-z]+\(<slug>\)!?:'
+```
+
+- The slug must be a folder in `docs/features/`. If it is not, stop and list the folders.
+- Take the commits of every type. `docs(<slug>)` and `chore(<slug>)` commits are read too — Step 3
+  drops most of them, but the report must show they were looked at.
+- A commit with another scope can still be part of the feature — for example a `fix(presentation)`
+  whose body says the feature's check found it. Look for the slug in the bodies of the commits
+  between the first and the last one of the set (`git log --format='%h %s%n%b' <first>^..<last>`).
+  Show each such commit to the user with one line on why it may belong, and add it only after
+  they confirm. Do not add one silently.
+- Base for Step 4 is the parent of the first commit in the set: `<first>^`. The release date is the
+  date of the last commit in the set.
+- Older history can carry commits with no scope or with the pre-convention form (`03: sad §4 …`).
+  They are design documents almost every time. Mention how many there are and leave them out.
 
 **Without a sha:**
 
 - On `master`, stop. Ask for the sha of the merge commit; offer `git log --merges --oneline -10
   master` so the user can pick one.
 - Base is `master`, tip is `HEAD`. If `git log master..HEAD` is empty, stop: nothing to describe.
+  The release date is today.
 - Uncommitted changes are not in the range. Mention them in one line and continue; the changelog
   covers commits.
 
@@ -83,8 +116,9 @@ commit can reveal what the feature really does. The diff is the evidence.
 **A changelog already on the branch.** If the range itself changes `CHANGELOG.md`, the branch
 already has entries — from an earlier run of this skill, or written by hand. Do not count
 `CHANGELOG.md` as a change, and do not add a second copy. Rebuild the branch's entries from all of
-its commits, then replace the entries the branch added with the new set. Leave entries that came
-from other branches alone.
+its commits, then replace the release section the branch added with the new one. Keep its version
+number unless the new entries call for a different bump. Leave releases that came from other
+branches alone.
 
 ## Step 3 — Decide what is notable
 
@@ -168,7 +202,38 @@ now happens differently. Name the endpoint, field, error code, table or command 
 - Do not start with the section's own verb. Under `### Added`, write `` `POST /api/v1/imports` imports a bank statement``
   or `Import a bank statement …`, not `Added …` or `Add support for …`.
 
-## Step 6 — Write CHANGELOG.md
+## Step 6 — Pick the version
+
+Versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html): `MAJOR.MINOR.PATCH`.
+
+**The current version** is the newest `## [x.y.z]` heading. Read it from two places and take the
+higher one:
+
+- `CHANGELOG.md` in the working tree;
+- `git show master:CHANGELOG.md` — a branch cut before another branch was merged does not see that
+  release yet, and two branches must not both claim the same number.
+
+No version anywhere means this is the first release: it is `0.1.0`, whatever the entries are.
+
+**The bump** comes from the strongest entry:
+
+| The entries contain | From 1.0.0 on | Below 1.0.0 |
+|---|---|---|
+| a `**BREAKING:**` entry, or anything in Removed | MAJOR — `1.4.2` → `2.0.0` | MINOR — `0.3.2` → `0.4.0` |
+| anything in Added, Changed or Deprecated | MINOR — `1.4.2` → `1.5.0` | MINOR — `0.3.2` → `0.4.0` |
+| only Fixed and Security | PATCH — `1.4.2` → `1.4.3` | PATCH — `0.3.2` → `0.3.3` |
+
+Below 1.0.0 semver says the API is not stable yet, so a breaking change does not force `1.0.0`.
+Going to `1.0.0` is the owner's decision, not a side effect of a removed field — this skill never
+picks it. If the user asks for it, use it.
+
+A bump resets the parts to its right: a MINOR bump sets PATCH to `0`, a MAJOR bump sets both.
+
+**An older release.** If the file already has a release dated after this one — for example a
+merge from last week described after today's — stop and ask. Inserting it in the middle would
+renumber every release above it.
+
+## Step 7 — Write CHANGELOG.md
 
 The file is at the repository root. If it does not exist, create it with this header:
 
@@ -177,48 +242,53 @@ The file is at the repository root. If it does not exist, create it with this he
 
 All notable changes to this project are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-The project has no version numbers yet, so every change is listed under [Unreleased].
-
-## [Unreleased]
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ```
 
 Then:
 
-- Put the entries under `## [Unreleased]`. Sections go in this fixed order, each as
-  `### <Section>`: Added, Changed, Deprecated, Removed, Fixed, Security.
+- Add the release as `## [x.y.z] - YYYY-MM-DD` right under the header, above every older
+  release. The newest release is always first.
+- Sections go in this fixed order, each as `### <Section>`: Added, Changed, Deprecated, Removed,
+  Fixed, Security.
 - Leave out a section with no entries. Do not write an empty heading.
-- If a section already exists under `[Unreleased]`, add to it. Do not reorder or rewrite entries
-  that came from other branches.
-- Never touch a released version below `[Unreleased]`.
+- Never change an older release. It describes what was already shipped.
+- No link references at the bottom (`[0.2.0]: https://…/compare/…`). They compare tags, and this
+  skill does not create tags.
 
 Before the write, check the current branch with `git branch --show-current`. The file is written
 into the working tree, so it lands on whatever branch is checked out:
 
 - On `master` — write it, and say that the change has to move to a new branch before it is
   committed.
-- On another branch in merge mode — that branch may have nothing to do with the merge. Say which
-  branch it is, and write only after the user confirms.
+- On another branch in merge or scope mode — that branch may have nothing to do with the change.
+  Say which branch it is, and write only after the user confirms.
 
 In `--dry-run`, skip the write and show the block that would be written.
 
-**Do not commit.** The user reviews the file and commits it. In branch mode the commit belongs on
-the branch, so it lands with the branch. In merge mode the user is usually on `master`, where
+**Do not commit and do not tag.** The user reviews the file and commits it. In branch mode the
+commit belongs on the branch, so it lands with the branch. In merge and scope mode the user is usually on `master`, where
 `.claude/rules/git.md` forbids direct work — the user moves the change to a branch.
 
-## Step 7 — Report
+## Step 8 — Report
 
 Show, in the user's language:
 
-1. The range: base, tip, number of commits, and the branch name if known.
-2. The entries, by section, exactly as written to the file.
-3. The out-list: what was left out and why, grouped by reason (`.claude/` workflows — 4 commits,
+1. The range: base, tip, number of commits, and the branch name if known. In scope mode, how the
+   set was chosen and which other-scope commits the user added.
+2. The version: the current one, the new one, and the entry that decided the bump.
+3. The entries, by section, exactly as written to the file.
+4. The out-list: what was left out and why, grouped by reason (`.claude/` workflows — 4 commits,
    the task tracker, inner-ring code not reachable yet). One commit often touches several groups,
    so count by commit only where it is clean; otherwise name the files or the change. Short, not one
    line per commit.
-4. Any judgement call the user may disagree with: an entry that could be Fixed or Added, a change
+5. Any judgement call the user may disagree with: an entry that could be Fixed or Added, a change
    you marked breaking without a marker, a group of commits you merged into one entry.
-5. Next step: `git diff CHANGELOG.md`, then commit it — `docs: add the changelog for <branch>`.
+6. Next step: `git diff CHANGELOG.md`, then commit it — `docs: add the changelog for <x.y.z>`.
+   The skill does not tag. If the user wants a tag, give the command and do not run it — a tag
+   goes on the merge commit, and pushing it needs approval like any push:
+   `git tag -a v<x.y.z> <merge sha> -m "v<x.y.z>"`.
 
 If the user changes an entry or a section after the report, apply it. If the change is a rule this
 skill does not cover yet, say so with ⚠️ — it may belong in this file.
