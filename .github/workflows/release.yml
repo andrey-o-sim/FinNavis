@@ -1,0 +1,265 @@
+name: Release
+
+# Every change reaches master through a pull request that lands as a merge commit
+# (.claude/rules/git.md), so a merged pull request is the one moment a release can start.
+#
+# The run takes one of two paths. CHANGELOG.md picks it:
+#
+# - The merge did not raise the newest version in CHANGELOG.md. Claude builds the changelog of
+#   the merge with the finnavis-changelog skill, and the run opens a Release-PR with it. The owner
+#   reviews the entries there and merges the Release-PR.
+# - The merge raised the newest version. That is a merged Release-PR, or a branch that wrote its
+#   own release before the merge. The run tags the merge commit, Claude writes the release notes
+#   with the finnavis-release-notes skill, and the run publishes the GitHub Release.
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+# Two merges close together would both compute the same next version. One run at a time, and no
+# run is cancelled, so each run sees what the run before it did.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      # The title is free text from the pull request. It reaches the scripts only through the
+      # environment, never inlined into a script, so it cannot inject a command.
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      CLAUDE_MODEL: claude-sonnet-5-5
+
+    steps:
+      # master, not the merge commit: a re-run after a Release-PR merge must see that release.
+      - name: Check out master with the full history
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # finnavis-changelog reads a branch as <sha>^1..<sha>^2. A squash or a rebase merge leaves
+      # one parent, so the branch boundary is gone and there is nothing reliable to read.
+      - name: Check that the pull request landed as a merge commit
+        run: |
+          parents=$(( $(git rev-list --parents -n 1 "$MERGE_SHA" | wc -w) - 1 ))
+          if [[ "$parents" -ne 2 ]]; then
+            echo "::error::#$PR_NUMBER landed as $MERGE_SHA with $parents parent(s). The release flow needs a merge commit with two parents: merge with 'Create a merge commit'."
+            exit 1
+          fi
+
+      # .github/release.yml groups the pull requests of a release by label. The label is the
+      # Conventional Commit type of the pull request title, so nobody has to set it by hand.
+      - name: Label the pull request with its commit type
+        run: |
+          type=$(printf '%s' "$PR_TITLE" | sed -nE 's/^([a-z]+)(\([^)]*\))?!?: .*/\1/p')
+          if [[ -z "$type" ]]; then
+            echo "::warning::The title of #$PR_NUMBER is not a Conventional Commit, so it gets no label."
+            exit 0
+          fi
+          gh label create "$type" --color ededed 2>/dev/null || true
+          gh pr edit "$PR_NUMBER" --add-label "$type"
+
+      - name: Pick the path by the newest version in CHANGELOG.md
+        id: path
+        run: |
+          newest_version() {
+            git show "$1:CHANGELOG.md" 2>/dev/null \
+              | sed -nE 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/p' | head -n 1
+          }
+          before=$(newest_version "$MERGE_SHA^1")
+          after=$(newest_version "$MERGE_SHA")
+          echo "previous=$before" >> "$GITHUB_OUTPUT"
+          if [[ -n "$after" && "$after" != "$before" ]]; then
+            echo "::notice::#$PR_NUMBER raised CHANGELOG.md from '${before:-none}' to $after, so this run releases v$after."
+            echo "mode=release" >> "$GITHUB_OUTPUT"
+            echo "version=$after" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=curate" >> "$GITHUB_OUTPUT"
+          fi
+
+      # An open Release-PR already holds the next version number. A second changelog now would
+      # claim the same number, so the run stops and names the open one instead.
+      - name: Stop when a Release-PR is still open
+        if: steps.path.outputs.mode == 'curate'
+        run: |
+          open=$(gh pr list --state open --base master --json number,headRefName \
+            --jq '[.[] | select(.headRefName | startswith("docs/release-")) | "#\(.number)"] | join(", ")')
+          if [[ -n "$open" ]]; then
+            echo "::error::Release-PR $open is still open. Merge it first, then re-run this job: it builds the changelog of #$PR_NUMBER on top of that release."
+            exit 1
+          fi
+
+      - name: Install Claude Code
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Build the changelog of the merge
+        if: steps.path.outputs.mode == 'curate'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          prompt="$(cat .github/prompts/changelog.md)
+
+          The merge commit is $MERGE_SHA, from pull request #$PR_NUMBER."
+          claude -p "$prompt" \
+            --model "$CLAUDE_MODEL" \
+            --max-turns 40 \
+            --allowed-tools "Read" "Grep" "Glob" "Edit(./CHANGELOG.md)" "Write(./CHANGELOG.md)" \
+              "Bash(git log *)" "Bash(git show *)" "Bash(git diff *)" "Bash(git rev-list *)" \
+              "Bash(git rev-parse *)" "Bash(git merge-base *)" "Bash(git branch *)" \
+            --output-format json \
+            --json-schema "$(cat .github/prompts/changelog.schema.json)" \
+            > "$RUNNER_TEMP/changelog-response.json"
+          python3 .github/scripts/extract-structured.py \
+            "$RUNNER_TEMP/changelog-response.json" "$RUNNER_TEMP/changelog.json"
+
+      - name: Open the Release-PR
+        if: steps.path.outputs.mode == 'curate'
+        run: |
+          status=$(jq -r '.status' "$RUNNER_TEMP/changelog.json")
+          version=$(jq -r '.version' "$RUNNER_TEMP/changelog.json")
+          report=$(jq -r '.report' "$RUNNER_TEMP/changelog.json")
+          changed=$(git status --porcelain | awk '{print $2}' | paste -sd ' ' -)
+          printf '## Changelog of #%s\n\n%s\n' "$PR_NUMBER" "$report" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/master)" ]]; then
+            echo "::error::The changelog run made a commit. It must only edit CHANGELOG.md."
+            exit 1
+          fi
+
+          if [[ "$status" != "written" ]]; then
+            if [[ -n "$changed" ]]; then
+              echo "::error::The changelog run reported '$status' and still changed: $changed"
+              exit 1
+            fi
+            if [[ "$status" == "stopped" ]]; then
+              echo "::error::finnavis-changelog stopped on #$PR_NUMBER. The reason is in the job summary."
+              exit 1
+            fi
+            echo "::notice::#$PR_NUMBER has no notable change, so it starts no release."
+            exit 0
+          fi
+
+          if [[ "$changed" != "CHANGELOG.md" ]]; then
+            echo "::error::The changelog run must change CHANGELOG.md only. It changed: ${changed:-nothing}"
+            exit 1
+          fi
+          newest=$(sed -nE 's/^## \[([0-9]+\.[0-9]+\.[0-9]+)\].*/\1/p' CHANGELOG.md | head -n 1)
+          if [[ "$newest" != "$version" ]]; then
+            echo "::error::The run reported version '$version', but the newest release in CHANGELOG.md is '$newest'."
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "::error::Tag v$version already exists. A released number is never reused."
+            exit 1
+          fi
+
+          branch="docs/release-$version"
+          git switch -c "$branch"
+          git add CHANGELOG.md
+          git commit -m "docs: add the changelog for $version" \
+            -m "Built by the release workflow from the merge of #$PR_NUMBER."
+          # The branch belongs to this workflow. A force push replaces what a failed earlier run
+          # left behind.
+          git push --force origin "$branch"
+
+          {
+            echo "The changelog of #$PR_NUMBER, built by the release workflow."
+            echo
+            echo "**Merging this pull request tags \`v$version\` and publishes the GitHub Release.**"
+            echo "If an entry is wrong, fix \`CHANGELOG.md\` on this branch before the merge."
+            echo
+            echo "## Report"
+            echo
+            printf '%s\n' "$report"
+            echo
+            echo "## Diff"
+            echo
+            echo '```diff'
+            git diff HEAD~1 -- CHANGELOG.md
+            echo '```'
+          } > "$RUNNER_TEMP/release-pr-body.md"
+          gh pr create --base master --head "$branch" \
+            --title "docs: add the changelog for $version" \
+            --body-file "$RUNNER_TEMP/release-pr-body.md"
+
+      - name: Tag the release
+        if: steps.path.outputs.mode == 'release'
+        env:
+          VERSION: ${{ steps.path.outputs.version }}
+        run: |
+          tag="v$VERSION"
+          if existing=$(git rev-parse -q --verify "refs/tags/$tag^{commit}"); then
+            if [[ "$existing" != "$(git rev-parse "$MERGE_SHA")" ]]; then
+              echo "::error::$tag already exists on $existing, not on $MERGE_SHA. A tag is never moved: give this release a new number in CHANGELOG.md."
+              exit 1
+            fi
+            echo "::notice::$tag is already on $MERGE_SHA."
+            exit 0
+          fi
+          git tag -a "$tag" -m "$tag" "$MERGE_SHA"
+          git push origin "$tag"
+
+      - name: Write the release notes
+        if: steps.path.outputs.mode == 'release'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          VERSION: ${{ steps.path.outputs.version }}
+        run: |
+          prompt="$(cat .github/prompts/release-notes.md)
+
+          The version is $VERSION."
+          claude -p "$prompt" \
+            --model "$CLAUDE_MODEL" \
+            --max-turns 20 \
+            --allowed-tools "Read" "Grep" "Glob" \
+            --output-format json \
+            --json-schema "$(cat .github/prompts/release-notes.schema.json)" \
+            > "$RUNNER_TEMP/release-notes-response.json"
+          python3 .github/scripts/extract-structured.py \
+            "$RUNNER_TEMP/release-notes-response.json" "$RUNNER_TEMP/release-notes.json"
+
+          jq -r '.notes' "$RUNNER_TEMP/release-notes.json" > "$RUNNER_TEMP/release-notes.md"
+          printf '## Release notes of v%s\n\n%s\n' "$VERSION" \
+            "$(jq -r '.report' "$RUNNER_TEMP/release-notes.json")" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -z "$(tr -d '[:space:]' < "$RUNNER_TEMP/release-notes.md")" ]]; then
+            echo "::error::finnavis-release-notes returned no notes for v$VERSION. The reason is in the job summary."
+            exit 1
+          fi
+
+      # The notes from Claude come first. GitHub appends its own list of the merged pull requests,
+      # grouped by label as .github/release.yml says.
+      - name: Publish the GitHub Release
+        if: steps.path.outputs.mode == 'release'
+        env:
+          VERSION: ${{ steps.path.outputs.version }}
+          PREVIOUS: ${{ steps.path.outputs.previous }}
+        run: |
+          tag="v$VERSION"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::notice::The GitHub Release $tag already exists."
+            exit 0
+          fi
+          args=(--verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/release-notes.md" --generate-notes)
+          if [[ -n "$PREVIOUS" ]] && git rev-parse -q --verify "refs/tags/v$PREVIOUS" >/dev/null; then
+            args+=(--notes-start-tag "v$PREVIOUS")
+          fi
+          gh release create "$tag" "${args[@]}"
