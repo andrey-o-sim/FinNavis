@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-21
+
+### Changed
+
+- The CI workflow `.github/workflows/ci.yml` skips build and test on a pull request opened by a bot, such as the Release-PR. The Release-PR changes only `CHANGELOG.md`, and the push to `master` after its merge still runs the job.
+
 ## [0.3.0] - 2026-11-21
 
 ### Changed
