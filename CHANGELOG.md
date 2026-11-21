@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-21
+
+### Added
+
+- A merged pull request now runs the release workflow `.github/workflows/release.yml`. When the merge does not raise the newest version in `CHANGELOG.md`, it opens a Release-PR from `docs/release-<x.y.z>` with the new changelog entries for the owner to review.
+- When a merge raises the newest version in `CHANGELOG.md`, the workflow tags the merge commit as `v<x.y.z>` and publishes a GitHub Release with release notes. The release also lists the merged pull requests, grouped by the type of the pull request title.
+
 ## [0.1.0] - 2026-11-08
 
 ### Added
