@@ -4,4 +4,5 @@ public sealed record HistoryFilter(
     DateOnly? From,
     DateOnly? To,
     Guid? AccountId,
-    Guid? CategoryId);
+    Guid? CategoryId,
+    string? NoteContains = null);
