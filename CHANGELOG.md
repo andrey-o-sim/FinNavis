@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-21
+
+### Changed
+
+- The Claude code review workflow `.github/workflows/claude-code-review.yml` skips a pull request opened by a bot, such as the Release-PR. Before, the review check failed on every Release-PR.
+- The release workflow error for a merge with one parent now tells you to use `Merge pull request`, not a squash or a rebase. It named a button that the repository does not show.
+
 ## [0.2.0] - 2026-11-21
 
 ### Added
